@@ -13,6 +13,7 @@ export function baseOptions(): BaseLayoutProps {
     },
     links: [
       { text: "Gallery", url: "/" },
+      { text: "Playground", url: "/playground" },
       { text: "Docs", url: "/docs" },
     ],
     githubUrl: `https://github.com/${owner}/${repo}`,

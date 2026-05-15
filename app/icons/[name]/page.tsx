@@ -2,10 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { ComponentType } from "react";
+import { ServerCodeBlock } from "fumadocs-ui/components/codeblock.rsc";
 import * as Icons from "@/src/generated";
 import iconNodes from "lucide-static/icon-nodes.json";
 import type { DrawIconProps, IconNode } from "@/src/engine";
-import { CopyLine } from "@/components/icon-detail/copy-line";
 import { IconHero } from "@/components/icon-detail/icon-hero";
 import { TimingPresets } from "@/components/icon-detail/timing-presets";
 import { getAllSlugs, getIcon } from "@/lib/icon-data";
@@ -49,20 +49,8 @@ export default async function IconPage(props: PageProps<"/icons/[name]">) {
       }}
     >
       <div className="mx-auto w-full max-w-4xl px-6 py-12 sm:px-10">
-        {/* Breadcrumb */}
-        <nav className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
-          <Link
-            href="/"
-            className="hover:text-primary hover:underline underline-offset-4"
-          >
-            Gallery
-          </Link>
-          {" · "}
-          <span>{icon.name}</span>
-        </nav>
-
         {/* Header */}
-        <header className="mt-6 flex flex-wrap items-end justify-between gap-4 border-b border-border pb-6">
+        <header className="flex flex-wrap items-end justify-between gap-4 border-b border-border pb-6">
           <div>
             <h1 className="text-4xl font-semibold tracking-tight">{icon.name}</h1>
             <p className="mt-2 text-sm text-muted-foreground">
@@ -96,31 +84,48 @@ export default async function IconPage(props: PageProps<"/icons/[name]">) {
         </section>
 
         {/* Imports */}
-        <section className="mt-10 space-y-4">
-          <div className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-            Import
+        <section className="mt-12 space-y-4">
+          <div className="space-y-1">
+            <h2 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
+              Import
+            </h2>
+            <p className="text-sm leading-relaxed text-muted-foreground">
+              Tree-shakable named import — only the icons you reference end up
+              in your bundle.
+            </p>
           </div>
-          <CopyLine
-            value={`import { ${icon.component} } from "lucide-react-motion";`}
+          <ServerCodeBlock
+            lang="tsx"
+            code={`import { ${icon.component} } from "lucide-react-motion";`}
           />
-          <CopyLine
-            value={`import { ${icon.component}Icon } from "lucide-react-motion";`}
-            label="alias (Lucide-suffix convention)"
-          />
+          <p className="mt-4 text-xs text-muted-foreground">
+            Also exported as{" "}
+            <code className="border border-border bg-secondary px-1.5 py-0.5 text-[0.9em]">
+              {icon.component}Icon
+            </code>{" "}
+            for the Lucide-suffix naming convention.
+          </p>
         </section>
 
         {/* Quick start */}
-        <section className="mt-10 space-y-3">
-          <div className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-            Quick start
+        <section className="mt-12 space-y-4">
+          <div className="space-y-1">
+            <h2 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
+              Quick start
+            </h2>
+            <p className="text-sm leading-relaxed text-muted-foreground">
+              Drop the component into your JSX. The default trigger plays the
+              draw animation on hover.
+            </p>
           </div>
-          <div className="flex flex-wrap items-center gap-6 border border-border bg-background/40 p-6">
-            <pre className="flex-1 overflow-x-auto text-xs">
-              <code>{`import { ${icon.component} } from "lucide-react-motion";
+          <div className="grid items-center gap-6 sm:grid-cols-[1fr_auto]">
+            <ServerCodeBlock
+              lang="tsx"
+              code={`import { ${icon.component} } from "lucide-react-motion";
 
-<${icon.component} size={32} />`}</code>
-            </pre>
-            <div className="flex items-center justify-center border-l border-border pl-6">
+<${icon.component} size={32} />`}
+            />
+            <div className="flex items-center justify-center border border-border bg-background/40 p-6 sm:px-10">
               <Icon size={32} />
             </div>
           </div>
@@ -183,36 +188,35 @@ export default async function IconPage(props: PageProps<"/icons/[name]">) {
         )}
 
         {/* Raw node data */}
-        <section className="mt-12 space-y-3">
-          <div className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-            Raw node data
+        <section className="mt-12 space-y-4">
+          <div className="space-y-1">
+            <h2 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
+              Raw node data
+            </h2>
+            <p className="text-sm leading-relaxed text-muted-foreground">
+              The icon&apos;s underlying SVG node tree — useful if you need to
+              render or transform it yourself instead of using the component.
+            </p>
           </div>
-          <details className="border border-border bg-background/40">
-            <summary className="cursor-pointer px-4 py-2 text-xs text-muted-foreground hover:text-foreground">
-              IconNode[] (build-your-own)
+          <details className="space-y-3">
+            <summary className="cursor-pointer text-xs text-muted-foreground hover:text-foreground">
+              Show IconNode[]
             </summary>
-            <pre className="overflow-x-auto border-t border-border bg-secondary/40 px-4 py-3 text-[11px] leading-relaxed">
-              <code>{JSON.stringify(nodes, null, 2)}</code>
-            </pre>
+            <ServerCodeBlock
+              lang="json"
+              code={JSON.stringify(nodes, null, 2)}
+            />
           </details>
         </section>
 
         {/* Footer */}
-        <footer className="mt-16 flex flex-wrap items-center justify-between gap-3 border-t border-border pt-6 text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
+        <footer className="mt-16 border-t border-border pt-6 text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
           <Link
             href="/"
             className="hover:text-primary hover:underline underline-offset-4"
           >
             ← Back to gallery
           </Link>
-          <a
-            href={`https://lucide.dev/icons/${icon.name}`}
-            target="_blank"
-            rel="noreferrer"
-            className="hover:text-primary hover:underline underline-offset-4"
-          >
-            lucide.dev/icons/{icon.name} ↗
-          </a>
         </footer>
       </div>
     </div>

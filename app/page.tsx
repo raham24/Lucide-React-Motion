@@ -6,6 +6,10 @@ import manifest from "@/src/generated/manifest.json";
 import * as Icons from "@/src/generated";
 import type { DrawIconProps } from "@/src/engine";
 import { IconCell } from "@/components/icon-cell";
+import { ICON_COUNT, siteConfig } from "@/lib/site-config";
+
+const ICON_COUNT_FORMATTED = ICON_COUNT.toLocaleString();
+const GITHUB_URL = `https://github.com/${siteConfig.github.owner}/${siteConfig.github.repo}`;
 
 type IconComponent = ComponentType<Omit<DrawIconProps, "nodes">>;
 const IconMap = Icons as unknown as Record<string, IconComponent | undefined>;
@@ -67,7 +71,9 @@ export default function Gallery() {
             Playground
           </Link>
           <a
-            href="https://github.com"
+            href={GITHUB_URL}
+            target="_blank"
+            rel="noreferrer"
             className="border border-foreground px-4 py-2 text-xs uppercase tracking-[0.12em] transition-colors hover:bg-foreground hover:text-background"
           >
             GitHub
@@ -85,7 +91,7 @@ export default function Gallery() {
               setQuery(e.target.value);
               setLimit(PAGE_SIZE);
             }}
-            placeholder="search 1,711 icons..."
+            placeholder={`search ${ICON_COUNT_FORMATTED} icons...`}
             className="w-full bg-transparent outline-none placeholder:text-muted-foreground"
           />
         </label>

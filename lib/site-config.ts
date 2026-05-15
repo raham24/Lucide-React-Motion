@@ -1,7 +1,10 @@
+import manifest from "@/src/generated/manifest.json";
+
+export const ICON_COUNT = manifest.length;
+
 export const siteConfig = {
   name: "Lucide//Motion",
-  description:
-    "Animated, editable React components for all 1,711 Lucide icons. Drop-in replacement for lucide-react.",
+  description: `Animated, editable React components for all ${ICON_COUNT.toLocaleString()} Lucide icons. Drop-in replacement for lucide-react.`,
   url: "https://lucide-react-motion.dev",
   github: {
     owner: "aadil-alli",

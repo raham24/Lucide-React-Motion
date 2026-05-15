@@ -18,10 +18,11 @@ export function IconCell({ name, Icon }: IconCellProps) {
     <Link
       href={`/icons/${name}`}
       title={`${name} — view details`}
+      data-motion-icon-group
       className="group relative flex aspect-square cursor-pointer flex-col items-center justify-between gap-2 border-b border-r border-border bg-transparent px-3 py-5 text-foreground transition-colors hover:bg-secondary/60 hover:text-primary"
     >
       <span className="flex flex-1 items-center justify-center">
-        <Icon size={36} strokeWidth={1.75} />
+        <Icon size={36} strokeWidth={1.75} trigger="parent-hover" />
       </span>
       <span className="block w-full truncate text-center text-[10px] uppercase tracking-[0.08em] text-muted-foreground group-hover:text-foreground">
         {name}

@@ -4,6 +4,30 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+catalogs:
+  default:
+    '@types/node':
+      specifier: ^20
+      version: 20.19.41
+    '@types/react':
+      specifier: ^19
+      version: 19.2.14
+    '@types/react-dom':
+      specifier: ^19
+      version: 19.2.3
+    motion:
+      specifier: ^12.38.0
+      version: 12.38.0
+    react:
+      specifier: 19.2.4
+      version: 19.2.4
+    react-dom:
+      specifier: 19.2.4
+      version: 19.2.4
+    typescript:
+      specifier: ^5
+      version: 5.9.3
+
 importers:
 
   .:
@@ -42,7 +66,7 @@ importers:
         specifier: ^1.16.0
         version: 1.16.0
       motion:
-        specifier: ^12.38.0
+        specifier: 'catalog:'
         version: 12.38.0(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       next:
         specifier: 16.2.6
@@ -54,10 +78,10 @@ importers:
         specifier: ^1.4.3
         version: 1.4.3(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       react:
-        specifier: 19.2.4
+        specifier: 'catalog:'
         version: 19.2.4
       react-dom:
-        specifier: 19.2.4
+        specifier: 'catalog:'
         version: 19.2.4(react@19.2.4)
       shadcn:
         specifier: ^4.7.0
@@ -76,13 +100,13 @@ importers:
         specifier: ^2.0.13
         version: 2.0.13
       '@types/node':
-        specifier: ^20
+        specifier: 'catalog:'
         version: 20.19.41
       '@types/react':
-        specifier: ^19
+        specifier: 'catalog:'
         version: 19.2.14
       '@types/react-dom':
-        specifier: ^19
+        specifier: 'catalog:'
         version: 19.2.3(@types/react@19.2.14)
       eslint:
         specifier: ^9
@@ -94,28 +118,28 @@ importers:
         specifier: ^4
         version: 4.3.0
       typescript:
-        specifier: ^5
+        specifier: 'catalog:'
         version: 5.9.3
 
   packages/lucide-react-motion:
     devDependencies:
       '@types/node':
-        specifier: ^20
+        specifier: 'catalog:'
         version: 20.19.41
       '@types/react':
-        specifier: ^19
+        specifier: 'catalog:'
         version: 19.2.14
       lucide-static:
         specifier: ^1.16.0
         version: 1.16.0
       motion:
-        specifier: ^12.38.0
+        specifier: 'catalog:'
         version: 12.38.0(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       react:
-        specifier: ^19.0.0
+        specifier: 'catalog:'
         version: 19.2.4
       react-dom:
-        specifier: ^19.0.0
+        specifier: 'catalog:'
         version: 19.2.4(react@19.2.4)
       tsup:
         specifier: ^8.3.5
@@ -124,7 +148,7 @@ importers:
         specifier: ^4.19.2
         version: 4.22.0
       typescript:
-        specifier: ^5
+        specifier: 'catalog:'
         version: 5.9.3
 
 packages:

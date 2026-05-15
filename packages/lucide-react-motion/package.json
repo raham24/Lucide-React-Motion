@@ -41,15 +41,15 @@
     "react-dom": ">=18"
   },
   "devDependencies": {
-    "@types/node": "^20",
-    "@types/react": "^19",
+    "@types/node": "catalog:",
+    "@types/react": "catalog:",
     "lucide-static": "^1.16.0",
-    "motion": "^12.38.0",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
+    "motion": "catalog:",
+    "react": "catalog:",
+    "react-dom": "catalog:",
     "tsup": "^8.3.5",
     "tsx": "^4.19.2",
-    "typescript": "^5"
+    "typescript": "catalog:"
   },
   "keywords": [
     "lucide",

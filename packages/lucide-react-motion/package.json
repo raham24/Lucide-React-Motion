@@ -14,23 +14,36 @@
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "require": "./dist/index.cjs"
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
     },
     "./manifest": {
-      "types": "./dist/manifest.d.ts",
-      "import": "./dist/manifest.js",
-      "require": "./dist/manifest.cjs"
+      "import": {
+        "types": "./dist/manifest.d.ts",
+        "default": "./dist/manifest.js"
+      },
+      "require": {
+        "types": "./dist/manifest.d.cts",
+        "default": "./dist/manifest.cjs"
+      }
     },
     "./package.json": "./package.json"
+  },
+  "engines": {
+    "node": ">=18"
   },
   "scripts": {
     "generate": "tsx scripts/generate.ts",
     "prebuild": "pnpm generate",
-    "build": "tsup",
+    "build": "BUILD=main tsup && BUILD=manifest tsup",
     "predev": "pnpm generate",
-    "dev": "tsup --watch --no-dts --no-clean",
+    "dev": "BUILD=main tsup --watch --no-dts --no-clean",
     "clean": "rm -rf dist src/generated",
     "typecheck": "tsc --noEmit",
     "lint": "echo \"(no lint configured)\""

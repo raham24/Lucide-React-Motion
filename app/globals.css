@@ -1,26 +1,42 @@
 @import "tailwindcss";
 
+/**
+ * Editorial "spec sheet" palette: cream paper, deep ink, orange accent.
+ * Exposed as Tailwind theme tokens via @theme inline so utility classes
+ * like `bg-paper`, `text-ink`, `border-line`, `text-accent` just work.
+ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --paper: #e8e4dc;
+  --paper-dim: #ddd8cd;
+  --ink: #1a1a18;
+  --ink-soft: #6f6c63;
+  --line: #1a1a1822;
+  --line-strong: #1a1a1844;
+  --accent: #ff4d23;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-paper: var(--paper);
+  --color-paper-dim: var(--paper-dim);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-accent: var(--accent);
+  --font-mono: var(--font-plex-mono);
+  --font-sans: var(--font-plex-mono);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-plex-mono), ui-monospace, SFMono-Regular, Menlo,
+    monospace;
+  /* Subtle dot grid on the paper. */
+  background-image: radial-gradient(
+    circle at 1px 1px,
+    rgba(26, 26, 24, 0.08) 1px,
+    transparent 0
+  );
+  background-size: 22px 22px;
 }

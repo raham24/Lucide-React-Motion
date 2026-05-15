@@ -39,3 +39,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# generated icon components - rebuilt from lucide-static on every install/dev/build
+/src/generated/
+
+# fumadocs-mdx build output
+/.source/

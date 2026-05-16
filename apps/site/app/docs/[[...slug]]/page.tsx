@@ -8,6 +8,7 @@ import {
 } from "fumadocs-ui/layouts/docs/page";
 import { createRelativeLink } from "fumadocs-ui/mdx";
 import type { Metadata } from "next";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import { getMDXComponents } from "@/components/mdx";
 import { docsGithubUrl } from "@/lib/site-config";
@@ -21,10 +22,26 @@ export default async function Page(props: PageProps<"/docs/[[...slug]]">) {
   const MDX = page.data.body;
   const markdownUrl = `${page.url}.mdx`;
   const githubUrl = docsGithubUrl(page.path);
+  const isLanding = !params.slug || params.slug.length === 0;
 
   return (
     <DocsPage toc={page.data.toc} full={page.data.full}>
-      <DocsTitle>{page.data.title}</DocsTitle>
+      <DocsTitle>
+        {isLanding ? (
+          <span className="inline-flex items-center gap-3">
+            <Image
+              src="/web-app-manifest-192x192.png"
+              alt=""
+              width={40}
+              height={40}
+              className="size-9"
+            />
+            {page.data.title}
+          </span>
+        ) : (
+          page.data.title
+        )}
+      </DocsTitle>
       <DocsDescription>{page.data.description}</DocsDescription>
       <div className="flex flex-row items-center gap-2 border-b pb-4">
         <MarkdownCopyButton markdownUrl={markdownUrl}/>

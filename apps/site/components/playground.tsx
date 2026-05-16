@@ -50,11 +50,11 @@ function Section({
  */
 function Demo({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <div className="group relative flex aspect-square flex-col items-center justify-between gap-2 border-b border-r border-border bg-transparent px-3 py-5 text-foreground transition-colors hover:bg-secondary/60">
+    <div className="group relative flex aspect-square flex-col items-center justify-between gap-2 border-b border-r border-border bg-transparent px-3 py-5 text-foreground transition-colors duration-300 ease-out hover:bg-accent hover:text-primary">
       <span className="flex flex-1 items-center justify-center">
         {children}
       </span>
-      <code className="block w-full truncate text-center text-[10px] tracking-tight text-muted-foreground group-hover:text-foreground">
+      <code className="block w-full truncate text-center text-[10px] tracking-tight text-muted-foreground transition-colors duration-200 ease-out group-hover:text-foreground">
         {label}
       </code>
     </div>
@@ -73,7 +73,7 @@ function ButtonDemo({
   children: ReactNode;
 }) {
   return (
-    <div className="flex aspect-square flex-col items-center justify-between gap-3 border-b border-r border-border px-3 py-5">
+    <div className="group flex aspect-square flex-col items-center justify-between gap-3 border-b border-r border-border px-3 py-5 text-foreground transition-colors duration-300 ease-out hover:bg-accent hover:text-primary">
       <span className="flex flex-1 items-center justify-center">
         <button
           type="button"
@@ -83,7 +83,7 @@ function ButtonDemo({
           {children}
         </button>
       </span>
-      <code className="block w-full truncate text-center text-[10px] tracking-tight text-muted-foreground">
+      <code className="block w-full truncate text-center text-[10px] tracking-tight text-muted-foreground transition-colors duration-200 ease-out group-hover:text-foreground">
         {label}
       </code>
     </div>
@@ -98,7 +98,7 @@ function ManualDemo() {
   const handleRef = useRef<MotionIconHandle>(null);
 
   return (
-    <div className="flex aspect-square flex-col items-center justify-between gap-2 border-b border-r border-border px-3 py-5">
+    <div className="group flex aspect-square flex-col items-center justify-between gap-2 border-b border-r border-border px-3 py-5 text-foreground transition-colors duration-300 ease-out hover:bg-accent hover:text-primary">
       <span className="flex flex-1 items-center justify-center">
         <Rocket size={56} trigger="manual" ref={handleRef} />
       </span>
@@ -109,7 +109,7 @@ function ManualDemo() {
       >
         play()
       </button>
-      <code className="block w-full truncate text-center text-[10px] tracking-tight text-muted-foreground">
+      <code className="block w-full truncate text-center text-[10px] tracking-tight text-muted-foreground transition-colors duration-200 ease-out group-hover:text-foreground">
         trigger=&quot;manual&quot;
       </code>
     </div>

@@ -15,7 +15,7 @@ const plexMono = IBM_Plex_Mono({
   subsets: ["latin"],
 });
 
-const TITLE = `${siteConfig.name} — animated icons for every Lucide icon`;
+const TITLE = "Lucide React Motion — Animation for every Lucide icon";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),

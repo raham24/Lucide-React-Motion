@@ -40,9 +40,7 @@ export default function Page() {
           </div>
           <p className="max-w-2xl text-sm leading-relaxed text-muted-foreground">
             Every Lucide icon, animated. A drop-in replacement for{" "}
-            <code className="border border-border bg-secondary px-1.5 py-0.5 text-[0.85em]">
-              lucide-react
-            </code>{" "}
+            <code className="text-[0.95em]">lucide-react</code>{" "}
             with hover-to-draw motion, full prop parity, and a low-level escape
             hatch for custom variants. Editable React components, generated
             from source.

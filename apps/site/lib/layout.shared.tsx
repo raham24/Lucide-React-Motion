@@ -1,4 +1,5 @@
 import type { BaseLayoutProps } from "fumadocs-ui/layouts/shared";
+import Image from "next/image";
 import { siteConfig } from "@/lib/site-config";
 
 export function baseOptions(): BaseLayoutProps {
@@ -6,7 +7,14 @@ export function baseOptions(): BaseLayoutProps {
   return {
     nav: {
       title: (
-        <span className="font-mono font-semibold tracking-tight">
+        <span className="inline-flex items-center gap-2 font-mono font-semibold tracking-tight">
+          <Image
+            src="/web-app-manifest-192x192.png"
+            alt=""
+            width={20}
+            height={20}
+            className="size-5"
+          />
           Lucide React Motion
         </span>
       ),

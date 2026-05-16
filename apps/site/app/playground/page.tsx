@@ -44,13 +44,8 @@ export default function PlaygroundPage() {
           <p className="max-w-2xl text-sm leading-relaxed text-muted-foreground">
             Every animation knob the library exposes, in one hoverable page.
             Timing, triggers, leave behavior, custom variants, the{" "}
-            <code className="border border-border bg-secondary px-1.5 py-0.5 text-[0.85em]">
-              MotionIconConfig
-            </code>{" "}
-            provider,{" "}
-            <code className="border border-border bg-secondary px-1.5 py-0.5 text-[0.85em]">
-              absoluteStrokeWidth
-            </code>
+            <code className="text-[0.95em]">MotionIconConfig</code>{" "}
+            provider, <code className="text-[0.95em]">absoluteStrokeWidth</code>
             , and reduced-motion handling — each as its own self-contained demo
             with the exact prop shown beneath it. Use it to verify behavior,
             compare presets, or copy a pattern into your app.

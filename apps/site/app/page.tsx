@@ -81,8 +81,10 @@ export default function Gallery() {
         </div>
       </header>
 
-      {/* Sticky control bar — search */}
-      <div className="sticky top-0 z-10 -mx-6 mt-8 border-b border-border bg-background/90 px-6 py-4 backdrop-blur sm:-mx-10 sm:px-10">
+      {/* Sticky control bar — search. top-13.25 (= 53px) is the exact
+          SiteNav height (py-3 + h-7 button row + 1px border), so the bar
+          tucks flush under it instead of slipping behind or leaving a gap. */}
+      <div className="sticky top-13.25 z-10 -mx-6 mt-8 border-b border-border bg-background/90 px-6 py-4 backdrop-blur sm:-mx-10 sm:px-10">
         <label className="flex items-center gap-2 border border-foreground bg-background px-3 py-2 text-sm focus-within:border-primary">
           <span className="text-muted-foreground">/</span>
           <input

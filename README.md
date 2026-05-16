@@ -11,7 +11,7 @@
 
 Every Lucide icon, animated. A drop-in replacement for [`lucide-react`](https://lucide.dev/guide/packages/lucide-react) with hover-to-draw motion, full prop parity, and a low-level escape hatch for custom variants. Powered by [Motion](https://motion.dev).
 
-→ **Docs, gallery, playground:** [lucide-react-motion.dev](https://lucide-react-motion-site.vercel.app/)
+→ **Docs, gallery, playground:** [lucide-react-motion-site.vercel.app](https://lucide-react-motion-site.vercel.app)
 → **npm:** [`lucide-react-motion`](https://www.npmjs.com/package/lucide-react-motion)
 
 ```tsx
@@ -69,7 +69,7 @@ Color is `currentColor` by default, so Tailwind text utilities work directly:
 <Heart className="text-rose-500 hover:text-rose-600 transition-colors" />
 ```
 
-For the full API — triggers, leave modes, custom variants, manual control — see [lucide-react-motion.dev/docs](https://lucide-react-motion-site.vercel.app//docs).
+For the full API — triggers, leave modes, custom variants, manual control — see [lucide-react-motion-site.vercel.app/docs](https://lucide-react-motion-site.vercel.app/docs).
 
 ---
 

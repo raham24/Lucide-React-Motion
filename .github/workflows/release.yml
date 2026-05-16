@@ -1,22 +1,29 @@
-name: Release
+name: Release PR
+
+# Opens a "Version Packages" PR whenever changesets land on main.
+# Publishing happens manually from a maintainer's machine:
+#   pnpm build
+#   cd packages/lucide-react-motion
+#   pnpm publish --access public --provenance --otp <code>
+# Switch back to automated publish (and re-add the publish: step) once
+# the package is configured with npm Trusted Publishing.
 
 on:
   push:
     branches: [main]
 
 concurrency:
-  group: release-${{ github.ref }}
+  group: release-pr-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
-  release:
-    name: Release
+  release-pr:
+    name: Open version PR
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 10
     permissions:
       contents: write
       pull-requests: write
-      id-token: write
     steps:
       - uses: actions/checkout@v4
         with:
@@ -30,22 +37,15 @@ jobs:
         with:
           node-version: 20
           cache: pnpm
-          registry-url: https://registry.npmjs.org
 
       - name: Install
         run: pnpm install --frozen-lockfile
 
-      - name: Build library
-        run: pnpm --filter lucide-react-motion build
-
-      - name: Create Release PR or publish to npm
+      - name: Open or update Version Packages PR
         uses: changesets/action@v1
         with:
-          publish: pnpm release
           version: pnpm version-packages
           commit: "chore: version packages"
           title: "chore: version packages"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

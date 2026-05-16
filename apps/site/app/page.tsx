@@ -44,9 +44,7 @@ export default function Gallery() {
           <span>{manifest.length.toLocaleString()} icons</span>
         </div>
         <h1 className="text-5xl font-semibold tracking-tight sm:text-6xl">
-          Lucide
-          <span className="text-primary">{"//"}</span>
-          Motion
+          Lucide React Motion
         </h1>
         <p className="max-w-2xl text-sm leading-relaxed text-muted-foreground">
           Every Lucide icon, animated. A drop-in replacement for{" "}

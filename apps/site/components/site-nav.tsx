@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
@@ -43,9 +44,17 @@ export function SiteNav() {
       <div className="mx-auto flex w-full max-w-[1180px] items-center justify-between gap-6 px-6 py-3 sm:px-10">
         <Link
           href="/"
-          className="font-mono text-sm font-semibold tracking-tight whitespace-nowrap"
+          className="inline-flex items-center gap-2 font-mono text-sm font-semibold tracking-tight whitespace-nowrap"
         >
-          Lucide<span className="text-primary">{"//"}</span>Motion
+          <Image
+            src="/web-app-manifest-192x192.png"
+            alt=""
+            width={20}
+            height={20}
+            priority
+            className="size-5"
+          />
+          Lucide React Motion
         </Link>
 
         <div className="flex items-center gap-1 sm:gap-2">

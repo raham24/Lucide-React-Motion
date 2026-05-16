@@ -7,8 +7,8 @@ export const siteConfig = {
   description: `Animated, editable React components for all ${ICON_COUNT.toLocaleString()} Lucide icons. Drop-in replacement for lucide-react.`,
   url: "https://lucide-react-motion.dev",
   github: {
-    owner: "aadil-alli",
-    repo: "lucide-react-motion",
+    owner: "Aadil1505",
+    repo: "Lucide-React-Motion",
     branch: "main",
   },
 } as const;

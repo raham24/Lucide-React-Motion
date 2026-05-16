@@ -24,9 +24,29 @@ export async function generateMetadata(
   const { name } = await props.params;
   const icon = getIcon(name);
   if (!icon) return {};
+
+  const title = `${icon.name} icon`;
+  const description = `Animated React component for the Lucide "${icon.name}" icon. Drop-in replacement for lucide-react with hover-to-draw motion${
+    icon.tags.length ? `. Tags: ${icon.tags.slice(0, 6).join(", ")}.` : "."
+  }`;
+  const path = `/icons/${icon.name}`;
+
   return {
-    title: `${icon.name} — Lucide//Motion`,
-    description: `Animated React component for the Lucide "${icon.name}" icon. Drop-in replacement for lucide-react with hover-to-draw motion.`,
+    title,
+    description,
+    keywords: [icon.name, `${icon.name} icon`, "lucide", "lucide-react", "lucide-react-motion", ...icon.tags],
+    alternates: { canonical: path },
+    openGraph: {
+      title: `${icon.name} — Lucide React Motion`,
+      description,
+      url: path,
+      type: "article",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${icon.name} — Lucide React Motion`,
+      description,
+    },
   };
 }
 

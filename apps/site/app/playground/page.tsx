@@ -2,10 +2,24 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Playground } from "@/components/playground";
 
+const DESCRIPTION =
+  "Interactive feature reference for Lucide React Motion. Hover or click each demo to see every animation knob — timing, triggers, leave behavior, custom variants, MotionIconConfig, and reduced-motion handling.";
+
 export const metadata: Metadata = {
-  title: "Playground — Lucide//Motion",
-  description:
-    "Interactive feature reference for Lucide//Motion. Hover or click each demo to see every animation knob — timing, triggers, leave behavior, custom variants, MotionIconConfig, and reduced-motion handling.",
+  title: "Playground",
+  description: DESCRIPTION,
+  alternates: { canonical: "/playground" },
+  openGraph: {
+    title: "Playground — Lucide React Motion",
+    description: DESCRIPTION,
+    url: "/playground",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Playground — Lucide React Motion",
+    description: DESCRIPTION,
+  },
 };
 
 export default function PlaygroundPage() {

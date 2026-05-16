@@ -7,7 +7,7 @@ export function baseOptions(): BaseLayoutProps {
     nav: {
       title: (
         <span className="font-mono font-semibold tracking-tight">
-          Lucide<span className="text-primary">{"//"}</span>Motion
+          Lucide React Motion
         </span>
       ),
     },

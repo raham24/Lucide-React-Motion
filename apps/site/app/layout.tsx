@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { IBM_Plex_Mono, Geist } from "next/font/google";
 import { RootProvider } from "fumadocs-ui/provider/next";
 import "./globals.css";
+import { SiteFooter } from "@/components/site-footer";
 import { SiteNav } from "@/components/site-nav";
 import { siteConfig } from "@/lib/site-config";
 import { cn } from "@/lib/utils";
@@ -14,9 +15,49 @@ const plexMono = IBM_Plex_Mono({
   subsets: ["latin"],
 });
 
+const TITLE = `${siteConfig.name} — animated icons for every Lucide icon`;
+
 export const metadata: Metadata = {
-  title: "Lucide//Motion — animated icons for every Lucide icon",
+  metadataBase: new URL(siteConfig.url),
+  title: {
+    default: TITLE,
+    template: `%s — ${siteConfig.name}`,
+  },
   description: siteConfig.description,
+  applicationName: siteConfig.name,
+  keywords: [...siteConfig.keywords],
+  authors: [{ name: "Aadil M. Alli" }],
+  creator: "Aadil M. Alli",
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    type: "website",
+    siteName: siteConfig.name,
+    title: TITLE,
+    description: siteConfig.description,
+    url: siteConfig.url,
+    locale: "en_US",
+    images: [
+      {
+        url: siteConfig.ogImage,
+        width: 1200,
+        height: 630,
+        alt: `${siteConfig.name} — animated React icons`,
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: TITLE,
+    description: siteConfig.description,
+    images: [siteConfig.ogImage],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true, "max-image-preview": "large" },
+  },
 };
 
 export default function RootLayout({
@@ -34,6 +75,7 @@ export default function RootLayout({
         <RootProvider>
           <SiteNav />
           {children}
+          <SiteFooter />
         </RootProvider>
       </body>
     </html>

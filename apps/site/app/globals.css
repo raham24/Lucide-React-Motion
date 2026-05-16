@@ -10,7 +10,7 @@
 @source "../node_modules/fumadocs-ui/dist/**/*.js";
 
 :root {
-  --background: oklch(0.9818 0.0054 95.0986);
+  --background: oklch(98.178% 0.00528 95.189);
   --foreground: oklch(0.3438 0.0269 95.7226);
   --card: oklch(0.9456 0.0123 91.0000);
   --card-foreground: oklch(0.1908 0.0020 106.5859);

@@ -91,21 +91,6 @@ export default function Page() {
         </header>
 
         <Gallery />
-
-        {/* Footer */}
-        <footer className="mt-20 flex flex-wrap items-center justify-between gap-3 border-t border-border pt-6 text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
-          <span>Built on Lucide (ISC) · Animated with Motion</span>
-          <span>
-            <a
-              href="https://lucide.dev"
-              className="underline-offset-4 hover:text-primary hover:underline"
-            >
-              lucide.dev
-            </a>
-            {" · "}
-            <code>bun run generate</code>
-          </span>
-        </footer>
       </div>
     </div>
   );

@@ -55,8 +55,24 @@ export async function generateMetadata(
   const page = source.getPage(params.slug);
   if (!page) notFound();
 
+  const title = page.data.title;
+  const description = page.data.description;
+  const url = page.url;
+
   return {
-    title: page.data.title,
-    description: page.data.description,
+    title,
+    description,
+    alternates: { canonical: url },
+    openGraph: {
+      title: `${title} — Lucide React Motion`,
+      description,
+      url,
+      type: "article",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${title} — Lucide React Motion`,
+      description,
+    },
   };
 }

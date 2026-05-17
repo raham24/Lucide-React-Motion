@@ -1,5 +1,14 @@
+"use client";
+
 import Link from "next/link";
-import type { ComponentType } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type ComponentType,
+  type MouseEvent,
+} from "react";
+import { Check } from "lucide-react";
 import type { DrawIconProps } from "lucide-react-motion";
 import { cn } from "@/lib/utils";
 
@@ -7,42 +16,79 @@ type IconComponent = ComponentType<Omit<DrawIconProps, "nodes">>;
 
 interface IconCellProps {
   name: string;
+  component: string;
   Icon: IconComponent;
 }
 
-/**
- * A single tile in the gallery. Clicking the tile navigates to that icon's
- * detail page at `/icons/{name}`.
- */
-export function IconCell({ name, Icon }: IconCellProps) {
+export function IconCell({ name, component, Icon }: IconCellProps) {
+  const [copied, setCopied] = useState(false);
+  const resetTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(
+    () => () => {
+      if (resetTimer.current) clearTimeout(resetTimer.current);
+    },
+    []
+  );
+
+  const handleCopy = async (e: MouseEvent<HTMLButtonElement>) => {
+    const button = e.currentTarget;
+    try {
+      await navigator.clipboard.writeText(`<${component} />`);
+      setCopied(true);
+      if (resetTimer.current) clearTimeout(resetTimer.current);
+      resetTimer.current = setTimeout(() => setCopied(false), 1200);
+      button.blur();
+    } catch {
+      // ignore — clipboard can fail in insecure contexts
+    }
+  };
+
   return (
-    <Link
-      href={`/icons/${name}`}
-      title={`${name} — view details`}
+    <div
       data-motion-icon-group
       className={cn(
-        "group relative flex aspect-square cursor-pointer flex-col items-center justify-between gap-2",
+        "group relative isolate flex aspect-square flex-col items-center justify-between gap-2",
         "border-b border-r border-border bg-transparent px-3 py-5",
-        "text-foreground",
-        // Simple, clean hover: subtle background tint + color shift.
-        // Smooth fade in and out, no lift/scale/shadow.
-        "transition-colors duration-300 ease-out",
-        "hover:bg-accent hover:text-primary",
-        "focus-visible:bg-accent focus-visible:text-primary focus-visible:outline-none"
+        "text-foreground transition-colors duration-300 ease-out",
+        "hover:bg-accent hover:text-primary"
       )}
     >
-      <span className="flex flex-1 items-center justify-center">
-        <Icon size={36} strokeWidth={1.75} trigger="parent-hover" />
+      {/* Whole-cell link sits behind the icon and name. Clicking anywhere
+          on the cell navigates, EXCEPT the name button which overlays it
+          and intercepts clicks to copy instead. */}
+      <Link
+        href={`/icons/${name}`}
+        title={`${name} — view details`}
+        aria-label={`${name} — view details`}
+        className="absolute inset-0 z-0 focus-visible:outline focus-visible:-outline-offset-2 focus-visible:outline-2 focus-visible:outline-primary"
+      />
+      <span className="pointer-events-none relative z-0 flex flex-1 items-center justify-center">
+        <Icon size={48} strokeWidth={1.75} trigger="parent-hover" />
       </span>
-      <span
+      <button
+        type="button"
+        onClick={handleCopy}
+        title={copied ? "Copied!" : `Copy <${component} />`}
+        aria-label={copied ? `Copied <${component} />` : `Copy <${component} />`}
         className={cn(
-          "block w-full truncate text-center text-[10px] uppercase tracking-[0.08em]",
-          "text-muted-foreground transition-colors duration-200 ease-out",
-          "group-hover:text-foreground group-focus-visible:text-foreground"
+          "relative z-10 flex w-full min-w-0 cursor-pointer items-center justify-center gap-1 text-center text-xs uppercase tracking-[0.08em]",
+          "transition-colors duration-200 ease-out",
+          "focus-visible:text-primary focus-visible:outline-none",
+          copied
+            ? "text-primary"
+            : "text-muted-foreground group-hover:text-foreground hover:!text-primary"
         )}
       >
-        {name}
-      </span>
-    </Link>
+        {copied ? (
+          <>
+            <Check size={12} strokeWidth={2.5} aria-hidden className="shrink-0" />
+            <span className="truncate">copied</span>
+          </>
+        ) : (
+          <span className="truncate">{name}</span>
+        )}
+      </button>
+    </div>
   );
 }

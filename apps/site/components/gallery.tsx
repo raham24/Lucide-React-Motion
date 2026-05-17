@@ -56,11 +56,18 @@ export function Gallery() {
             no icons match &ldquo;{query}&rdquo;
           </div>
         ) : (
-          <div className="grid grid-cols-4 border-l border-t border-border sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8">
+          <div className="grid grid-cols-4 border-l border-t border-border sm:grid-cols-5 md:grid-cols-5 lg:grid-cols-6">
             {visible.map((m) => {
               const Icon = IconMap[m.component];
               if (!Icon) return null;
-              return <IconCell key={m.name} name={m.name} Icon={Icon} />;
+              return (
+                <IconCell
+                  key={m.name}
+                  name={m.name}
+                  component={m.component}
+                  Icon={Icon}
+                />
+              );
             })}
           </div>
         )}

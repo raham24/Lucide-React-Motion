@@ -12,6 +12,7 @@ import {
   Zap,
 } from "lucide-react-motion";
 import { MotionIconConfig, type MotionIconHandle } from "lucide-react-motion";
+import { cn } from "@/lib/utils";
 
 /**
  * Section heading + grid container — large readable title + short description
@@ -106,11 +107,10 @@ function MotionStateDemo({
   return (
     <div
       data-motion-icon-group
-      className={
-        pinned
-          ? "group relative flex aspect-square flex-col items-center justify-between gap-2 border-b border-r border-border bg-transparent px-3 py-5 text-foreground transition-colors duration-300 ease-out hover:bg-accent hover:text-primary has-data-[motion-state=drawing]:text-primary"
-          : "group relative flex aspect-square flex-col items-center justify-between gap-2 border-b border-r border-border bg-transparent px-3 py-5 text-foreground transition-colors duration-300 ease-out hover:bg-accent hover:text-primary"
-      }
+      className={cn(
+        "group relative flex aspect-square flex-col items-center justify-between gap-2 border-b border-r border-border bg-transparent px-3 py-5 text-foreground transition-colors duration-300 ease-out hover:bg-accent hover:text-primary",
+        pinned && "has-data-[motion-state=drawing]:text-primary"
+      )}
     >
       <span className="flex flex-1 items-center justify-center">
         <Heart size={56} trigger="parent-hover" duration={2} />

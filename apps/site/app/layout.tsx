@@ -72,7 +72,7 @@ export default function RootLayout({
       className={cn("antialiased", plexMono.variable, "font-sans", geist.variable)}
     >
       <body className="min-h-screen">
-        <RootProvider>
+        <RootProvider theme={{ disableTransitionOnChange: true }}>
           <SiteNav />
           {children}
           <SiteFooter />

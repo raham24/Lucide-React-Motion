@@ -1,6 +1,9 @@
+"use client"
+
 import { useCallback, useEffect, useRef, useState } from "react"
-import { Moon, Sun } from "lucide-react"
+import { Moon, Sun } from "lucide-react-motion"
 import { flushSync } from "react-dom"
+import { useTheme } from "next-themes"
 
 import { cn } from "@/lib/utils"
 
@@ -132,24 +135,16 @@ export const AnimatedThemeToggler = ({
   ...props
 }: AnimatedThemeTogglerProps) => {
   const shape = variant ?? "circle"
-  const [isDark, setIsDark] = useState(false)
+  const { resolvedTheme, setTheme } = useTheme()
+  const [mounted, setMounted] = useState(false)
   const buttonRef = useRef<HTMLButtonElement>(null)
 
-  useEffect(() => {
-    const updateTheme = () => {
-      setIsDark(document.documentElement.classList.contains("dark"))
-    }
+  // next-themes can only resolve the active theme on the client. Render the
+  // icon only after mount to avoid a hydration mismatch between the SSR
+  // default (no theme) and the client-resolved theme.
+  useEffect(() => setMounted(true), [])
 
-    updateTheme()
-
-    const observer = new MutationObserver(updateTheme)
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ["class"],
-    })
-
-    return () => observer.disconnect()
-  }, [])
+  const isDark = resolvedTheme === "dark"
 
   const toggleTheme = useCallback(() => {
     const button = buttonRef.current
@@ -175,10 +170,7 @@ export const AnimatedThemeToggler = ({
     )
 
     const applyTheme = () => {
-      const newTheme = !isDark
-      setIsDark(newTheme)
-      document.documentElement.classList.toggle("dark")
-      localStorage.setItem("theme", newTheme ? "dark" : "light")
+      setTheme(isDark ? "light" : "dark")
     }
 
     if (typeof document.startViewTransition !== "function") {
@@ -236,17 +228,27 @@ export const AnimatedThemeToggler = ({
         )
       })
     }
-  }, [shape, fromCenter, duration, isDark])
+  }, [shape, fromCenter, duration, isDark, setTheme])
 
   return (
     <button
       type="button"
       ref={buttonRef}
       onClick={toggleTheme}
+      disabled={!mounted}
       className={cn(className)}
+      aria-label={mounted ? (isDark ? "Switch to light mode" : "Switch to dark mode") : "Toggle theme"}
       {...props}
     >
-      {isDark ? <Sun /> : <Moon />}
+      {/* Render an invisible Moon pre-mount so the button keeps its layout
+          size; swap to the real icon once next-themes has resolved. */}
+      <span className={cn(!mounted && "invisible")} aria-hidden={!mounted}>
+        {mounted && isDark ? (
+          <Sun trigger="hover" />
+        ) : (
+          <Moon trigger="hover" />
+        )}
+      </span>
       <span className="sr-only">Toggle theme</span>
     </button>
   )

@@ -114,8 +114,6 @@ Two states cover the common case. For anything more nuanced, compose with standa
 }
 ```
 
-Tailwind v4 equivalent: `hover:not-has-data-[motion-state=drawing]:shadow-glow`.
-
 For state that needs to outlive the animation (like "this button was clicked, keep it highlighted until next click"), use your own React state. That's domain state belonging to your component, not something the icon should track.
 
 ---

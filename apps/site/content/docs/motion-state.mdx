@@ -64,43 +64,74 @@ Hover, then quickly move away — the stroke color now holds through the full dr
 
 ## How transitions work
 
-Two signals drive the state machine:
+The simplest way to think about it: the state follows what the **stroke** is doing, with one extra rule for hover.
 
-1. The animation lifecycle (`onAnimationStart` / `onAnimationComplete` on the `active` and `rest` variants).
-2. For hover-style triggers only, the hover edges (`mouseenter` / `mouseleave`).
+- The stroke isn't moving → `resting`
+- The stroke is drawing right now → `drawing`
+- The stroke is done drawing and the icon is being held there → `complete`
 
-### Hover / parent-hover
+The "held there" part is what differs by trigger.
 
-```
-            enter             draw finishes        leave
- resting ─────────▶ drawing ────────────────▶ complete ────▶ resting
-                                                                ▲
-                       leave while still drawing                │
-                       (state stays "drawing"; when the ───────┘
-                       draw finishes it goes straight to "resting")
-```
+### Hover and parent-hover
 
-`complete` only persists **while the cursor remains over the target**. Once the user leaves, the icon returns to `resting` — either immediately (if the draw already finished) or as soon as it does.
+`complete` is only held **while the cursor is over the icon (or its parent)**. Leave, and it goes back to `resting`.
 
-This applies to `trigger="hover"` and `trigger="parent-hover"`, regardless of `onLeave` mode.
+Three scenarios cover everything:
 
-### One-shot triggers
-
-`trigger="mount"`, `"in-view"`, `"click"`, and `"manual"` have no concept of "leave," so `complete` latches indefinitely until the next draw fires:
+**You hover, the draw finishes, you keep hovering, then you leave:**
 
 ```
- resting ──▶ drawing ──▶ complete   (stays here until triggered again)
+  hover          draw           you           you
+  enters         finishes       wait          leave
+    │              │              │             │
+    ▼              ▼              ▼             ▼
+ resting  ──▶  drawing   ──▶  complete  ──▶  resting
 ```
 
-Exception: `in-view` returns to `resting` when the icon scrolls out of the viewport (it fires the `rest` variant on exit).
+**You hover and leave before the draw finishes:**
 
-### Reduced motion
+```
+  hover          you           draw
+  enters         leave         finishes
+    │              │              │
+    ▼              ▼              ▼
+ resting  ──▶  drawing  ─ ─ ─ ▶  resting
+              (keeps           (skips
+               drawing)         "complete")
+```
 
-When the user prefers reduced motion (or you pass `reducedMotion="always"`), no animation runs and the state stays at `resting` forever.
+The state stays `drawing` after you leave so any host CSS that's pinned to the drawing state keeps its color until the stroke is actually done. Then it returns straight to `resting` — never lands on `complete`.
 
-### Infinite repeat
+**You hover, the draw finishes, then you leave:**
 
-With `repeat={Infinity}` the active animation never reports completion, so the state stays at `drawing` for the entire loop.
+```
+ resting ──▶ drawing ──▶ complete ──▶ resting
+                                       ▲
+                                  the moment you
+                                  leave the icon
+```
+
+That's it. `onLeave` (`complete` / `snap` / `redraw`) controls **what the animation does** when you leave, but the state always lands at `resting` once you're gone and the stroke has settled.
+
+### Mount, in-view, click, manual
+
+These triggers have no "leave," so `complete` just stays put — the icon is finished and there's nothing telling it to go back to rest.
+
+```
+ resting ──▶ drawing ──▶ complete   (and it stays here)
+```
+
+It only moves off `complete` when the trigger fires again:
+
+- `click` — next click restarts the cycle.
+- `mount` — never fires again, so it stays `complete` forever.
+- `manual` — until you call `play()` (restart) or `reset()` (back to `resting`).
+- `in-view` — scrolling out of view sends it back to `resting`, and scrolling back in restarts the cycle.
+
+### Two edge cases worth knowing
+
+- **Reduced motion.** No animation runs, so the state stays `resting`. CSS rules that key off `drawing` or `complete` simply never match.
+- **`repeat={Infinity}`.** The draw never reports as finished, so the state stays `drawing` for the entire loop. `complete` is never reached.
 
 ---
 

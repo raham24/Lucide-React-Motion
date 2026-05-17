@@ -29,6 +29,7 @@ export default function Like() {
 - **1,700+ icons** — every Lucide icon exported as a React component.
 - **Drop-in for `lucide-react`** — identical prop surface (`size`, `color`, `strokeWidth`, `absoluteStrokeWidth`, `className`, refs).
 - **Triggers** — `hover`, `parent-hover`, `in-view`, `mount`, `manual`. Imperative `play()` / `reset()` via ref.
+- **Modes** — `"draw"`, `"pulse"`, `"spin"`, `"shake"`, `"bounce"`, plus per-icon `"signature"` animations (heart beats, bell rings, loader spins forever).
 - **Leave behavior** — `complete`, `snap`, `redraw`. Pick what happens when hover ends.
 - **App-wide defaults** — wrap a subtree in `<MotionIconConfig>` and override duration, easing, trigger, etc.
 - **Custom motion** — pass your own `variants` to bypass the built-in draw and animate anything Motion can.

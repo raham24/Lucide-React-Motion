@@ -6,15 +6,19 @@ description: Replace the draw animation entirely with your own Motion variants.
 import { Heart, Settings } from "lucide-react-motion";
 import { WiggleStagger } from "@/components/docs/wiggle-stagger";
 
-The `variants` prop is the low-level escape hatch. Supply your own Motion variants and the engine skips its built-in draw logic, using your variants directly.
+The `variants` prop is the low-level escape hatch. Supply your own Motion variants and the engine skips its built-in animation, using your variants directly.
+
+<Callout type="info" title="Try the curated route first">
+  For common cases — pulse, spin, shake, bounce, or icon-specific signatures (heart beat, bell ring) — use the [`mode` prop](/docs/modes). It composes with `duration`/`delay`/`stagger`/`easing`/`repeat` automatically, whereas `variants` ignores those timing props entirely. Reach for `variants` when you need motion that isn't expressible as a mode.
+</Callout>
 
 ## When to reach for this
 
-- You want **whole-icon motion** (pulse, spin, wiggle) rather than stroke-by-stroke draw.
-- You want a **bespoke effect** for a specific icon that doesn't fit any preset.
-- You want to compose multiple motion properties at once.
+- You want **bespoke per-stroke motion** that's tightly coupled to a specific icon's path structure.
+- You want to **bypass the mode system** and write Motion variants directly.
+- You want to compose multiple motion properties in ways the built-in modes don't.
 
-For most apps, the built-in `duration` / `delay` / `stagger` / `easing` props are enough. Reach for `variants` only when those aren't.
+For most apps, [`mode`](/docs/modes) covers the common cases. Reach for `variants` only when modes aren't enough.
 
 ## Two forms
 

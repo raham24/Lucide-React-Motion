@@ -2,13 +2,17 @@
 
 import { useRef, type ReactNode } from "react";
 import {
+  ArrowDown,
   Bell,
+  Eye,
   Heart,
+  Loader,
   Rocket,
   Send,
   Settings,
   Sparkles,
   Star,
+  Sun,
   Zap,
 } from "lucide-react-motion";
 import { MotionIconConfig, type MotionIconHandle } from "lucide-react-motion";
@@ -231,6 +235,51 @@ export function Playground() {
           label="has-data-[motion-state=drawing]:text-primary"
           pinned
         />
+      </Section>
+
+      <Section
+        title="Modes"
+        description="Pick which animation plays. The default is the stroke draw; generic modes (pulse, spin, shake, bounce) work on every icon. Per-icon prop on top of trigger=hover."
+      >
+        <Demo label='mode="draw" (default)'>
+          <Heart size={56} />
+        </Demo>
+        <Demo label='mode="pulse"'>
+          <Heart size={56} mode="pulse" />
+        </Demo>
+        <Demo label='mode="spin"'>
+          <Settings size={56} mode="spin" />
+        </Demo>
+        <Demo label='mode="shake"'>
+          <Bell size={56} mode="shake" />
+        </Demo>
+        <Demo label='mode="bounce"'>
+          <ArrowDown size={56} mode="bounce" />
+        </Demo>
+      </Section>
+
+      <Section
+        title="Signature animations"
+        description="mode='signature' plays the icon's character animation — a heart beats, a bell rings, a loader spins forever. Icons without a registered signature silently fall back to mode='draw' (and warn once in dev)."
+      >
+        <Demo label="heart — beats">
+          <Heart size={56} mode="signature" />
+        </Demo>
+        <Demo label="bell — rings">
+          <Bell size={56} mode="signature" />
+        </Demo>
+        <Demo label="eye — blinks">
+          <Eye size={56} mode="signature" />
+        </Demo>
+        <Demo label="star — twinkles">
+          <Star size={56} mode="signature" />
+        </Demo>
+        <Demo label="sun — slow rotate">
+          <Sun size={56} mode="signature" />
+        </Demo>
+        <Demo label="loader — infinite">
+          <Loader size={56} mode="signature" />
+        </Demo>
       </Section>
 
       <Section

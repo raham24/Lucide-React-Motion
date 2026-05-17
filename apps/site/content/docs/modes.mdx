@@ -1,0 +1,259 @@
+---
+title: Modes
+description: Pick the animation an icon plays — the default draw, a generic preset, the icon's signature, or a custom factory.
+---
+
+import {
+  ArrowDown,
+  Bell,
+  Eye,
+  Heart,
+  Loader,
+  Rocket,
+  Settings,
+  Star,
+  Sun,
+} from "lucide-react-motion";
+import { MotionIconConfig } from "lucide-react-motion";
+import { CustomModeExample } from "@/components/docs/custom-mode-example";
+
+The `mode` prop picks which animation the icon plays. By default every icon draws itself on. Switch to a generic preset for whole-icon motion, the icon's signature for a character-specific animation, or a function factory for full control.
+
+```tsx
+<Heart />                              // default — mode="draw"
+<Heart mode="pulse" />                 // generic preset
+<Heart mode="signature" />             // heart-beat (per-icon signature)
+<Heart mode={(ctx) => ({ … })} />      // custom factory
+```
+
+`mode` composes with everything else — triggers, timing props, leave behavior, reduced motion, and `MotionIconConfig` defaults all keep working.
+
+---
+
+## The four categories
+
+| Category | Value | What it does |
+| -------- | ----- | ------------ |
+| Default | `"draw"` | Stroke-on animation (every icon's built-in default) |
+| Generic preset | `"pulse"`, `"spin"`, `"shake"`, `"bounce"` | Whole-icon motion, works on every icon |
+| Signature | `"signature"` | The icon's character animation. Falls back to `"draw"` for icons without one. |
+| Custom factory | `(ctx) => Variants` | A function that returns Motion variants — full control |
+
+The `variants` prop, if set, wins over `mode` and replaces the animation entirely. See [Custom motion](/docs/custom-motion).
+
+---
+
+## `"draw"` (default)
+
+The classic stroke-on animation. Each path's `pathLength` animates from 0 to 1, with strokes cascading by the `stagger` prop.
+
+<Preview>
+  <Heart size={48} />
+</Preview>
+
+```tsx
+<Heart />
+<Heart mode="draw" />  {/* equivalent */}
+```
+
+---
+
+## Generic presets
+
+Generic modes are whole-icon transformations. They work on any icon and inherit `data-motion-state`, trigger plumbing, and timing controls the same way as `"draw"`.
+
+### `"pulse"`
+
+A quick boop — scale up and back. Defaults to `duration=0.4s` with `easeOut`.
+
+<Preview wide>
+  <Heart size={48} mode="pulse" />
+  <Star size={48} mode="pulse" />
+  <Bell size={48} mode="pulse" />
+</Preview>
+
+```tsx
+<Heart mode="pulse" />
+```
+
+### `"spin"`
+
+One full clockwise rotation. Defaults to `duration=0.8s` with `linear` easing.
+
+<Preview wide>
+  <Settings size={48} mode="spin" />
+  <Loader size={48} mode="spin" />
+  <Sun size={48} mode="spin" />
+</Preview>
+
+```tsx
+<Settings mode="spin" />
+
+{/* For an infinite spinner: */}
+<Loader mode="spin" repeat={Infinity} />
+```
+
+### `"shake"`
+
+Damped side-to-side wiggle. Useful for error states or playful nudges.
+
+<Preview wide>
+  <Bell size={48} mode="shake" />
+  <ArrowDown size={48} mode="shake" />
+</Preview>
+
+```tsx
+<Bell mode="shake" />
+```
+
+### `"bounce"`
+
+Vertical hop. Translation scales with icon size because `transformBox: "view-box"` puts the y-distance in user units.
+
+<Preview wide>
+  <ArrowDown size={48} mode="bounce" />
+  <Rocket size={48} mode="bounce" />
+</Preview>
+
+```tsx
+<ArrowDown mode="bounce" />
+```
+
+---
+
+## `"signature"` — per-icon animations
+
+Every icon can have a **signature** — a character-specific animation that matches what the icon *is*. A heart beats. A bell rings. A wheel spins like it's driving. Use `mode="signature"` to play the registered animation for that icon.
+
+<Preview wide>
+  <Heart size={48} mode="signature" />
+  <Bell size={48} mode="signature" />
+  <Eye size={48} mode="signature" />
+  <Star size={48} mode="signature" />
+  <Sun size={48} mode="signature" />
+  <Loader size={48} mode="signature" />
+</Preview>
+
+```tsx
+<Heart  mode="signature" />   {/* beats — lub-dub rhythm */}
+<Bell   mode="signature" />   {/* damped ring */}
+<Eye    mode="signature" />   {/* blink */}
+<Star   mode="signature" />   {/* twinkle */}
+<Sun    mode="signature" />   {/* slow rotation */}
+<Loader mode="signature" />   {/* infinite spin */}
+```
+
+Compare a generic preset to the signature for the same icon:
+
+<Preview wide>
+  <Demo label='mode="pulse"'><Heart size={56} mode="pulse" /></Demo>
+  <Demo label='mode="signature"'><Heart size={56} mode="signature" /></Demo>
+</Preview>
+
+The pulse is a generic "scale up and back" boop. The signature is the icon's character motion — for a heart, that's the weighted lub-dub keyframes.
+
+### Fallback behavior
+
+Not every Lucide icon has a registered signature yet. When you set `mode="signature"` on an icon without one, the engine **silently falls back to `mode="draw"`** so nothing visibly breaks.
+
+In development, the engine also emits a one-time `console.warn` per icon so the gap is visible during local work:
+
+```
+[lucide-react-motion] mode="signature" used on icon "circle-arrow-up" with no signature registered. Falling back to mode="draw".
+```
+
+The warning is dead-code-eliminated in production via `process.env.NODE_ENV`.
+
+### Icons with signatures today
+
+A curated set ships with `v0.2.0`: `heart`, `bell`, `eye`, `star`, `sun`, `loader`. More will be added over time. The fallback means you can use `mode="signature"` on any icon today — you'll get the draw animation, and if a signature is later added, it'll automatically pick up.
+
+---
+
+## Custom factory — `mode={(ctx) => Variants}`
+
+For full control, pass a factory function. It receives a `ModeContext` (timing + icon identity) and returns Motion variants.
+
+<Preview>
+  <CustomModeExample />
+</Preview>
+
+```tsx
+<Sparkles
+  mode={(ctx) => ({
+    rest:   { rotate: 0, scale: 1 },
+    active: {
+      rotate: [0, -15, 12, -8, 0],
+      scale:  [1, 1.1, 1],
+      transition: {
+        duration: ctx.duration,
+        delay: ctx.delay + ctx.index * ctx.stagger,
+        ease: ctx.easing,
+        repeat: ctx.repeat,
+      },
+    },
+  })}
+  duration={0.6}
+/>
+```
+
+`ModeContext` exposes the resolved timing context — `duration`, `delay`, `stagger`, `easing`, `repeat`, plus `iconName` and `index`. See [API reference](/docs/api#types).
+
+---
+
+## How `mode` composes with everything else
+
+The mode resolves once per render. All other engine behavior remains untouched:
+
+- **Triggers** — every mode still uses `"rest"` / `"active"` variants under the hood, so `hover`, `click`, `mount`, `in-view`, `parent-hover`, `manual` all work unchanged.
+- **Timing props** — `duration`, `delay`, `stagger`, `easing`, `repeat` flow into the mode's factory. Per-icon prop wins over context, context wins over mode-preferred defaults, which win over engine defaults.
+- **Leave behavior** — `onLeave="complete" / "snap" / "redraw"` still works.
+- **Reduced motion** — `reducedMotion="always"` suppresses the animation regardless of mode.
+- **`data-motion-state`** — fires the same way (`"drawing"` while the active variant is in flight, `"resting"` otherwise).
+- **`variants` prop** — still wins over `mode`. Use `variants` when you want to bypass the mode system entirely.
+
+### Mode-preferred defaults
+
+Each generic mode and signature declares its own preferred timing. The `wheel`-style signature might default to infinite repeats; pulse defaults to a shorter duration than draw. Per-icon props always override.
+
+```tsx
+<Loader mode="signature" />                         {/* infinite, 1s rotation */}
+<Loader mode="signature" duration={0.5} />          {/* faster, still infinite */}
+<Loader mode="signature" repeat={1} />              {/* one rotation */}
+```
+
+---
+
+## App-wide via `MotionIconConfig`
+
+Set a default mode for a whole subtree via the [config provider](/docs/defaults).
+
+<Preview wide>
+  <MotionIconConfig mode="pulse" duration={0.3}>
+    <Heart size={48} />
+    <Star size={48} />
+    <Bell size={48} />
+  </MotionIconConfig>
+</Preview>
+
+```tsx
+<MotionIconConfig mode="pulse" duration={0.3}>
+  <Heart />
+  <Star />
+  <Bell />
+</MotionIconConfig>
+```
+
+Per-icon `mode` props override the provider. Function-valued modes work too — pass the same factory reference through context to avoid breaking memoization.
+
+---
+
+## When to reach for each
+
+| Goal | Use |
+| ---- | --- |
+| Default draw-on motion | nothing — that's the default |
+| Whole-icon emphasis (likes, alerts, errors) | `mode="pulse"` / `"shake"` / `"bounce"` |
+| Continuous mechanical motion (loaders, refresh) | `mode="spin"` (with `repeat={Infinity}`) |
+| Match the icon's character (heart beats, bell rings) | `mode="signature"` |
+| Something bespoke | `mode={(ctx) => ...}` or [`variants`](/docs/custom-motion) |

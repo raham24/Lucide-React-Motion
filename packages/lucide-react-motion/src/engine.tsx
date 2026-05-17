@@ -12,11 +12,13 @@
 
 import {
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useImperativeHandle,
   useMemo,
   useRef,
+  useState,
   type CSSProperties,
   type ElementType,
   type MouseEvent,
@@ -54,6 +56,13 @@ export type Trigger =
 export type OnLeave = "complete" | "snap" | "redraw";
 
 export type ReducedMotion = "system" | "always" | "never";
+
+/**
+ * Lifecycle phase the icon broadcasts via `data-motion-state` on the rendered
+ * `<svg>`. Consumers style against it with CSS so host color/transforms can
+ * stay in sync with the internal draw, even after a hover has ended.
+ */
+export type MotionState = "resting" | "drawing" | "complete";
 
 /** Imperative handle exposed via `ref` when `trigger="manual"`. */
 export interface MotionIconHandle {
@@ -277,6 +286,8 @@ interface TriggerEffectsArgs {
   svgRef: RefObject<SVGSVGElement | null>;
   inView: boolean;
   isReduced: boolean;
+  beginHover: () => void;
+  endHover: () => void;
 }
 
 function useTriggerEffects({
@@ -286,6 +297,8 @@ function useTriggerEffects({
   svgRef,
   inView,
   isReduced,
+  beginHover,
+  endHover,
 }: TriggerEffectsArgs): void {
   // mount: fire once on first paint.
   useEffect(() => {
@@ -303,21 +316,26 @@ function useTriggerEffects({
   }, [trigger, inView, controls, isReduced]);
 
   // parent-hover: bind to mouseenter/mouseleave on the nearest ancestor that
-  // carries [data-motion-icon-group].
+  // carries [data-motion-icon-group]. Routes hover edges through the same
+  // beginHover/endHover callbacks the `hover` trigger uses so motion-state
+  // bookkeeping stays in one place.
   useEffect(() => {
     if (isReduced) return;
     if (trigger !== "parent-hover") return;
     const parent = svgRef.current?.closest(PARENT_HOVER_SELECTOR);
     if (!parent) return;
-    const enter = () => controls.start("active");
-    const leave = () => applyLeave(controls, onLeave);
+    const enter = () => beginHover();
+    const leave = () => {
+      endHover();
+      applyLeave(controls, onLeave);
+    };
     parent.addEventListener("mouseenter", enter);
     parent.addEventListener("mouseleave", leave);
     return () => {
       parent.removeEventListener("mouseenter", enter);
       parent.removeEventListener("mouseleave", leave);
     };
-  }, [trigger, controls, isReduced, onLeave, svgRef]);
+  }, [trigger, controls, isReduced, onLeave, svgRef, beginHover, endHover]);
 }
 
 type MotionProps = Pick<
@@ -329,7 +347,9 @@ function getMotionProps(
   trigger: Trigger,
   onLeave: OnLeave,
   controls: LegacyAnimationControls,
-  isReduced: boolean
+  isReduced: boolean,
+  beginHover: () => void,
+  endHover: () => void
 ): MotionProps {
   if (isReduced) {
     return { initial: "rest", animate: "rest" };
@@ -338,8 +358,11 @@ function getMotionProps(
     return {
       initial: "rest",
       animate: controls,
-      onHoverStart: () => controls.start("active"),
-      onHoverEnd: () => applyLeave(controls, onLeave),
+      onHoverStart: () => beginHover(),
+      onHoverEnd: () => {
+        endHover();
+        applyLeave(controls, onLeave);
+      },
     };
   }
   // mount, in-view, click, manual, parent-hover - all driven via controls.
@@ -384,6 +407,46 @@ export function DrawIcon(props: DrawIconProps) {
   const svgRef = useRef<SVGSVGElement | null>(null);
   const inView = useInView(svgRef);
 
+  // Broadcast lifecycle phase as `data-motion-state` so consumers can sync
+  // host CSS (e.g. parent `hover:text-primary`) with the draw, which can
+  // outlive the hover when `onLeave="complete"`.
+  //
+  // For hover-style triggers (`hover`, `parent-hover`) the `complete` state
+  // only latches while the cursor is still over the trigger — once the user
+  // leaves, the icon drops back to `resting` (either immediately if the draw
+  // already finished, or as soon as it does). For one-shot triggers
+  // (`mount`, `in-view`, `click`, `manual`) `complete` latches indefinitely
+  // until the next trigger fires another draw.
+  const [motionState, setMotionState] = useState<MotionState>("resting");
+  const hoveringRef = useRef(false);
+  const isHoverTrigger = r.trigger === "hover" || r.trigger === "parent-hover";
+  const beginHover = useCallback(() => {
+    hoveringRef.current = true;
+    controls.start("active");
+  }, [controls]);
+  const endHover = useCallback(() => {
+    hoveringRef.current = false;
+    setMotionState((s) => (s === "complete" ? "resting" : s));
+  }, []);
+  const handleAnimationStart = (def: unknown) => {
+    if (def === "active") setMotionState("drawing");
+    else if (def === "rest") setMotionState("resting");
+  };
+  const handleAnimationComplete = (def: unknown) => {
+    if (def === "active") {
+      // Hover-style triggers only keep the latched `complete` state while
+      // the cursor remains over the target. Otherwise revert to resting so
+      // host CSS detaches cleanly.
+      if (isHoverTrigger && !hoveringRef.current) {
+        setMotionState("resting");
+      } else {
+        setMotionState("complete");
+      }
+    } else if (def === "rest") {
+      setMotionState("resting");
+    }
+  };
+
   // Imperative handle for trigger="manual".
   useImperativeHandle<MotionIconHandle, MotionIconHandle>(
     ref,
@@ -406,13 +469,17 @@ export function DrawIcon(props: DrawIconProps) {
     svgRef,
     inView,
     isReduced,
+    beginHover,
+    endHover,
   });
 
   const motionProps = getMotionProps(
     r.trigger,
     r.onLeave,
     controls,
-    isReduced
+    isReduced,
+    beginHover,
+    endHover
   );
 
   const handleClick = (e: MouseEvent<SVGSVGElement>) => {
@@ -437,6 +504,13 @@ export function DrawIcon(props: DrawIconProps) {
   for (const key of Object.keys(DEFAULTS) as DefaultKey[]) {
     delete cleanedPassthrough[key];
   }
+  // Lifecycle handlers and the state attribute are owned by the engine. The
+  // SVGAttributes base type makes these assignable from userland but they
+  // collide with the motion-redefined callbacks of the same name, so swallow
+  // any passthrough copies and let the engine's handlers be authoritative.
+  delete cleanedPassthrough.onAnimationStart;
+  delete cleanedPassthrough.onAnimationComplete;
+  delete cleanedPassthrough["data-motion-state"];
 
   return (
     <motion.svg
@@ -451,6 +525,9 @@ export function DrawIcon(props: DrawIconProps) {
       strokeWidth={effectiveStrokeWidth}
       className={className}
       onClick={handleClick}
+      onAnimationStart={handleAnimationStart}
+      onAnimationComplete={handleAnimationComplete}
+      data-motion-state={motionState}
       style={mergedStyle}
     >
       {nodes.map((node, i) => {

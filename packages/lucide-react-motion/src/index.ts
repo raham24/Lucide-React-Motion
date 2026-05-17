@@ -6,6 +6,7 @@ export {
   type IconNode,
   type MotionIconConfigValue,
   type MotionIconHandle,
+  type MotionState,
   type OnLeave,
   type ReducedMotion,
   type Trigger,

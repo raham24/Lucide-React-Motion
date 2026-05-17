@@ -91,6 +91,38 @@ function ButtonDemo({
 }
 
 /**
+ * Cell variant for the data-motion-state comparison — uses parent-hover so
+ * the whole cell is the trigger surface, and toggles whether the cell also
+ * pins its color while the icon is mid-draw. Slowed down to duration=2 so
+ * the leave-mid-draw window is wide enough to feel the difference.
+ */
+function MotionStateDemo({
+  label,
+  pinned,
+}: {
+  label: string;
+  pinned: boolean;
+}) {
+  return (
+    <div
+      data-motion-icon-group
+      className={
+        pinned
+          ? "group relative flex aspect-square flex-col items-center justify-between gap-2 border-b border-r border-border bg-transparent px-3 py-5 text-foreground transition-colors duration-300 ease-out hover:bg-accent hover:text-primary has-data-[motion-state=drawing]:text-primary"
+          : "group relative flex aspect-square flex-col items-center justify-between gap-2 border-b border-r border-border bg-transparent px-3 py-5 text-foreground transition-colors duration-300 ease-out hover:bg-accent hover:text-primary"
+      }
+    >
+      <span className="flex flex-1 items-center justify-center">
+        <Heart size={56} trigger="parent-hover" duration={2} />
+      </span>
+      <code className="block w-full truncate text-center text-[10px] tracking-tight text-muted-foreground transition-colors duration-200 ease-out group-hover:text-foreground">
+        {label}
+      </code>
+    </div>
+  );
+}
+
+/**
  * Cell variant for the imperative-handle demo — icon plus its play() button,
  * to keep the demo legible inside a single aspect-square cell.
  */
@@ -185,6 +217,20 @@ export function Playground() {
         <Demo label='onLeave="redraw"'>
           <Heart size={56} onLeave="redraw" />
         </Demo>
+      </Section>
+
+      <Section
+        title="Motion state attribute"
+        description="Every icon broadcasts data-motion-state=resting | drawing on its <svg>. Pair it with :hover and onLeave='complete' to keep host color pinned through the full draw — without it, the color releases the moment the cursor leaves while the stroke is still animating. Hover either cell, then move away before the draw finishes (duration is slowed to 2s here)."
+      >
+        <MotionStateDemo
+          label="without data-motion-state rule"
+          pinned={false}
+        />
+        <MotionStateDemo
+          label="has-data-[motion-state=drawing]:text-primary"
+          pinned
+        />
       </Section>
 
       <Section

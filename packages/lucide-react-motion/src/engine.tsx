@@ -12,7 +12,6 @@
 
 import {
   createContext,
-  useCallback,
   useContext,
   useEffect,
   useImperativeHandle,
@@ -60,9 +59,15 @@ export type ReducedMotion = "system" | "always" | "never";
 /**
  * Lifecycle phase the icon broadcasts via `data-motion-state` on the rendered
  * `<svg>`. Consumers style against it with CSS so host color/transforms can
- * stay in sync with the internal draw, even after a hover has ended.
+ * stay in sync with the internal draw — for example, keeping a parent's
+ * `hover:text-primary` pinned for the full draw under `onLeave="complete"`.
+ *
+ * Only two phases: either the stroke is currently animating, or it isn't.
+ * Anything more complex ("has been clicked", "post-draw glow") composes from
+ * this state plus standard CSS pseudo-classes (`:hover`, `:focus-visible`)
+ * or the consumer's own React state.
  */
-export type MotionState = "resting" | "drawing" | "complete";
+export type MotionState = "resting" | "drawing";
 
 /** Imperative handle exposed via `ref` when `trigger="manual"`. */
 export interface MotionIconHandle {
@@ -286,8 +291,6 @@ interface TriggerEffectsArgs {
   svgRef: RefObject<SVGSVGElement | null>;
   inView: boolean;
   isReduced: boolean;
-  beginHover: () => void;
-  endHover: () => void;
 }
 
 function useTriggerEffects({
@@ -297,8 +300,6 @@ function useTriggerEffects({
   svgRef,
   inView,
   isReduced,
-  beginHover,
-  endHover,
 }: TriggerEffectsArgs): void {
   // mount: fire once on first paint.
   useEffect(() => {
@@ -316,26 +317,21 @@ function useTriggerEffects({
   }, [trigger, inView, controls, isReduced]);
 
   // parent-hover: bind to mouseenter/mouseleave on the nearest ancestor that
-  // carries [data-motion-icon-group]. Routes hover edges through the same
-  // beginHover/endHover callbacks the `hover` trigger uses so motion-state
-  // bookkeeping stays in one place.
+  // carries [data-motion-icon-group].
   useEffect(() => {
     if (isReduced) return;
     if (trigger !== "parent-hover") return;
     const parent = svgRef.current?.closest(PARENT_HOVER_SELECTOR);
     if (!parent) return;
-    const enter = () => beginHover();
-    const leave = () => {
-      endHover();
-      applyLeave(controls, onLeave);
-    };
+    const enter = () => controls.start("active");
+    const leave = () => applyLeave(controls, onLeave);
     parent.addEventListener("mouseenter", enter);
     parent.addEventListener("mouseleave", leave);
     return () => {
       parent.removeEventListener("mouseenter", enter);
       parent.removeEventListener("mouseleave", leave);
     };
-  }, [trigger, controls, isReduced, onLeave, svgRef, beginHover, endHover]);
+  }, [trigger, controls, isReduced, onLeave, svgRef]);
 }
 
 type MotionProps = Pick<
@@ -347,9 +343,7 @@ function getMotionProps(
   trigger: Trigger,
   onLeave: OnLeave,
   controls: LegacyAnimationControls,
-  isReduced: boolean,
-  beginHover: () => void,
-  endHover: () => void
+  isReduced: boolean
 ): MotionProps {
   if (isReduced) {
     return { initial: "rest", animate: "rest" };
@@ -358,11 +352,8 @@ function getMotionProps(
     return {
       initial: "rest",
       animate: controls,
-      onHoverStart: () => beginHover(),
-      onHoverEnd: () => {
-        endHover();
-        applyLeave(controls, onLeave);
-      },
+      onHoverStart: () => controls.start("active"),
+      onHoverEnd: () => applyLeave(controls, onLeave),
     };
   }
   // mount, in-view, click, manual, parent-hover - all driven via controls.
@@ -409,45 +400,21 @@ export function DrawIcon(props: DrawIconProps) {
 
   // Broadcast lifecycle phase as `data-motion-state` so consumers can sync
   // host CSS (e.g. parent `hover:text-primary`) with the draw, which can
-  // outlive the hover when `onLeave="complete"`.
-  //
-  // For hover-style triggers (`hover`, `parent-hover`) the `complete` state
-  // only latches while the cursor is still over the trigger — once the user
-  // leaves, the icon drops back to `resting` (either immediately if the draw
-  // already finished, or as soon as it does). For one-shot triggers
-  // (`mount`, `in-view`, `click`, `manual`) `complete` latches indefinitely
-  // until the next trigger fires another draw.
+  // outlive the hover under `onLeave="complete"`. Two states only:
+  // "drawing" while the active animation is in flight, "resting" otherwise.
   const [motionState, setMotionState] = useState<MotionState>("resting");
-  const hoveringRef = useRef(false);
-  const isHoverTrigger = r.trigger === "hover" || r.trigger === "parent-hover";
-  const beginHover = useCallback(() => {
-    hoveringRef.current = true;
-    controls.start("active");
-  }, [controls]);
-  const endHover = useCallback(() => {
-    hoveringRef.current = false;
-    setMotionState((s) => (s === "complete" ? "resting" : s));
-  }, []);
   const handleAnimationStart = (def: unknown) => {
     if (def === "active") setMotionState("drawing");
     else if (def === "rest") setMotionState("resting");
   };
   const handleAnimationComplete = (def: unknown) => {
-    // Only `active` completion is meaningful here. Listening to `rest`
-    // completion is unsafe: paths like `click` and `onLeave="snap"` fire a
-    // synchronous `rest` followed by an `active`, and motion can deliver
-    // the rest-complete event AFTER active-start has already set state to
-    // "drawing" — clobbering it back to "resting" mid-draw. The rest-start
-    // handler above already lands the state correctly for every reset path.
-    if (def !== "active") return;
-    if (isHoverTrigger && !hoveringRef.current) {
-      // Hover-style triggers only keep the latched `complete` state while
-      // the cursor remains over the target. Otherwise revert to resting so
-      // host CSS detaches cleanly.
-      setMotionState("resting");
-    } else {
-      setMotionState("complete");
-    }
+    // Only the active variant ending means "draw is finished". Listening to
+    // `rest` completion is unsafe: paths like trigger=click and
+    // onLeave="snap" fire a synchronous rest followed by active, and motion
+    // can deliver rest-complete AFTER active-start has set state to
+    // "drawing", which would clobber it back to "resting" mid-draw. The
+    // rest-start handler above already lands the state correctly.
+    if (def === "active") setMotionState("resting");
   };
 
   // Imperative handle for trigger="manual".
@@ -472,17 +439,13 @@ export function DrawIcon(props: DrawIconProps) {
     svgRef,
     inView,
     isReduced,
-    beginHover,
-    endHover,
   });
 
   const motionProps = getMotionProps(
     r.trigger,
     r.onLeave,
     controls,
-    isReduced,
-    beginHover,
-    endHover
+    isReduced
   );
 
   const handleClick = (e: MouseEvent<SVGSVGElement>) => {

@@ -14,7 +14,6 @@ const TRIGGERS: { value: Trigger; label: string }[] = [
 const STATE_COLORS: Record<MotionState, string> = {
   resting: "bg-zinc-400 dark:bg-zinc-600",
   drawing: "bg-amber-500",
-  complete: "bg-emerald-500",
 };
 
 interface LogEntry {

@@ -63,7 +63,7 @@ The rendered `<svg>` also carries an attribute that the engine owns. It is read-
 
 | Attribute           | Values                                  | Notes                                                              |
 | ------------------- | --------------------------------------- | ------------------------------------------------------------------ |
-| `data-motion-state` | `"resting"` \| `"drawing"` \| `"complete"` | Current draw lifecycle phase. See [Motion state](/docs/motion-state). |
+| `data-motion-state` | `"resting"` \| `"drawing"` | Whether the stroke draw is currently animating. See [Motion state](/docs/motion-state). |
 
 ---
 
@@ -82,7 +82,7 @@ type OnLeave = "complete" | "snap" | "redraw";
 
 type ReducedMotion = "system" | "always" | "never";
 
-type MotionState = "resting" | "drawing" | "complete";
+type MotionState = "resting" | "drawing";
 
 interface MotionIconHandle {
   play: () => void;

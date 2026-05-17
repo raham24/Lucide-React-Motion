@@ -1,45 +1,58 @@
 ---
 title: Motion state
-description: Sync host CSS with the icon's draw lifecycle via the data-motion-state attribute.
+description: Sync host CSS with the icon's draw via the data-motion-state attribute.
 ---
 
-import { Heart, Send } from "lucide-react-motion";
+import { Heart } from "lucide-react-motion";
 import { MotionStateInspector } from "@/components/docs/motion-state-inspector";
 
-Every rendered icon carries a `data-motion-state` attribute on its `<svg>`. It reflects the current phase of the draw animation and lets you style the **surrounding UI** in lockstep with what the stroke is doing.
+Every rendered icon carries a `data-motion-state` attribute on its `<svg>`. It says whether the stroke is currently animating, so you can style the **surrounding UI** in lockstep with the draw.
 
 ```html
-<svg data-motion-state="resting"  …>…</svg>
-<svg data-motion-state="drawing"  …>…</svg>
-<svg data-motion-state="complete" …>…</svg>
+<svg data-motion-state="resting" …>…</svg>
+<svg data-motion-state="drawing" …>…</svg>
 ```
 
-No props, no React state, no callbacks. Just CSS selectors against the attribute.
+No props, no callbacks. Just CSS selectors.
 
 ---
 
-## The three states
+## The two states
 
-| State      | Meaning                                                                  |
-| ---------- | ------------------------------------------------------------------------ |
-| `resting`  | Idle. No animation is playing.                                           |
-| `drawing`  | The stroke draw (the `active` variant) is currently animating.           |
-| `complete` | The stroke draw finished and the icon is held at its fully-drawn state.  |
+| State     | When                                                |
+| --------- | --------------------------------------------------- |
+| `resting` | No animation in flight.                             |
+| `drawing` | The stroke draw is currently animating.             |
 
-The initial server-rendered value is always `resting`, so SSR and hydration are safe.
+That's the entire model. The state flips to `drawing` when an animation starts, back to `resting` when it ends:
+
+```
+                   draw starts                 draw finishes
+ resting  ────────────────────▶  drawing  ────────────────────▶  resting
+```
+
+This works the same for every trigger. `hover`, `parent-hover`, `click`, `mount`, `in-view`, `manual` — all flip the attribute through the same two-step cycle.
+
+---
+
+## Try it
+
+Watch the state flip as you interact. The log shows each transition with the time since the previous one. The demo runs at a slowed-down `duration={2}` and `stagger={0.35}` so the `drawing` window is easy to catch — real-world defaults are `0.55s` and `0.12s`.
+
+<MotionStateInspector />
 
 ---
 
 ## Why it exists
 
-When you pair `trigger="parent-hover"` with a host color transition, the host's `hover:text-primary` releases the instant the cursor leaves — but with `onLeave="complete"` (the default) the stroke is still drawing. The result, before this attribute existed, was a visible color snap-back to the resting color mid-animation.
+When you pair `trigger="parent-hover"` with a host color transition, the host's `hover:text-primary` releases the instant the cursor leaves — but with `onLeave="complete"` (the default) the stroke is still drawing. Without `data-motion-state` you'd see a visible color snap-back to the resting color mid-animation.
 
-With `data-motion-state` you can keep the host color pinned for as long as the icon is doing anything other than resting:
+The fix: also pin the color while the icon is `drawing`.
 
 <Preview>
   <div
     data-motion-icon-group
-    className="inline-flex h-24 w-24 items-center justify-center rounded-md border border-fd-border text-fd-foreground transition-colors hover:text-primary has-data-[motion-state=drawing]:text-primary has-data-[motion-state=complete]:text-primary"
+    className="inline-flex h-24 w-24 items-center justify-center rounded-md border border-fd-border text-fd-foreground transition-colors hover:text-primary has-data-[motion-state=drawing]:text-primary"
   >
     <Heart size={36} trigger="parent-hover" />
   </div>
@@ -52,7 +65,6 @@ With `data-motion-state` you can keep the host color pinned for as long as the i
     text-foreground transition-colors
     hover:text-primary
     has-data-[motion-state=drawing]:text-primary
-    has-data-[motion-state=complete]:text-primary
   "
 >
   <Heart trigger="parent-hover" />
@@ -63,92 +75,7 @@ Hover, then quickly move away — the stroke color now holds through the full dr
 
 ---
 
-## Try it
-
-Interact with the icon and watch the state change in real time. The log shows each transition with the time since the previous one — useful for seeing how `complete` lingers under `hover`, latches under `click`, and only fires after the full draw under any trigger.
-
-The demo runs at a slowed-down `duration={2}` and `stagger={0.35}` so the `drawing → complete` window is easy to catch. Real-world defaults are `0.55s` and `0.12s`.
-
-<MotionStateInspector />
-
----
-
-## How transitions work
-
-The simplest way to think about it: the state follows what the **stroke** is doing, with one extra rule for hover.
-
-- The stroke isn't moving → `resting`
-- The stroke is drawing right now → `drawing`
-- The stroke is done drawing and the icon is being held there → `complete`
-
-The "held there" part is what differs by trigger.
-
-### Hover and parent-hover
-
-`complete` is only held **while the cursor is over the icon (or its parent)**. Leave, and it goes back to `resting`.
-
-Three scenarios cover everything:
-
-**You hover, the draw finishes, you keep hovering, then you leave:**
-
-```
-  hover          draw           you           you
-  enters         finishes       wait          leave
-    │              │              │             │
-    ▼              ▼              ▼             ▼
- resting  ──▶  drawing   ──▶  complete  ──▶  resting
-```
-
-**You hover and leave before the draw finishes:**
-
-```
-  hover          you           draw
-  enters         leave         finishes
-    │              │              │
-    ▼              ▼              ▼
- resting  ──▶  drawing  ─ ─ ─ ▶  resting
-              (keeps           (skips
-               drawing)         "complete")
-```
-
-The state stays `drawing` after you leave so any host CSS that's pinned to the drawing state keeps its color until the stroke is actually done. Then it returns straight to `resting` — never lands on `complete`.
-
-**You hover, the draw finishes, then you leave:**
-
-```
- resting ──▶ drawing ──▶ complete ──▶ resting
-                                       ▲
-                                  the moment you
-                                  leave the icon
-```
-
-That's it. `onLeave` (`complete` / `snap` / `redraw`) controls **what the animation does** when you leave, but the state always lands at `resting` once you're gone and the stroke has settled.
-
-### Mount, in-view, click, manual
-
-These triggers have no "leave," so `complete` just stays put — the icon is finished and there's nothing telling it to go back to rest.
-
-```
- resting ──▶ drawing ──▶ complete   (and it stays here)
-```
-
-It only moves off `complete` when the trigger fires again:
-
-- `click` — next click restarts the cycle.
-- `mount` — never fires again, so it stays `complete` forever.
-- `manual` — until you call `play()` (restart) or `reset()` (back to `resting`).
-- `in-view` — scrolling out of view sends it back to `resting`, and scrolling back in restarts the cycle.
-
-### Two edge cases worth knowing
-
-- **Reduced motion.** No animation runs, so the state stays `resting`. CSS rules that key off `drawing` or `complete` simply never match.
-- **`repeat={Infinity}`.** The draw never reports as finished, so the state stays `drawing` for the entire loop. `complete` is never reached.
-
----
-
 ## Tailwind v4 syntax
-
-The canonical class shape is `has-data-[motion-state=…]:…` on the parent, or `data-[motion-state=…]:…` directly on the icon:
 
 ```tsx
 // On the parent (sync host style with child icon state)
@@ -166,8 +93,7 @@ The canonical class shape is `has-data-[motion-state=…]:…` on the parent, or
 If you're not using Tailwind, the equivalent CSS is:
 
 ```css
-[data-motion-icon-group]:has([data-motion-state="drawing"]),
-[data-motion-icon-group]:has([data-motion-state="complete"]) {
+[data-motion-icon-group]:has([data-motion-state="drawing"]) {
   color: var(--primary);
 }
 ```
@@ -176,21 +102,37 @@ If you're not using Tailwind, the equivalent CSS is:
 
 ---
 
-## When to use this vs other patterns
+## Composing with other selectors
 
-- **You want host color / transform sync with the draw.** → `data-motion-state` selectors. No JS overhead, composes cleanly.
-- **You need to run an imperative side effect when the draw begins or ends** (analytics, audio, chained animations). → This isn't covered yet. Lifecycle callback props (`onAnimationStart` / `onAnimationEnd`) are a possible future addition; for now you can read the attribute via a `MutationObserver` on the icon's `<svg>` if you really need it.
-- **You want a different draw entirely.** → See [Custom motion](/docs/custom-motion). Custom variants still must use the `rest` / `active` label names if you want the state machine to track them correctly.
+Two states cover the common case. For anything more nuanced, compose with standard CSS:
+
+```css
+/* User is hovering AND the draw isn't currently animating
+   (i.e. either pre-draw or post-draw, with cursor still over) */
+[data-motion-icon-group]:hover:not(:has([data-motion-state="drawing"])) {
+  box-shadow: 0 0 12px var(--primary);
+}
+```
+
+Tailwind v4 equivalent: `hover:not-has-data-[motion-state=drawing]:shadow-glow`.
+
+For state that needs to outlive the animation (like "this button was clicked, keep it highlighted until next click"), use your own React state. That's domain state belonging to your component, not something the icon should track.
+
+---
+
+## Edge cases
+
+- **Reduced motion.** No animation runs, so the state stays `resting` forever. CSS rules keyed on `drawing` simply never match.
+- **`repeat={Infinity}`.** The draw never reports as finished, so the state stays `drawing` for the entire loop.
+- **Custom `variants`.** If you pass your own `variants` prop, keep the `rest` and `active` label names so the state machine can still track when your animation starts and ends.
 
 ---
 
 ## Type
 
-The attribute's value type is also exported from the package:
-
 ```ts
 import type { MotionState } from "lucide-react-motion";
-//          ^ "resting" | "drawing" | "complete"
+//          ^ "resting" | "drawing"
 ```
 
-You'll rarely need it — the attribute is read via CSS, not JS — but it's there for components that want to type a `MutationObserver` payload or a state mirror in their own component tree.
+You'll rarely need it — the attribute is read via CSS, not JS — but it's there for components that want to type a `MutationObserver` payload or mirror the state into their own component tree.

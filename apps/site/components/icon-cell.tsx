@@ -53,10 +53,9 @@ export function IconCell({ name, component, Icon }: IconCellProps) {
         "text-foreground transition-colors duration-300 ease-out",
         "hover:bg-accent hover:text-primary",
         // Keep stroke color pinned to primary while the icon is still
-        // drawing or sitting at its completed state, even after the cursor
-        // has left the cell. Avoids the mid-animation color snap-back.
-        "has-data-[motion-state=drawing]:text-primary",
-        "has-data-[motion-state=complete]:text-primary"
+        // drawing, even after the cursor has left the cell. Avoids the
+        // mid-animation color snap-back.
+        "has-data-[motion-state=drawing]:text-primary"
       )}
     >
       {/* Whole-cell link sits behind the icon and name. Clicking anywhere

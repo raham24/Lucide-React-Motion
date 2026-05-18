@@ -11,6 +11,18 @@ export interface ModeContext {
   iconName: string;
   /** Index of the SVG child path the factory is being asked to animate. */
   index: number;
+  /**
+   * Tag name of the SVG element being animated (`"path"`, `"circle"`,
+   * `"rect"`, `"line"`, …). Lets motion modules match by element kind in
+   * addition to attribute content.
+   */
+  pathTag: string;
+  /**
+   * Attributes of the SVG element being animated. For `<path>` elements
+   * this includes the `d` string; for `<circle>` it's `cx`/`cy`/`r`; etc.
+   * Motion modules use this to identify the specific path they animate.
+   */
+  pathAttrs: Record<string, string | number>;
   /** Resolved animation duration in seconds. */
   duration: number;
   /** Resolved delay in seconds before each stroke draws. */
@@ -54,11 +66,18 @@ export interface Mode {
   defaults?: ModeDefaults;
   /**
    * Transform-based modes (rotate, scale, translate) need the SVG element's
-   * transform origin centered on the lucide viewBox. The engine sets
+   * transform origin set in viewBox coordinates. The engine sets
    * `transformOrigin: "12px 12px"; transformBox: "view-box"` on each animated
    * child when this is `true`.
    */
   needsTransformOrigin?: boolean;
+  /**
+   * Optional override for the transform origin used when `needsTransformOrigin`
+   * is set. Defaults to `"12px 12px"` (icon center). Use a different pivot
+   * for physics-aware modes — e.g. `"12px 4px"` makes a bell rock from its
+   * mount instead of its center.
+   */
+  transformOrigin?: string;
 }
 
 /**

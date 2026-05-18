@@ -503,11 +503,16 @@ export function DrawIcon(props: DrawIconProps) {
   };
 
   // Transform-based modes (pulse, spin, shake, bounce, signature transforms)
-  // need each animated child's transform origin centered on the lucide 24x24
-  // viewBox. `transformBox: "view-box"` also makes translation/scale values
-  // relative to user units so the motion scales with `size`.
+  // need each animated child's transform origin set in viewBox coordinates.
+  // Default origin is icon center; modes can override for physics-aware
+  // pivots (e.g. a bell rocking from its top mount). `transformBox:
+  // "view-box"` also makes translation/scale values relative to user units
+  // so the motion scales with `size`.
   const childStyle: CSSProperties | undefined = resolvedMode.needsTransformOrigin
-    ? { transformOrigin: "12px 12px", transformBox: "view-box" }
+    ? {
+        transformOrigin: resolvedMode.transformOrigin ?? "12px 12px",
+        transformBox: "view-box",
+      }
     : undefined;
 
   // Strip prop names we've already consumed so they don't leak onto the DOM.
@@ -559,6 +564,8 @@ export function DrawIcon(props: DrawIconProps) {
               resolvedMode.factory({
                 iconName,
                 index: i,
+                pathTag: Tag,
+                pathAttrs: attrs,
                 duration: r.duration,
                 delay: r.delay,
                 stagger: r.stagger,

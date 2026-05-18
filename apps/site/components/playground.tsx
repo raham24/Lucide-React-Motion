@@ -4,6 +4,12 @@ import { useRef, type ReactNode } from "react";
 import {
   ArrowDown,
   Bell,
+  BellCheck,
+  BellDot,
+  BellMinus,
+  BellOff,
+  BellPlus,
+  BellRing,
   Eye,
   Heart,
   Loader,
@@ -279,6 +285,33 @@ export function Playground() {
         </Demo>
         <Demo label="loader — infinite">
           <Loader size={56} mode="signature" />
+        </Demo>
+      </Section>
+
+      <Section
+        title="Bell family — composed signatures"
+        description="Every bell variant reuses the same shell + clapper physics (single source of truth) and layers a modifier-specific motion on top. Hover any cell to play. The reveal motion for the modifier (+, −, ✓, /, sound waves, dot) appears mid-ring after the bell starts swinging."
+      >
+        <Demo label="bell">
+          <Bell size={56} mode="signature" />
+        </Demo>
+        <Demo label="bell-plus">
+          <BellPlus size={56} mode="signature" />
+        </Demo>
+        <Demo label="bell-minus">
+          <BellMinus size={56} mode="signature" />
+        </Demo>
+        <Demo label="bell-check">
+          <BellCheck size={56} mode="signature" />
+        </Demo>
+        <Demo label="bell-off">
+          <BellOff size={56} mode="signature" />
+        </Demo>
+        <Demo label="bell-ring">
+          <BellRing size={56} mode="signature" />
+        </Demo>
+        <Demo label="bell-dot">
+          <BellDot size={56} mode="signature" />
         </Demo>
       </Section>
 

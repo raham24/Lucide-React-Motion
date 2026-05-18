@@ -1,13 +1,8 @@
-import { spin } from "../generic/spin";
-import type { Mode } from "../types";
+import { compose } from "../compose";
+import { sunRotate } from "../motions/sun-rotate";
 
-/**
- * Slow rotation — uses the generic spin factory with a longer duration so
- * the sun arcs through its rotation at a leisurely pace.
- */
-const sun: Mode = {
-  ...spin,
+/** Sun slow rotation — composed from the shared {@link sunRotate} motion. */
+export default compose({
+  motions: [sunRotate],
   defaults: { duration: 2.5, easing: "linear", stagger: 0 },
-};
-
-export default sun;
+});

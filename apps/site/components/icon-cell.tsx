@@ -9,7 +9,7 @@ import {
   type MouseEvent,
 } from "react";
 import { Check } from "lucide-react";
-import type { DrawIconProps } from "lucide-react-motion";
+import type { DrawIconProps, ModeName } from "lucide-react-motion";
 import { cn } from "@/lib/utils";
 
 type IconComponent = ComponentType<Omit<DrawIconProps, "nodes">>;
@@ -18,9 +18,11 @@ interface IconCellProps {
   name: string;
   component: string;
   Icon: IconComponent;
+  /** Animation mode applied to the icon. Defaults to `"draw"`. */
+  mode?: ModeName;
 }
 
-export function IconCell({ name, component, Icon }: IconCellProps) {
+export function IconCell({ name, component, Icon, mode = "draw" }: IconCellProps) {
   const [copied, setCopied] = useState(false);
   const resetTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -68,7 +70,7 @@ export function IconCell({ name, component, Icon }: IconCellProps) {
         className="absolute inset-0 z-0 focus-visible:outline focus-visible:-outline-offset-2 focus-visible:outline-2 focus-visible:outline-primary"
       />
       <span className="pointer-events-none relative z-0 flex flex-1 items-center justify-center">
-        <Icon size={48} strokeWidth={1.75} trigger="parent-hover" />
+        <Icon size={48} strokeWidth={1.75} trigger="parent-hover" mode={mode} />
       </span>
       <button
         type="button"

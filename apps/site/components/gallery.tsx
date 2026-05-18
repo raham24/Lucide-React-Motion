@@ -3,8 +3,9 @@
 import { useMemo, useState, type ComponentType } from "react";
 import { manifest } from "lucide-react-motion/manifest";
 import * as Icons from "lucide-react-motion";
-import type { DrawIconProps } from "lucide-react-motion";
+import type { DrawIconProps, ModeName } from "lucide-react-motion";
 import { IconCell } from "@/components/icon-cell";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { ICON_COUNT } from "@/lib/site-config";
 
 type IconComponent = ComponentType<Omit<DrawIconProps, "nodes">>;
@@ -13,9 +14,19 @@ const IconMap = Icons as unknown as Record<string, IconComponent | undefined>;
 const ICON_COUNT_FORMATTED = ICON_COUNT.toLocaleString();
 const PAGE_SIZE = 96;
 
+const MODE_OPTIONS: ModeName[] = [
+  "draw",
+  "signature",
+  "pulse",
+  "spin",
+  "shake",
+  "bounce",
+];
+
 export function Gallery() {
   const [query, setQuery] = useState("");
   const [limit, setLimit] = useState(PAGE_SIZE);
+  const [mode, setMode] = useState<ModeName>("draw");
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -26,22 +37,46 @@ export function Gallery() {
 
   return (
     <>
-      {/* Sticky control bar — search. top-13.25 (= 53px) is the exact
-          SiteNav height (py-3 + h-7 button row + 1px border), so the bar
-          tucks flush under it instead of slipping behind or leaving a gap. */}
+      {/* Sticky control bar — search + mode toggle. top-13.25 (= 53px) is the
+          exact SiteNav height (py-3 + h-7 button row + 1px border), so the
+          bar tucks flush under it instead of slipping behind or leaving a gap. */}
       <div className="sticky top-13.25 z-10 -mx-6 mt-8 border-b border-border bg-background/90 px-6 py-4 backdrop-blur sm:-mx-10 sm:px-10">
-        <label className="flex items-center gap-2 border border-foreground bg-background px-3 py-2 text-sm focus-within:border-primary">
-          <span className="text-muted-foreground">/</span>
-          <input
-            value={query}
-            onChange={(e) => {
-              setQuery(e.target.value);
-              setLimit(PAGE_SIZE);
+        <div className="flex flex-wrap items-center gap-3">
+          <label className="flex min-w-[220px] flex-1 items-center gap-2 border border-foreground bg-background px-3 py-2 text-sm focus-within:border-primary">
+            <span className="text-muted-foreground">/</span>
+            <input
+              value={query}
+              onChange={(e) => {
+                setQuery(e.target.value);
+                setLimit(PAGE_SIZE);
+              }}
+              placeholder={`search ${ICON_COUNT_FORMATTED} icons...`}
+              className="w-full bg-transparent outline-none placeholder:text-muted-foreground"
+            />
+          </label>
+          <ToggleGroup
+            type="single"
+            variant="outline"
+            size="sm"
+            spacing={1}
+            value={mode}
+            onValueChange={(value) => {
+              if (value) setMode(value as ModeName);
             }}
-            placeholder={`search ${ICON_COUNT_FORMATTED} icons...`}
-            className="w-full bg-transparent outline-none placeholder:text-muted-foreground"
-          />
-        </label>
+            aria-label="Animation mode"
+          >
+            {MODE_OPTIONS.map((m) => (
+              <ToggleGroupItem
+                key={m}
+                value={m}
+                aria-label={`Mode ${m}`}
+                className="rounded-none border-foreground bg-background text-[10px] uppercase tracking-[0.12em] text-foreground hover:bg-foreground/10 hover:text-foreground data-[state=on]:bg-foreground data-[state=on]:text-background"
+              >
+                {m}
+              </ToggleGroupItem>
+            ))}
+          </ToggleGroup>
+        </div>
       </div>
 
       <div className="mt-12 space-y-4">
@@ -66,6 +101,7 @@ export function Gallery() {
                   name={m.name}
                   component={m.component}
                   Icon={Icon}
+                  mode={mode}
                 />
               );
             })}

@@ -47,6 +47,7 @@
     "clean": "rm -rf dist src/generated",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
+    "status": "tsx scripts/signature-status.ts",
     "lint": "echo \"(no lint configured)\""
   },
   "peerDependencies": {

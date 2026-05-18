@@ -442,9 +442,23 @@ Update this table when you add a new motion module.
 
 ## 7. Family roadmap
 
-Suggested priority order. Each family is self-contained — finish one,
-get review, then start the next. The user picks the queue order; this
-is a recommendation.
+Before picking a family to work on, run the coverage report to see
+what's already done and what's outstanding:
+
+```bash
+pnpm --filter lucide-react-motion status        # human-readable
+pnpm --filter lucide-react-motion status --all  # include every pending family
+pnpm --filter lucide-react-motion status --json # for tooling
+```
+
+The report groups every Lucide icon by family (first hyphen segment) and
+labels each family **done**, **partial**, or **pending**. It's sourced
+directly from `src/modes/signatures/`, so it never goes stale.
+
+The list below is a suggested **priority order** for tackling pending
+families — picked for impact and motion clarity, not exhaustive. Use the
+status command for what's left; use this list for what to do next. Each
+family is self-contained — finish one, get review, then start the next.
 
 **Tier-2-rich families (highest impact):**
 
@@ -531,6 +545,10 @@ Before asking for review on a family:
 
 - [ ] `pnpm --filter lucide-react-motion generate` runs without
       errors and reports the new icon count with signatures.
+- [ ] `pnpm --filter lucide-react-motion status` shows the family
+      transitioned from *partial* (or *pending*) to *done*. If any
+      icons are intentionally skipped (per section 7's "skip / defer"
+      list), note that in the review handoff.
 - [ ] `pnpm typecheck` from repo root — all three turbo tasks pass.
 - [ ] `pnpm --filter lucide-react-motion test` — all resolver tests
       pass.

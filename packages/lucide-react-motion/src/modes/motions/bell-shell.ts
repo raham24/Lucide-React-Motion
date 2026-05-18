@@ -1,3 +1,4 @@
+import type { Easing } from "motion/react";
 import { matchPathDOneOf, type Motion } from "../compose";
 
 /**
@@ -13,6 +14,36 @@ import { matchPathDOneOf, type Motion } from "../compose";
  * this list is the registry of "what counts as a bell shell." Adding a
  * new bell variant means appending its shell `d` string here.
  */
+/**
+ * Rotate + time + per-segment ease keyframes for the bell shell's
+ * damped pendulum. Exported so other bell-family motions (modifier
+ * reveals, sound waves, notification dot) can rock in sync with the
+ * shell instead of floating statically over a swinging icon.
+ *
+ * Pattern: an internal motion imports these constants and feeds them
+ * into motion's per-value `transition` with `inherit: true` so its
+ * other animated properties (pathLength, opacity, scale) keep their
+ * own independent timing while still inheriting duration / delay /
+ * repeat from the parent transition.
+ */
+export const BELL_SHELL_KEYFRAMES: {
+  rotate: number[];
+  times: number[];
+  ease: Easing[];
+} = {
+  rotate: [0, -12, 9, -6, 4, -2, 1, 0],
+  times: [0, 0.1, 0.24, 0.38, 0.52, 0.66, 0.8, 1.0],
+  ease: [
+    "easeOut",
+    "easeInOut",
+    "easeInOut",
+    "easeInOut",
+    "easeInOut",
+    "easeInOut",
+    "easeInOut",
+  ],
+};
+
 const SHELL_PATHS = [
   // bell + bell-ring (identical shell d)
   "M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326",
@@ -35,20 +66,12 @@ export const bellShell: Motion = {
   factory: (ctx) => ({
     rest: { rotate: 0 },
     active: {
-      rotate: [0, -12, 9, -6, 4, -2, 1, 0],
+      rotate: BELL_SHELL_KEYFRAMES.rotate,
       transition: {
         duration: ctx.duration,
         delay: ctx.delay + ctx.index * ctx.stagger,
-        times: [0, 0.1, 0.24, 0.38, 0.52, 0.66, 0.8, 1.0],
-        ease: [
-          "easeOut",
-          "easeInOut",
-          "easeInOut",
-          "easeInOut",
-          "easeInOut",
-          "easeInOut",
-          "easeInOut",
-        ],
+        times: BELL_SHELL_KEYFRAMES.times,
+        ease: BELL_SHELL_KEYFRAMES.ease,
         repeat: ctx.repeat,
       },
     },

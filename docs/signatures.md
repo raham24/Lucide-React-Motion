@@ -12,13 +12,45 @@ a roadmap of which icon families to tackle next.
 
 ---
 
-## 1. The goal
+## 1. Goals & principles
 
 Every Lucide icon should eventually have a unique, true-to-life
 animation when consumers set `mode="signature"`. The bar is the bell:
 the shell rocks from its top mount, the clapper swings as a free
 pendulum inside, sound waves radiate outward from the mount. Each
 motion is physics-aware and characteristic to what the icon depicts.
+
+Three principles govern every motion in this library — read these
+before authoring or reviewing a signature, and re-read them when a
+motion you wrote doesn't feel right:
+
+**1. Real-life physics first.** Each motion mimics how the real-world
+thing actually behaves. A heart contracts during systole (the icon
+should squeeze inward, not balloon out). A bell rocks from its top
+mount. Sound waves radiate outward from the source. Stars twinkle,
+flames flicker, EKG traces draw at constant paper-tape speed. Generic
+transforms (scale, rotate, translate) without grounding in the icon's
+real-world referent feel arbitrary — design from the question *"how
+does this physically behave in reality?"* before you reach for a
+keyframe array.
+
+**2. Cohesion — every path tracks the host.** A modifier (`+`, `−`,
+`×`, `✓`, slash, notification dot, crack zigzag, EKG trace) sitting
+statically over a moving host reads as clip art floating over an
+animation. Every non-shell path in a signed icon inherits the host's
+primary transform via the host-keyframes pattern (section 5's
+*"Coupling every non-shell path to the host's motion"*) — and that
+applies to **both** Tier 1 UI markers and Tier 2 physical elements,
+not just Tier 2. If the bell rocks, the `+` rocks with it. If the
+heart contracts, the EKG line contracts with it.
+
+**3. Stay within the 24×24 viewBox.** SVGs default to
+`overflow: hidden`, so any motion that pushes the stroke past the
+viewBox edges visibly clips at runtime. For scale-based motion this
+usually means designing the rhythm as a contraction (`scale ≤ 1`)
+rather than an expansion — and that's anatomically more accurate for
+most icons anyway (real hearts squeeze, real bells stay the same size
+while they rock).
 
 Icons without a registered signature fall back to `mode="draw"` (the
 default stroke-on) and emit a one-time dev warning, so coverage gaps
@@ -67,13 +99,22 @@ packages/lucide-react-motion/src/modes/
 ├── motions/              Per-path animation modules — the reusable units
 │   ├── atom/
 │   │   └── spin.ts       Tiny shared factories (spin math used by sun/loader/...)
-│   ├── bell-clapper.ts   Family-specific motions
-│   ├── bell-shell.ts
-│   ├── bell-sound-waves.ts
-│   ├── modifier-reveal.ts  Cross-family Tier 1 reveals
-│   ├── dot-reveal.ts
-│   ├── heart-beat.ts     Singleton motions
-│   ├── eye-blink.ts
+│   │
+│   ├── bell-shell.ts     Bell family — host (exports BELL_SHELL_KEYFRAMES)
+│   ├── bell-clapper.ts
+│   ├── bell-sound-waves.ts          rocks with shell (Tier 2)
+│   ├── bell-modifier-reveal.ts      ±/✓/slash reveal + rocks with shell (Tier 1)
+│   ├── bell-dot-reveal.ts           circle reveal + rocks with shell (Tier 1)
+│   │
+│   ├── heart-beat.ts     Heart family — host (exports HEART_BEAT_KEYFRAMES)
+│   ├── heart-pulse-line.ts          EKG draw + beats with heart (Tier 2)
+│   ├── heart-handshake-clasp.ts     whole-icon pulse (Tier 2; merged path)
+│   ├── heart-modifier-reveal.ts     crack/+/-/×/slash reveal + beats with heart (Tier 1)
+│   │
+│   ├── modifier-reveal.ts  Generic (no host coupling) — reserved for hosts
+│   │                       whose primary motion is itself a pure draw
+│   │
+│   ├── eye-blink.ts      Singleton hosts
 │   ├── star-twinkle.ts
 │   ├── sun-rotate.ts
 │   └── loader-spin.ts
@@ -140,43 +181,66 @@ verbatim — never hand-roll prop fallbacks inside a motion.
 ## 3. The two-tier rule
 
 The single most important judgment call when authoring a signature.
-For each non-base path in an icon, classify it into one of two tiers:
+For each non-base path in an icon, classify it into one of two tiers
+— but note up-front that **every path, regardless of tier, inherits
+the host's primary transform** (principle 2 from section 1). The tier
+decides what *additional* motion the path gets; it never decides
+whether the path moves with the host.
 
 **Tier 1 — UI / state markers.** Plus, minus, check, ×, slash,
 off-mark, dot indicator, badge, etc. These are abstract semantic
 decorations whose purpose is to *signify a state* (added, removed,
 confirmed, silenced, has-notification). They don't represent anything
-physical, so they shouldn't animate physically. Use:
+physical, so they don't get bespoke physics — they reveal quietly
+(`pathLength` + `opacity` for paths; `scale` + `opacity` for circles).
 
-- `modifierReveal` — the generic pathLength + opacity draw-in for path
-  elements
-- `dotReveal` — the circle-equivalent (scale + opacity) for circle
-  elements
+Use the family's **coupled** modifier reveal — `heartModifierReveal`,
+`bellModifierReveal`, etc. — which combines the quiet reveal with the
+host's primary transform inherited via `inherit: true` per-value
+transitions (see section 5). Drop these last in the compose `motions`
+list (after any base-shape motions) since they `matchAnyPath`. For
+circle markers (notification dots) build the family's geometry-matched
+equivalent (`bellDotReveal`).
 
-Drop them last in the compose `motions` list (after any base-shape
-motions). They draw in quietly and don't compete with the host icon's
-primary motion.
+Generic `modifierReveal` / `dotReveal` (no host coupling) stay
+available for the rare case of a family whose host motion is itself a
+pure draw — but for any family whose host transforms, build a
+family-specific reveal.
 
 **Tier 2 — Real-life-grounded elements.** Sound waves, flames, water
-drops, smoke, sparkles, light rays, electricity, lightning bolts —
-anything that depicts an actual physical phenomenon. These get bespoke
-motion that mimics how the real thing behaves: sound waves radiate
-outward, flames flicker, water drops fall, smoke drifts upward. The
-motion *is* the icon's character.
+drops, smoke, sparkles, light rays, electricity, lightning bolts,
+cracks, EKG traces — anything that depicts an actual physical
+phenomenon. These get bespoke motion that mimics how the real thing
+behaves: sound waves radiate outward, flames flicker, water drops
+fall, smoke drifts upward, hearts contract, cracks split. The motion
+*is* the icon's character.
+
+If a Tier 2 element sits visually inside or attached to a transforming
+host (e.g. `heart-pulse`'s EKG trace passes through the heart,
+`heart-crack`'s zigzag sits on the heart's surface,
+`bell-ring`'s sound waves hang off the bell mount), it ALSO inherits
+the host's primary transform via the same per-value `inherit: true`
+pattern — its bespoke physics and the host's motion run together
+through motion's per-value transitions. Otherwise it'll float
+statically over the moving host (see section 5).
 
 **Concrete examples already in the codebase:**
 
 | Path | Tier | Motion |
 | --- | --- | --- |
-| `bell-plus` / `bell-minus` / `bell-check` / `bell-off`'s modifier | 1 | `modifierReveal` |
-| `bell-dot`'s dot circle | 1 | `dotReveal` |
-| `bell-ring`'s sound waves | **2** | `bellSoundWaves` (radiates outward from mount) |
-| The bell shell + clapper themselves | **2** | `bellShell` + `bellClapper` (pendulum physics) |
-| The heart's outline | **2** | `heartBeat` (lub-dub) |
+| The bell shell + clapper | **host** | `bellShell` + `bellClapper` (pendulum physics; shell exports `BELL_SHELL_KEYFRAMES`) |
+| `bell-plus` / `-minus` / `-check` / `-off`'s modifiers | 1 | `bellModifierReveal` — reveal + rocks with shell |
+| `bell-dot`'s dot circle | 1 | `bellDotReveal` — circle reveal + rocks with shell |
+| `bell-ring`'s sound waves | **2** | `bellSoundWaves` — radiates outward; also rocks with shell |
+| The heart outline | **host** | `heartBeat` (lub-dub contraction; exports `HEART_BEAT_KEYFRAMES`) |
+| `heart-plus` / `-minus` / `-x` / `-off`'s modifiers + `heart-crack`'s crack | 1 | `heartModifierReveal` — reveal + beats with heart |
+| `heart-pulse`'s EKG trace | **2** | `heartPulseLine` — linear paper-tape draw; also beats with heart |
+| `heart-handshake`'s merged heart+hands | **2** | `heartHandshakeClasp` — single soft pulse on a merged path |
 
 When in doubt, ask: "does this path depict an actual physical thing
 that has its own motion in the real world, or is it a marker?" If the
-former, design Tier 2 motion. If the latter, just `modifierReveal`.
+former, design Tier 2 motion. If the latter, use the family's coupled
+modifier reveal. **Either way, the path inherits the host transform.**
 
 ## 4. Authoring workflow
 
@@ -202,19 +266,29 @@ For each path, ask in order:
    `src/modes/motions/`. Look for matching `d` strings or matching
    element geometry. If yes → just import it and move on.
 
-2. **Is this path part of a family?** If the icon is a variant (e.g.
-   `heart-crack`), check whether the family-base motion module
-   (`heartBeat`) recognizes this path. If it almost matches but the
-   `d` differs slightly, extend the motion's `matchPathDOneOf` list
-   with the new `d` (only if the path's visual role and motion should
-   be identical — otherwise create a new variant motion).
+2. **Is this path the host shape (or a variant of it)?** Match it via
+   the family-base motion (`heartBeat`, `bellShell`, …). If a Lucide
+   variant reshapes the host's `d` slightly (e.g. `bell-plus` carves
+   out a corner), extend the motion's `matchPathDOneOf` list with the
+   new `d`. While you're there, make sure the host motion exports its
+   keyframe constants (`HEART_BEAT_KEYFRAMES`, `BELL_SHELL_KEYFRAMES`,
+   …) so other family motions can inherit them.
 
-3. **Is this a Tier 1 marker?** Use `modifierReveal` (for paths) or
-   `dotReveal` (for circles).
+3. **Is this a Tier 1 marker?** Use the family's coupled modifier
+   reveal — `heartModifierReveal`, `bellModifierReveal`, etc. — which
+   reveals the path AND inherits the host's transform via
+   `inherit: true` per-value transitions. If the family doesn't have
+   one yet, build it: a `matchAnyPath` motion that does
+   `pathLength` + `opacity` reveal plus the host's primary keyframes
+   per-value (see section 5's worked example). For circle markers,
+   build a geometry-matched equivalent (`bellDotReveal`).
 
-4. **Is this Tier 2?** Write a new motion module under
-   `src/modes/motions/`. Name it `<icon>-<role>.ts` (e.g. `flame-core`,
-   `clock-hour-hand`).
+4. **Is this Tier 2 with bespoke physics?** Write a new motion module
+   under `src/modes/motions/`. Name it `<icon>-<role>.ts` (e.g.
+   `flame-core`, `clock-hour-hand`). If it sits inside or attached to
+   a transforming host, also inherit the host's keyframes via the same
+   per-value `inherit: true` pattern — its physics plays *with* the
+   host, not *over* it.
 
 ### Step 3 — Write any new motion modules
 
@@ -479,6 +553,14 @@ coupling) stays available for families whose host motion is itself a
 pure draw — but for any family whose host transforms, prefer the
 family-specific reveal.
 
+The bell family follows the same pattern with `BELL_SHELL_KEYFRAMES`
+(rotate / times / ease arrays) and a `bellModifierReveal` that
+piggybacks the shell's damped rock onto the +/−/✓/off-slash strokes.
+`bellDotReveal` does the same for the `<circle>` notification dot in
+`bell-dot`, and `bellSoundWaves` in `bell-ring` also picks up the
+shell's rotation so the sound waves stay anchored to the swinging
+mount as they radiate outward.
+
 ## 6. Reusable motions currently available
 
 When authoring a new signature, check this list first. If an existing
@@ -487,10 +569,11 @@ motion matches the path you're animating, just import and reuse.
 | Module | Matches | Animates |
 | --- | --- | --- |
 | `motions/bell-clapper.ts` | Bell clapper d | Wider damped pendulum, ~6 swings |
-| `motions/bell-shell.ts` | All known bell shell d variants | Gentle damped rotation, ~3.5 swings |
-| `motions/bell-sound-waves.ts` | Bell-ring wave d's | Radiating pulses out from origin (Tier 2) |
-| `motions/modifier-reveal.ts` | `matchAnyPath` (wildcard) | Generic pathLength + opacity draw-in (Tier 1) |
-| `motions/dot-reveal.ts` | Circle at cx=18,cy=5,r=3 | Scale + opacity for notification dots (Tier 1) |
+| `motions/bell-shell.ts` | All known bell shell d variants | Gentle damped rotation, ~3.5 swings. Exports `BELL_SHELL_KEYFRAMES` for other bell-family motions to inherit. |
+| `motions/bell-sound-waves.ts` | Bell-ring wave d's | Radiating pulses out from origin; rotate follows the host `bellShell` so the waves stay anchored to the swinging mount (Tier 2) |
+| `motions/bell-modifier-reveal.ts` | `matchAnyPath` (wildcard) | Delayed `pathLength` + `opacity` reveal that also rotates with the host `bellShell`. Used for every non-shell non-clapper bell-family path — +, −, ✓, off-slash — so they stay anchored through the swing |
+| `motions/bell-dot-reveal.ts` | Circle at cx=18,cy=5,r=3 | Scale + opacity for notification dots; rotate follows the host `bellShell` so the dot rocks with the bell (Tier 1) |
+| `motions/modifier-reveal.ts` | `matchAnyPath` (wildcard) | Generic pathLength + opacity draw-in, no host coupling. Reserved for future families whose host motion is itself a pure draw — every family with a transforming host should build its own coupled variant (see `bellModifierReveal`, `heartModifierReveal`). |
 | `motions/heart-beat.ts` | All known heart shell d variants (heart, heart-crack, heart-minus, heart-plus, heart-x, heart-pulse base, heart-off fragments) | Lub-dub scale beat (Tier 2) |
 | `motions/heart-handshake-clasp.ts` | Heart-handshake's single merged d | Gentle whole-icon "shared warmth" pulse (Tier 2; merged path forces a whole-icon gesture) |
 | `motions/heart-pulse-line.ts` | Heart-pulse's EKG waveform d | Linear `pathLength` sweep that draws the trace left-to-right; scale follows the host `heartBeat` so the line breathes with the heart (Tier 2) |
@@ -625,6 +708,14 @@ Before asking for review on a family:
       generic motion where physics is expected.
 - [ ] Visual: each Tier 1 modifier is quiet enough not to compete
       with the host icon's primary motion.
+- [ ] Visual: **every** non-shell path tracks the host through the
+      animation — no marker, dot, slash, or internal element sits
+      static while the host moves around it.
+- [ ] Visual: at peak motion the stroke stays inside the 24×24
+      viewBox at default `strokeWidth={2}` — no edge clipping. (Most
+      scale motions should be contractions, not expansions.)
+- [ ] Every per-value transition uses `inherit: true` so
+      `duration` / `delay` / `repeat` propagate down from the parent.
 - [ ] Variants reuse base motions; you didn't re-type physics.
 - [ ] Each new motion file has a docstring explaining what it
       animates and which icons consume it.
@@ -632,6 +723,27 @@ Before asking for review on a family:
       motions.
 
 ## 9. Known pitfalls
+
+**`inherit: true` is required on per-value transitions.** When you
+use motion's per-value `transition` to give different properties
+different keyframe schedules (the host-coupling pattern — section 5),
+each per-value object MUST set `inherit: true` or motion-dom replaces
+the parent transition entirely, dropping `duration` / `delay` /
+`repeat` and falling back to its 300 ms default. Symptom: a property
+animates at the wrong speed or doesn't appear to do anything, and the
+modifier ends up out of phase with the rest of the icon. Source:
+`getValueTransition` in `motion-dom/animation/utils/get-value-transition.mjs`.
+
+**Scale > 1 clips at the viewBox edges.** The default 24×24 viewBox
+plus stroke-width 2 means content can extend from roughly (−1, −1)
+to (25, 25) at scale 1, with no margin. Any scale > 1 pushes the
+stroke past the SVG, which defaults to `overflow: hidden` — the
+peaks of the motion get sliced off at runtime. Design scale rhythms
+as contractions (`scale ≤ 1`); they're anatomically more accurate
+for most icons (hearts squeeze, they don't balloon) and stay within
+bounds at any stroke-width. If a motion genuinely needs to expand
+beyond the icon's footprint, that's a signal to use a non-transform
+animation (`pathLength`, `opacity`) instead.
 
 **Path `d` strings vary across variants.** Lucide reshapes the base
 shape to accommodate modifiers (`bell-plus` carves out the top-right

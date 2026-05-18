@@ -1,15 +1,15 @@
 import { compose } from "../compose";
 import { bellClapper } from "../motions/bell-clapper";
+import { bellModifierReveal } from "../motions/bell-modifier-reveal";
 import { bellShell } from "../motions/bell-shell";
-import { modifierReveal } from "../motions/modifier-reveal";
 
 /**
- * Bell rings (shared `bellClapper` + `bellShell`), and the + sign reveals
- * itself mid-ring via `modifierReveal`. The reveal sits last in the
- * motions list so the clapper and shell match their specific paths first.
+ * Bell rings (shared `bellClapper` + `bellShell`), and the + sign
+ * reveals itself mid-ring via `bellModifierReveal` while rocking with
+ * the shell so the marker stays anchored through the swing.
  */
 export default compose({
-  motions: [bellClapper, bellShell, modifierReveal],
+  motions: [bellClapper, bellShell, bellModifierReveal],
   defaults: { duration: 1.0, easing: "easeOut", stagger: 0 },
   transformOrigin: "12px 4px",
 });

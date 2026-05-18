@@ -232,6 +232,10 @@ statically over the moving host (see section 5).
 | `bell-plus` / `-minus` / `-check` / `-off`'s modifiers | 1 | `bellModifierReveal` — reveal + rocks with shell |
 | `bell-dot`'s dot circle | 1 | `bellDotReveal` — circle reveal + rocks with shell |
 | `bell-ring`'s sound waves | **2** | `bellSoundWaves` — radiates outward; also rocks with shell |
+| `bell-electric`'s dome + base | **host** | `bellElectricBody` (rapid in-place buzz instead of pendulum rock; exports `BELL_ELECTRIC_BODY_KEYFRAMES`) |
+| `bell-electric`'s signal arcs | **2** | `bellElectricSignal` — double-pulse radiation from the dome; also rocks with body |
+| `bell-electric`'s contact button | 1 | `bellElectricButton` — opacity press-feedback; also rocks with body |
+| `bell-electric`'s center spark | 1 | `bellElectricSpark` — scale + opacity flash in place; also rocks with body |
 | The heart outline | **host** | `heartBeat` (lub-dub contraction; exports `HEART_BEAT_KEYFRAMES`) |
 | `heart-plus` / `-minus` / `-x` / `-off`'s modifiers + `heart-crack`'s crack | 1 | `heartModifierReveal` — reveal + beats with heart |
 | `heart-pulse`'s EKG trace | **2** | `heartPulseLine` — linear paper-tape draw; also beats with heart |
@@ -573,6 +577,10 @@ motion matches the path you're animating, just import and reuse.
 | `motions/bell-sound-waves.ts` | Bell-ring wave d's | Radiating pulses out from origin; rotate follows the host `bellShell` so the waves stay anchored to the swinging mount (Tier 2) |
 | `motions/bell-modifier-reveal.ts` | `matchAnyPath` (wildcard) | Delayed `pathLength` + `opacity` reveal that also rotates with the host `bellShell`. Used for every non-shell non-clapper bell-family path — +, −, ✓, off-slash — so they stay anchored through the swing |
 | `motions/bell-dot-reveal.ts` | Circle at cx=18,cy=5,r=3 | Scale + opacity for notification dots; rotate follows the host `bellShell` so the dot rocks with the bell (Tier 1) |
+| `motions/bell-electric-body.ts` | Bell-electric dome circle + base rect | High-frequency low-amplitude buzz rotation around the dome center, ~5 micro-swings. Exports `BELL_ELECTRIC_BODY_KEYFRAMES` for the rest of the bell-electric family to inherit. Different physics from `bellShell` — electric bells vibrate in place rather than swinging from a mount. |
+| `motions/bell-electric-signal.ts` | Bell-electric's two signal-arc d's | Double-pulse radiation scaled from the dome center; rotate follows the host `bellElectricBody` so the arcs stay anchored to the buzzing bell (Tier 2; faster cadence than `bellSoundWaves` to read as electric vs acoustic) |
+| `motions/bell-electric-button.ts` | Circle at cx=20,cy=16,r=2 | Opacity-only press-feedback pulse (no scale so it stays anchored off-center); rotate follows the host `bellElectricBody` (Tier 1) |
+| `motions/bell-electric-spark.ts` | `M9 9h.01` center-dot d | Scale + opacity flash in place at the bell's core (Lucide degenerate-dot path); rotate follows the host `bellElectricBody` (Tier 1) |
 | `motions/modifier-reveal.ts` | `matchAnyPath` (wildcard) | Generic pathLength + opacity draw-in, no host coupling. Reserved for future families whose host motion is itself a pure draw — every family with a transforming host should build its own coupled variant (see `bellModifierReveal`, `heartModifierReveal`). |
 | `motions/heart-beat.ts` | All known heart shell d variants (heart, heart-crack, heart-minus, heart-plus, heart-x, heart-pulse base, heart-off fragments) | Lub-dub scale beat (Tier 2) |
 | `motions/heart-handshake-clasp.ts` | Heart-handshake's single merged d | Gentle whole-icon "shared warmth" pulse (Tier 2; merged path forces a whole-icon gesture) |

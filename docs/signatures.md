@@ -116,7 +116,9 @@ packages/lucide-react-motion/src/modes/
 │   │
 │   ├── eye-blink.ts      Singleton hosts
 │   ├── star-twinkle.ts
-│   ├── sun-rotate.ts
+│   ├── sun-ray-pulse.ts  Sun family — wildcard ray-radiation pulse
+│   ├── moon-glow.ts                  sun-moon's reflected-light crescent (Tier 2)
+│   ├── snowflake-twinkle.ts          sun-snow's ice-crystal sparkle (Tier 2)
 │   └── loader-spin.ts
 │
 └── signatures/           One file per signed icon; thin compose() calls
@@ -593,12 +595,11 @@ motion matches the path you're animating, just import and reuse.
 | `motions/heart-modifier-reveal.ts` | `matchAnyPath` (wildcard) | Delayed `pathLength` + `opacity` reveal that also scales with the host `heartBeat`. Used for every non-shell heart-family path — crack, ±, ×, off-slash — so they stay anchored through the beat |
 | `motions/eye-blink.ts` | `matchAnyPath` for eye | scaleY collapse + return |
 | `motions/star-twinkle.ts` | Star base d | Combined rotate + scale + opacity |
-| `motions/sun-rotate.ts` | `matchAnyPath` for sun | Slow rotation (via `atom/spin`); used by the regular `sun` signature |
-| `motions/sun-ray-pulse.ts` | `matchAnyPath` (wildcard) | Per-path scale-outward + opacity dim with stagger. Used as the catch-all in every sun *variant* signature (`sun-dim`, `sun-medium`, sun parts of `sun-moon` and `sun-snow`) so the rays cascade outward from the sun's centre — light radiating from the surface (Tier 2) |
+| `motions/sun-ray-pulse.ts` | `matchAnyPath` (wildcard) | Per-path scale-outward + opacity dim with stagger. Used as the catch-all in every sun signature (`sun`, `sun-dim`, `sun-medium`, sun parts of `sun-moon` and `sun-snow`) so the rays cascade outward from the sun's centre — light radiating from the surface (Tier 2) |
 | `motions/moon-glow.ts` | Sun-moon's moon crescent d | Opacity-only soft dim/glow with no scale (moon reflects light, doesn't radiate; off-centre crescent shouldn't translate when the signature pivots for the sun) (Tier 2) |
 | `motions/snowflake-twinkle.ts` | Sun-snow's 5 snowflake d's | Sharp opacity double-pulse + barely-perceptible scale wobble — ice crystals sparkle by reflection, not by changing size (Tier 2) |
 | `motions/loader-spin.ts` | `matchAnyPath` for loader | Infinite rotation (via `atom/spin`) |
-| `motions/atom/spin.ts` | (factory only, no matches) | Pure rotation math; reused by spin Mode + sun/loader |
+| `motions/atom/spin.ts` | (factory only, no matches) | Pure rotation math; reused by `spin` Mode + `loader-spin` |
 
 Update this table when you add a new motion module.
 
@@ -636,9 +637,13 @@ family is self-contained — finish one, get review, then start the next.
    fall, Tier 2).
 
 3. **`sun-*` / `moon-*`** — sun, sunrise, sunset, sun-medium, sun-
-   snow, sun-dim, sun-moon, moon, moon-star. Sun already done.
-   Rotational variants reuse `sun-rotate`. moon-star adds a Tier 2
-   twinkle.
+   snow, sun-dim, sun-moon, moon, moon-star. Sun family done. The
+   sun family uses `sunRayPulse` (per-path scale-outward + opacity
+   cascade) for all variants; composite icons (`sun-moon`,
+   `sun-snow`) layer element-specific motions on top (`moonGlow`,
+   `snowflakeTwinkle`). The moon family is still pending; expect a
+   gentle reflected-light glow on the crescent and a Tier 2 twinkle
+   for moon-star.
 
 4. **`cloud-*` + `droplet*`** — cloud, cloud-drizzle, cloud-fog,
    cloud-hail, cloud-lightning, cloud-rain, cloud-snow, cloud-sun,

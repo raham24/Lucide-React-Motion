@@ -1,8 +1,18 @@
 import { compose } from "../compose";
-import { sunRotate } from "../motions/sun-rotate";
+import { sunRayPulse } from "../motions/sun-ray-pulse";
 
-/** Sun slow rotation — composed from the shared {@link sunRotate} motion. */
+/**
+ * Sun — the central circle plus eight full ray segments at the
+ * cardinal and diagonal positions. Tier-2 signature: the sun's
+ * centre pulses first and each ray follows in cascade via the
+ * shared {@link sunRayPulse} motion, so each ray appears to
+ * lengthen toward its tip in turn — a wave of light radiating
+ * outward from the surface.
+ *
+ * The icon centre (12, 12) is the sun's centre, so the default
+ * transform origin is correct without an override.
+ */
 export default compose({
-  motions: [sunRotate],
-  defaults: { duration: 2.5, easing: "linear", stagger: 0 },
+  motions: [sunRayPulse],
+  defaults: { duration: 0.9, easing: "easeInOut", stagger: 0.05 },
 });

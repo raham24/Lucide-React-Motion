@@ -119,6 +119,11 @@ packages/lucide-react-motion/src/modes/
 │   ├── sun-ray-pulse.ts  Sun family — wildcard ray-radiation pulse
 │   ├── moon-glow.ts                  sun-moon's reflected-light crescent (Tier 2)
 │   ├── snowflake-twinkle.ts          sun-snow's ice-crystal sparkle (Tier 2)
+│   │
+│   ├── clock-face.ts     Clock family — face/arc subtle pulse (exports CLOCK_FACE_KEYFRAMES)
+│   ├── clock-hands.ts                hand-pair clockwise tick
+│   ├── clock-modifier-reveal.ts      ±/✓/arrow/alert reveal + breathes with face
+│   │
 │   └── loader-spin.ts
 │
 └── signatures/           One file per signed icon; thin compose() calls
@@ -242,6 +247,9 @@ statically over the moving host (see section 5).
 | `heart-plus` / `-minus` / `-x` / `-off`'s modifiers + `heart-crack`'s crack | 1 | `heartModifierReveal` — reveal + beats with heart |
 | `heart-pulse`'s EKG trace | **2** | `heartPulseLine` — linear paper-tape draw; also beats with heart |
 | `heart-handshake`'s merged heart+hands | **2** | `heartHandshakeClasp` — single soft pulse on a merged path |
+| The clock face (circle in `clock`/`clock-1..12`, partial arcs in `clock-{alert,arrow-up,arrow-down,check,fading,plus}`) | **host** | `clockFace` — tiny scale+opacity pulse (exports `CLOCK_FACE_KEYFRAMES`); `clock-fading`'s 5 arc fragments cascade via stagger |
+| The clock hand-pair (combined minute+hour stroke starting with `M12 6v…`) | **2** | `clockHands` — clockwise 6° tick (one minute step), hold, ease back |
+| `clock-{alert,arrow-up,arrow-down,check,plus}`'s state markers | 1 | `clockModifierReveal` — pathLength + opacity reveal that also scales with the host `clockFace` |
 | `sun-dim` / `sun-medium`'s body + rays | **2** | `sunRayPulse` — scale-outward + opacity dim, staggered so the rays cascade outward from the sun's centre |
 | `sun-moon`'s moon crescent | **2** | `moonGlow` — opacity-only (reflects light, doesn't radiate) |
 | `sun-moon`'s sun rays + quarter-arc | **2** | `sunRayPulse` — radiates with the same cascade as `sun-dim`/`sun-medium` |
@@ -598,6 +606,9 @@ motion matches the path you're animating, just import and reuse.
 | `motions/sun-ray-pulse.ts` | `matchAnyPath` (wildcard) | Per-path scale-outward + opacity dim with stagger. Used as the catch-all in every sun signature (`sun`, `sun-dim`, `sun-medium`, sun parts of `sun-moon` and `sun-snow`) so the rays cascade outward from the sun's centre — light radiating from the surface (Tier 2) |
 | `motions/moon-glow.ts` | Sun-moon's moon crescent d | Opacity-only soft dim/glow with no scale (moon reflects light, doesn't radiate; off-centre crescent shouldn't translate when the signature pivots for the sun) (Tier 2) |
 | `motions/snowflake-twinkle.ts` | Sun-snow's 5 snowflake d's | Sharp opacity double-pulse + barely-perceptible scale wobble — ice crystals sparkle by reflection, not by changing size (Tier 2) |
+| `motions/clock-face.ts` | Full `<circle cx=12 cy=12 r=10>` OR any path containing the `[Aa]10 10 0` arc command (catches the partial faces in `clock-{alert,arrow-up,arrow-down,check,fading,plus}`) | Tiny scale + opacity pulse — clock faces stay mostly steady so the hands' tick is the focus. Exports `CLOCK_FACE_KEYFRAMES` for the family's modifier reveal to inherit. In `clock-fading`'s 5 arc fragments the per-path stagger cascades into the "fading" character (Tier 2) |
+| `motions/clock-hands.ts` | Any path whose `d` starts with `M12 6v` (catches the combined minute+hour hand-pair stroke in every clock variant) | Clockwise tick — 6° forward (one minute step), hold, ease back to rest (Tier 2) |
+| `motions/clock-modifier-reveal.ts` | `matchAnyPath` (wildcard) | pathLength + opacity reveal that also scales with the host `clockFace` so state modifiers (alert, arrow, check, plus) breathe in sync with the face instead of floating over a pulsing body |
 | `motions/loader-spin.ts` | `matchAnyPath` for loader | Infinite rotation (via `atom/spin`) |
 | `motions/atom/spin.ts` | (factory only, no matches) | Pure rotation math; reused by `spin` Mode + `loader-spin` |
 

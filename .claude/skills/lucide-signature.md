@@ -36,16 +36,19 @@ Before anything else, read `docs/signatures.md` end-to-end. It's the source of t
 
 - **Tier 1 — UI / state markers.** Abstract semantic decorations that *signify a state* — they don't represent anything physical. Lucide uses a fixed vocabulary of these across the catalog; when you see a path or `<circle>` matching any of these patterns, it is Tier 1 by default:
 
+  Sorted by how often Lucide uses each suffix across the 1711-icon catalog (count in parentheses):
+
   | Suffix | Marker shape | Examples |
   |---|---|---|
-  | `*-off` | diagonal strikethrough slash (`m2 2 20 20` or mirror) | `eye-off`, `cloud-off`, `bell-off`, `heart-off`, `droplet-off`, `umbrella-off`, `volume-off`, `wifi-off`, `mic-off` |
-  | `*-plus` / `*-minus` | small `+` / `−` stroke pair | `bell-plus`, `heart-plus`, `clock-plus`, `cloud-plus` |
-  | `*-check` / `*-x` | `✓` / `×` stroke marker | `bell-check`, `heart-x`, `clock-check`, `cloud-check` |
-  | `*-dot` | small filled `<circle>` (notification dot) | `bell-dot` |
-  | `*-alert` / `*-warning` | `!` exclamation or alert triangle | `cloud-alert`, `clock-alert` |
-  | `*-info` | `i` stroke marker | `file-info`, `circle-info` |
-  | `*-question` | `?` stroke marker | `file-question`, `message-question` |
-  | `*-arrow-{up,down,left,right}` | small directional arrow at corner-badge size | `clock-arrow-up`, `clock-arrow-down` |
+  | `*-off` (77) | diagonal strikethrough slash (`m2 2 20 20` or mirror) | `eye-off`, `cloud-off`, `bell-off`, `heart-off`, `droplet-off`, `umbrella-off`, `volume-off`, `wifi-off`, `mic-off` |
+  | `*-plus` (37) / `*-minus` (28) | small `+` / `−` stroke pair | `bell-plus`, `heart-plus`, `clock-plus`, `cloud-plus` |
+  | `*-check` (33) / `*-x` (32) | `✓` / `×` stroke marker | `bell-check`, `heart-x`, `clock-check`, `cloud-check`, `archive-x`, `calendar-x` |
+  | `*-dot` (12) | small filled `<circle>` (notification dot) | `bell-dot` |
+  | `*-arrow-{up,down,left,right}` (22 total) | small directional arrow at corner-badge size | `clock-arrow-up`, `clock-arrow-down`, `circle-arrow-up`, `square-arrow-up` |
+  | `*-alert` (9) / `*-warning` (4) | `!` exclamation or alert triangle | `cloud-alert`, `clock-alert`, `badge-alert`, `book-alert`, `circle-alert`, `octagon-alert`, `shield-alert`, `battery-warning`, `mail-warning` |
+  | `*-question-mark` (6) | `?` stroke marker | `file-question-mark`, `circle-question-mark`, `badge-question-mark`, `mail-question-mark`, `message-circle-question-mark`, `shield-question-mark` |
+  | `*-percent` (5) | `%` stroke marker | `circle-percent`, `square-percent` |
+  | `*-info` (1) / `*-asterisk` (1) | `i` / `*` stroke marker (rare) | `badge-info`, `badge-asterisk` |
 
   **Every Tier 1 marker is authored through the family-wide modifier-reveal** (`bellModifierReveal`, `heartModifierReveal`, `cloudModifierReveal`, `eyeModifierReveal`): `pathLength` + `opacity` draw-in for path markers, or `scale` + `opacity` for `<circle>` markers (see `bellDotReveal`). Placed LAST in the compose list. Kinetic companion sharing the host's `times` per principle 2.
 

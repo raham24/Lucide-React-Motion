@@ -117,7 +117,8 @@ packages/lucide-react-motion/src/modes/
 │   ├── eye-blink.ts      Singleton hosts
 │   ├── star-twinkle.ts
 │   ├── sun-ray-pulse.ts  Sun family — wildcard ray-radiation pulse
-│   ├── moon-glow.ts                  sun-moon's reflected-light crescent (Tier 2)
+│   ├── moon-glow.ts                  reflected-light crescent (sun-moon + moon + moon-star) (Tier 2)
+│   ├── moon-star-twinkle.ts          moon-star's four-pointed sparkle (Tier 2)
 │   ├── snowflake-twinkle.ts          sun-snow's ice-crystal sparkle (Tier 2)
 │   │
 │   ├── clock-face.ts     Clock family — face/arc subtle pulse (exports CLOCK_FACE_KEYFRAMES)
@@ -255,6 +256,9 @@ statically over the moving host (see section 5).
 | `sun-moon`'s sun rays + quarter-arc | **2** | `sunRayPulse` — radiates with the same cascade as `sun-dim`/`sun-medium` |
 | `sun-snow`'s snowflake arms | **2** | `snowflakeTwinkle` — opacity double-pulse sparkle, negligible scale wobble for cohesion |
 | `sun-snow`'s sun half-arc + rays | **2** | `sunRayPulse` — signature pivots at (10, 12), the sun's actual centre, so rays radiate cleanly from it |
+| `moon`'s crescent | **2** | `moonGlow` — opacity-only soft dim/recover (moon reflects light rather than emits) |
+| `moon-star`'s crescent | **2** | `moonGlow` — same opacity-only glow; signature pivots at the star centre (20, 5), but opacity is unaffected |
+| `moon-star`'s four-pointed sparkle | **2** | `moonStarTwinkle` — sharp scale + opacity twinkle, scaled in place around the star's own centre |
 
 When in doubt, ask: "does this path depict an actual physical thing
 that has its own motion in the real world, or is it a marker?" If the
@@ -604,7 +608,8 @@ motion matches the path you're animating, just import and reuse.
 | `motions/eye-blink.ts` | `matchAnyPath` for eye | scaleY collapse + return |
 | `motions/star-twinkle.ts` | Star base d | Combined rotate + scale + opacity |
 | `motions/sun-ray-pulse.ts` | `matchAnyPath` (wildcard) | Per-path scale-outward + opacity dim with stagger. Used as the catch-all in every sun signature (`sun`, `sun-dim`, `sun-medium`, sun parts of `sun-moon` and `sun-snow`) so the rays cascade outward from the sun's centre — light radiating from the surface (Tier 2) |
-| `motions/moon-glow.ts` | Sun-moon's moon crescent d | Opacity-only soft dim/glow with no scale (moon reflects light, doesn't radiate; off-centre crescent shouldn't translate when the signature pivots for the sun) (Tier 2) |
+| `motions/moon-glow.ts` | Moon crescent d (both the small `sun-moon` variant and the larger `moon`/`moon-star` variant) | Opacity-only soft dim/glow with no scale (moon reflects light, doesn't radiate; off-centre crescent shouldn't translate when the signature pivots for the sun or the star) (Tier 2) |
+| `motions/moon-star-twinkle.ts` | Moon-star's two short "+"-forming line d's | Sharp scale + opacity twinkle. The `moon-star` signature pivots at the star centre (20, 5) so this scales in place rather than translating across the icon (Tier 2) |
 | `motions/snowflake-twinkle.ts` | Sun-snow's 5 snowflake d's | Sharp opacity double-pulse + barely-perceptible scale wobble — ice crystals sparkle by reflection, not by changing size (Tier 2) |
 | `motions/clock-face.ts` | Full `<circle cx=12 cy=12 r=10>` OR any path containing the `[Aa]10 10 0` arc command (catches the partial faces in `clock-{alert,arrow-up,arrow-down,check,fading,plus}`) | Tiny scale + opacity pulse — clock faces stay mostly steady so the hands' tick is the focus. Exports `CLOCK_FACE_KEYFRAMES` for the family's modifier reveal to inherit. In `clock-fading`'s 5 arc fragments the per-path stagger cascades into the "fading" character (Tier 2) |
 | `motions/clock-hands.ts` | Any path whose `d` starts with `M12 6v` (catches the combined minute+hour hand-pair stroke in every clock variant) | Clockwise tick — 6° forward (one minute step), hold, ease back to rest (Tier 2) |
@@ -648,13 +653,15 @@ family is self-contained — finish one, get review, then start the next.
    fall, Tier 2).
 
 3. **`sun-*` / `moon-*`** — sun, sunrise, sunset, sun-medium, sun-
-   snow, sun-dim, sun-moon, moon, moon-star. Sun family done. The
-   sun family uses `sunRayPulse` (per-path scale-outward + opacity
-   cascade) for all variants; composite icons (`sun-moon`,
-   `sun-snow`) layer element-specific motions on top (`moonGlow`,
-   `snowflakeTwinkle`). The moon family is still pending; expect a
-   gentle reflected-light glow on the crescent and a Tier 2 twinkle
-   for moon-star.
+   snow, sun-dim, sun-moon, moon, moon-star. Sun + moon families
+   done. Sun uses `sunRayPulse` (per-path scale-outward + opacity
+   cascade) for every variant; composites layer element-specific
+   motions (`moonGlow` for sun-moon's crescent, `snowflakeTwinkle`
+   for sun-snow). Moon uses opacity-only `moonGlow` (reflected
+   light, no radial scale); `moon-star` adds the four-pointed
+   `moonStarTwinkle` pivoting at the star's own centre. The
+   `sunrise` / `sunset` icons are still pending — they're in the
+   `sunrise`/`sunset` first-hyphen families, not the `sun-*` group.
 
 4. **`cloud-*` + `droplet*`** — cloud, cloud-drizzle, cloud-fog,
    cloud-hail, cloud-lightning, cloud-rain, cloud-snow, cloud-sun,

@@ -138,6 +138,10 @@ packages/lucide-react-motion/src/modes/
 │   ├── umbrella-canopy.ts            Umbrella family — gentle sway + canopy contraction (Tier 2)
 │   ├── umbrella-modifier-reveal.ts   umbrella-off slash reveal + sways with canopy
 │   │
+│   ├── flame-flicker.ts              Flame family — contraction scaleY + sway + brightness flicker (Tier 2)
+│   ├── flame-kindling-embers.ts      flame-kindling's crossed sticks — ember glow + slight inherited sway
+│   ├── fire-extinguisher-ready.ts    fire-extinguisher's device-armed pulse (not flame physics)
+│   │
 │   └── loader-spin.ts
 │
 └── signatures/           One file per signed icon; thin compose() calls
@@ -637,6 +641,9 @@ motion matches the path you're animating, just import and reuse.
 | `motions/droplet-modifier-reveal.ts` | `matchAnyPath` (wildcard) | pathLength + opacity reveal for `droplet-off`'s slash; inherits `dropletShimmer`'s scale so the slash breathes with the drop fragments |
 | `motions/umbrella-canopy.ts` | Explicit d-list — handle + tip + canopy + the two canopy fragments in `umbrella-off` | Scale contraction + rotation sway + opacity dim — umbrella catching wind, canopy resisting the gust (Tier 2). Exports `UMBRELLA_KEYFRAMES` |
 | `motions/umbrella-modifier-reveal.ts` | `matchAnyPath` (wildcard) | pathLength + opacity reveal for `umbrella-off`'s slash; inherits `umbrellaCanopy`'s scale + rotate so the slash sways with the rest |
+| `motions/flame-flicker.ts` | The two flame-teardrop d's (`flame` + `flame-kindling`) | scaleY contraction (flame briefly shrinks vertically toward its base) + ±2° rotation sway (tongue leans in a draft) + opacity flicker (hot core alternately exposed and shrouded). The signature pivots at the flame's BASE (`12px 16px` for `flame`, `12px 15px` for `flame-kindling`) so the base stays anchored while the tip dances. Exports `FLAME_KEYFRAMES` (Tier 2) |
+| `motions/flame-kindling-embers.ts` | The two crossed-kindling diagonals in `flame-kindling` | Opacity-only ember glow (real burning wood doesn't translate, just glows) + inherited rotate from `flameFlicker` so the sticks rock subtly with the fire's draft (Tier 2) |
+| `motions/fire-extinguisher-ready.ts` | `matchAnyPath` for `fire-extinguisher` | Subtle two-pulse scale contraction + opacity dim — a device-armed pulse rather than flame physics, because the extinguisher is a tool and never burns itself |
 | `motions/loader-spin.ts` | `matchAnyPath` for loader | Infinite rotation (via `atom/spin`) |
 | `motions/atom/spin.ts` | (factory only, no matches) | Pure rotation math; reused by `spin` Mode + `loader-spin` |
 
@@ -697,8 +704,16 @@ family is self-contained — finish one, get review, then start the next.
    contraction) and inherit-coupled modifier reveals. Umbrellas
    sway via `umbrellaCanopy` (scale + rotate + opacity).
 
-5. **`flame*` / `fire`** — flame, flame-kindling, fire, candle (if
-   present). Tier 2 flicker on each flame layer.
+5. **`flame*` / `fire`** — flame (2/2) and fire (1/1) families
+   done. The flame teardrop in `flame` + `flame-kindling` flickers
+   via `flameFlicker` (contraction-only scaleY + rotation sway +
+   opacity flicker, pivoted at the flame's base). The kindling
+   sticks underneath glow via `flameKindlingEmbers` and inherit
+   the flame's sway. `fire-extinguisher` (the only `fire-*` icon)
+   isn't actual fire, so it gets a subtle device-armed pulse via
+   `fireExtinguisherReady` rather than flame physics. `candle` is
+   not currently in Lucide's set; if it ever lands, expect a
+   flame-flicker on the tip + a steady-stem motion.
 
 6. **`loader-*` / `refresh-*` / `rotate-*`** — loader-circle, loader-
    pinwheel, refresh-ccw, refresh-cw, rotate-cw, rotate-ccw, repeat-

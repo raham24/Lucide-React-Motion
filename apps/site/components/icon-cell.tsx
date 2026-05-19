@@ -8,8 +8,7 @@ import {
   type ComponentType,
   type MouseEvent,
 } from "react";
-import { Check } from "lucide-react";
-import type { DrawIconProps, ModeName } from "lucide-react-motion";
+import { Check, type DrawIconProps, type ModeName } from "lucide-react-motion";
 import { cn } from "@/lib/utils";
 
 type IconComponent = ComponentType<Omit<DrawIconProps, "nodes">>;
@@ -88,7 +87,13 @@ export function IconCell({ name, component, Icon, mode = "draw" }: IconCellProps
       >
         {copied ? (
           <>
-            <Check size={12} strokeWidth={2.5} aria-hidden className="shrink-0" />
+            <Check
+              size={12}
+              strokeWidth={2.5}
+              trigger="manual"
+              aria-hidden
+              className="shrink-0"
+            />
             <span className="truncate">copied</span>
           </>
         ) : (

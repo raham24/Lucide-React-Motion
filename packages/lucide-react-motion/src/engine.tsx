@@ -109,7 +109,19 @@ export interface MotionIconConfigValue {
  * `style`, `onClick`, `aria-*`, and `data-*`.
  */
 export interface DrawIconProps
-  extends Omit<SVGAttributes<SVGSVGElement>, "ref" | "children" | "mode"> {
+  extends Omit<
+    SVGAttributes<SVGSVGElement>,
+    | "ref"
+    | "children"
+    | "mode"
+    // The engine owns these — motion-dom's animation lifecycle drives
+    // `data-motion-state`. Accepting consumer-supplied handlers would
+    // race with the internal handlers, so they're stripped before the
+    // passthrough. Omit them from the public type so TypeScript doesn't
+    // suggest them on `<DrawIcon />` or any generated icon.
+    | "onAnimationStart"
+    | "onAnimationComplete"
+  > {
   /** Lucide icon node array. Generated icons fill this in for you. */
   nodes: IconNode[];
   /** Pixel size of the icon. Default: 24. */
@@ -466,7 +478,16 @@ export function DrawIcon(props: DrawIconProps) {
       reset: () => {
         controls.start("rest");
       },
-      node: svgRef.current,
+      // Getter so `node` reads `svgRef.current` lazily on access. The
+      // deps list below intentionally omits `svgRef` (refs don't
+      // belong in deps), so a property-style `node: svgRef.current`
+      // would capture the value at factory time and go stale if the
+      // svg were ever replaced without unmounting the React component.
+      // SVG DOM identity is stable in practice today, but the getter
+      // costs nothing and guards against future structural changes.
+      get node() {
+        return svgRef.current;
+      },
     }),
     [controls]
   );

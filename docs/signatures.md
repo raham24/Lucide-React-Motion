@@ -24,15 +24,30 @@ Three principles govern every motion in this library — read these
 before authoring or reviewing a signature, and re-read them when a
 motion you wrote doesn't feel right:
 
-**1. Real-life physics first.** Each motion mimics how the real-world
-thing actually behaves. A heart contracts during systole (the icon
-should squeeze inward, not balloon out). A bell rocks from its top
-mount. Sound waves radiate outward from the source. Stars twinkle,
-flames flicker, EKG traces draw at constant paper-tape speed. Generic
-transforms (scale, rotate, translate) without grounding in the icon's
-real-world referent feel arbitrary — design from the question *"how
-does this physically behave in reality?"* before you reach for a
-keyframe array.
+**1. Real-life physics first — bespoke per object.** Each motion
+must mimic how *this specific real-world thing* actually behaves.
+A heart contracts during systole (squeezes inward, not balloons
+out); a bell rocks from its top mount; sound waves radiate
+outward from their source, not from the icon centre; flames
+flicker in HEIGHT not width; a moon reflects light (opacity only)
+rather than emitting it (no radial scale); a clock's hands tick
+clockwise in discrete steps. Generic transforms (scale, rotate,
+translate) without grounding in the icon's real-world referent
+feel arbitrary — design from the question *"how does this
+physically behave in reality?"* before you reach for a keyframe
+array.
+
+**Never default to a generic pulse / shake / spin** to make an
+icon "feel alive." If you find yourself reaching for a uniform
+scale pulse, ask whether the real-world referent has a more
+specific behaviour — it almost always does. Generic motion belongs
+in the `mode="pulse"` / `mode="spin"` / etc. *generic modes* for
+consumers who opt in; signatures are about the icon's identity, so
+every signature should have a motion that *only makes sense for
+that icon*. Co-located variants (e.g. composite icons like
+`sun-moon`, `cloud-sun-rain`) usually need bespoke per-element
+motions layered together — moon glows, sun radiates, drop falls,
+snowflake twinkles — not one shared transform applied uniformly.
 
 **2. Cohesion — every path tracks the host.** A modifier (`+`, `−`,
 `×`, `✓`, slash, notification dot, crack zigzag, EKG trace) sitting

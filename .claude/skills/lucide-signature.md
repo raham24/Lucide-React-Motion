@@ -11,11 +11,33 @@ You're authoring the next pending signature family for `lucide-react-motion`. Th
 
 Before anything else, read `docs/signatures.md` end-to-end. It's the source of truth. The three principles in section 1 govern every motion you write:
 
-1. **Real-life physics first.** Each motion mimics how the real-world thing actually behaves. Generic transforms without grounding in the icon's referent feel arbitrary.
+1. **Real-life physics first — bespoke per object.** Each motion must mimic how *this specific real-world thing* actually behaves. **Never default to a generic pulse / shake / spin / scale to make an icon "feel alive."** A flame flickers in HEIGHT not width; a heart contracts inward during systole, not outward; sound waves radiate from their source, not from the icon centre; a moon reflects light (opacity only) rather than emitting it (no radial scale); a clock's hands tick clockwise in discrete steps, not smooth sweeps. If you're tempted to "just rotate the whole icon" or "just add a uniform scale pulse," stop and design what the real-life referent actually does instead.
 2. **Cohesion — every path tracks the host.** Both Tier 1 markers AND Tier 2 physical elements inherit the host's primary transform via `inherit: true` per-value transitions.
-3. **Stay within the 24×24 viewBox.** Scale-based motion should be a contraction (`scale ≤ 1`), not an expansion — anatomically more accurate for most icons AND keeps the stroke inside the SVG (which defaults to `overflow: hidden`).
+3. **Stay within the 24×24 viewBox.** Scale-based motion should be a contraction (`scale ≤ 1`), not an expansion — anatomically more accurate for most icons AND keeps the stroke inside the SVG (which defaults to `overflow: hidden`). Remember the scaled-stroke gotcha: `transform: scale(1.2)` also scales the strokeWidth by 1.2, so a path's visible edge is `scaled_endpoint + scaled_stroke_radius`, not just the scaled endpoint.
 
-Then read existing family motions for the quality bar — `motions/bell-shell.ts`, `motions/heart-beat.ts`, `motions/bell-sound-waves.ts`, `motions/heart-pulse-line.ts`. The host-coupling pattern (section 5's worked example) is mandatory for any family whose host transforms.
+Then read existing family motions for the quality bar:
+
+- `motions/bell-shell.ts`, `motions/bell-clapper.ts`, `motions/bell-sound-waves.ts` — pendulum physics, exported keyframes, host coupling.
+- `motions/heart-beat.ts`, `motions/heart-pulse-line.ts` — lub-dub contraction + EKG paper-tape sweep.
+- `motions/flame-flicker.ts` — per-element-direction physics (scaleY contraction, base-anchored sway, brightness flicker — *not* a uniform scale).
+- `motions/cloud-rain-drops.ts` vs `motions/cloud-snow-dots.ts` vs `motions/cloud-lightning-bolt.ts` — three different precipitation types, three different motions.
+- `motions/moon-glow.ts` (opacity only — moon reflects) vs `motions/sun-ray-pulse.ts` (radial scale + opacity — sun emits).
+
+The host-coupling pattern (section 5's worked example) is mandatory for any family whose host transforms.
+
+### Anti-patterns — what NOT to do
+
+These are mistakes prior attempts have made; the user has explicitly rejected them, and you must not repeat them:
+
+- **"Use sunRotate / sunRayPulse / cloudBody / etc. for every variant in the family by default."** Lazy reuse of a family's wildcard motion for asymmetric variants reads as the wrong physics. (sun-moon's moon must glow, not rotate around the icon centre; sun-snow's snowflake must twinkle in place, not spin with the sun.) Design what *this specific composite icon* does in reality, then layer specific motions per element role.
+- **"Generic pulse / shake / spin to make it feel alive."** These belong in the `mode="pulse"` / `mode="spin"` etc. generic modes for consumers who explicitly opt in. Signatures are about the icon's identity — every icon should have a motion that *only makes sense for that icon*. If you find yourself reaching for a uniform scale pulse, ask whether the real-world referent has a more specific behaviour (it almost always does).
+- **"Scale up to make the motion punchier."** Per principle 3 and the scaled-stroke gotcha. The right answer is almost always contraction (`scale ≤ 1`), and the brightness/character comes from opacity dips or per-axis transforms (scaleY only, rotation pivoted at a meaningful point).
+- **"Match by `ctx.index`."** Lucide reorders paths. Always match by `d` data (`matchPathD`, `matchPathDOneOf`, or a regex over `pathAttrs.d`) or by SVG element geometry (`pathTag` + `cx`/`cy`/`r` etc.).
+- **"Use `matchAnyPath` as the only matcher in a multi-element signature."** It'll claim every path including ones that need bespoke physics. `matchAnyPath` belongs LAST in a compose list, only as a wildcard fallback.
+
+### Future feature you might be asked about
+
+There's a deferred `intensity` prop planned — see project memory `project_intensity_prop.md`. It would multiply keyframe amplitudes toward rest so consumers can dial each icon's motion up or down. Don't implement it unless the user explicitly asks; just be aware it exists and that any motion you write today should expect to eventually be wrapped by `attenuate(rest, keyframes, intensity)`.
 
 ## Step 2 — Find the next family
 

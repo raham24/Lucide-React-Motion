@@ -9,14 +9,17 @@ import { matchPathDOneOf, type Motion } from "../compose";
  * **Real-life motion**: ice crystals don't grow and shrink — they
  * sparkle by reflecting light in sharp flashes as the crystal's
  * facets align with and lose alignment with light sources. The
- * dominant variation is brightness, not size. Modeled here as a
- * sharp opacity double-pulse (a bright flash, a dim, a brighter
- * flash, a softer dim, settle) — pure opacity, no scale, because
- * scaling a snowflake either violates principle 3 (peak scale > 1)
- * or reads as the crystal physically growing/shrinking, neither of
- * which matches ice. The sun's `sunRayPulse` also dropped scale for
- * the same reason, so the family stays cohesive in style: both halves
- * of the icon flare via opacity, not size.
+ * dominant variation is brightness, layered over a barely-perceptible
+ * scale wobble so the snowflake feels alive alongside the sun's
+ * radiation cascade.
+ *
+ * The scale wobble follows the same "rest is max, active oscillates
+ * downward" pattern as `sunRayPulse` (per principle 3 and project
+ * memory `feedback_scaled_stroke_viewbox.md`): rest is full Lucide-
+ * default size, active alternates between small contractions. The
+ * sharp opacity double-pulse carries most of the twinkle character;
+ * the small scale variation adds cohesion with the sun's own size-
+ * pulse on the other half of the icon.
  *
  * The opacity dip goes deeper than `sunRayPulse`'s (0.3 vs 0.45)
  * because a real snowflake's sparkle has higher contrast than the
@@ -36,8 +39,9 @@ const SNOWFLAKE_PATHS = [
 export const snowflakeTwinkle: Motion = {
   matches: matchPathDOneOf(...SNOWFLAKE_PATHS),
   factory: (ctx) => ({
-    rest: { opacity: 1 },
+    rest: { scale: 1, opacity: 1 },
     active: {
+      scale: [0.98, 1, 0.96, 1, 0.98],
       opacity: [1, 0.3, 1, 0.55, 1],
       transition: {
         duration: ctx.duration,

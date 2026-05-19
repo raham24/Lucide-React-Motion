@@ -104,11 +104,22 @@ the asymmetric case + the three-criteria check.
 
 **3. Stay within the 24×24 viewBox.** SVGs default to
 `overflow: hidden`, so any motion that pushes the stroke past the
-viewBox edges visibly clips at runtime. For scale-based motion this
-usually means designing the rhythm as a contraction (`scale ≤ 1`)
-rather than an expansion — and that's anatomically more accurate for
-most icons anyway (real hearts squeeze, real bells stay the same size
-while they rock).
+viewBox edges visibly clips at runtime. Scale-based motion is always
+a contraction (`scale ≤ 1`), never an expansion — rest is the maximum
+and active oscillates downward. That's anatomically accurate for most
+icons anyway (real hearts squeeze, real bells stay the same size
+while they rock), and it can never clip regardless of strokeWidth or
+path position.
+
+For motions that need to read as outward expansion (sun rays
+radiating, sound waves emitting), the effect comes from the active
+cycle *starting contracted* and *growing back* to the rest size, not
+from exceeding rest. The eye reads "growth back to full" as outward
+radiation. Precedent: `sunRayPulse` uses `scale: [0.94, 1, 0.94]` —
+rays start 6% contracted at the cycle boundaries and reach Lucide's
+full default length at the cycle peak. The previous `[1, 1.06, 1]`
+was rejected as a viewBox violation; see project memory
+`feedback_scaled_stroke_viewbox.md`.
 
 Icons without a registered signature fall back to `mode="draw"` (the
 default stroke-on) and emit a one-time dev warning, so coverage gaps

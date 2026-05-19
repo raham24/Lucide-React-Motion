@@ -12,8 +12,9 @@ import type { Motion } from "../compose";
  * time — the hands do the work. Modeled as a barely-perceptible
  * scale + opacity pulse so the face "breathes" gently around the
  * hand tick rather than sitting completely static. The amplitude is
- * intentionally tiny (2% scale) so the face reads as the steady
- * frame within which the hands advance.
+ * intentionally tiny (2% inward contraction, scale ≤ 1 per
+ * principle 3) so the face reads as the steady frame within which
+ * the hands advance.
  *
  * **Cascade benefit**: in `clock-fading` the face is split into five
  * separate radius-10 arcs; with the signature's small stagger the
@@ -25,7 +26,7 @@ import type { Motion } from "../compose";
  * gentle pulse.
  */
 export const CLOCK_FACE_KEYFRAMES = {
-  scale: [1, 1.02, 1],
+  scale: [1, 0.98, 1],
   times: [0, 0.5, 1],
 };
 

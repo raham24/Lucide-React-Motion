@@ -5,40 +5,36 @@ import { matchAnyPath, type Motion } from "../compose";
  * rays. Used as the wildcard catch-all in every sun-family
  * signature.
  *
- * **Real-life motion**: a real sun emits light continuously, but the
- * impression of "alive" sunlight comes from subtle brightness
- * fluctuations and the apparent variation in ray length as the
- * atmosphere refracts the light. Modeled here as a gentle outward
- * scale (so each ray "lengthens" toward its tip) combined with a
- * brightness dip and recovery (so the path appears to flare).
+ * **Real-life motion**: a real sun emits light continuously; the
+ * impression of "alive" sunlight comes from brightness fluctuations,
+ * not from the rays physically getting longer or shorter. Modeled
+ * here as an opacity flare (`[1, 0.45, 1]`) cascaded across the
+ * paths via `ctx.index * ctx.stagger` so the rays light up in
+ * sequence rather than all at once — a wave of light radiating
+ * outward from the surface, expressed as intensity not extension.
  *
- * Pivot point: the signature's `transformOrigin` should be the sun's
- * actual centre. For `sun-dim` and `sun-medium` that's the icon
- * centre (12, 12); for `sun-snow` the sun sits on the left so the
- * signature pivots at (10, 12). With the pivot correctly placed at
- * the sun's own centre, each ray's `scale > 1` translates the ray
- * outward along its emission direction — exactly how rays appear to
- * radiate from a source.
+ * Earlier versions also pushed a `scale: [1, 1.06, 1]` outward on
+ * each ray, which read more literally as "the ray extends" but
+ * violated principle 3 (scale ≤ 1 to stay within the viewBox). The
+ * brightness-only model matches the moon's reflective glow pattern
+ * (`moonGlow`) but with a stagger to keep the radiation cascade.
  *
- * Per-path stagger via `ctx.index * ctx.stagger` cascades the pulse
- * through the icon's paths so the rays light up in sequence rather
- * than all at once. The central circle is first in Lucide's path
- * order for `sun-dim` and `sun-medium`, so the cascade reads as the
- * sun's centre pulsing first and the rays following — a wave of
- * light radiating outward from the surface.
+ * Pivot point: the signature's `transformOrigin` should still be the
+ * sun's actual centre — for `sun-dim` and `sun-medium` that's the
+ * icon centre (12, 12); for `sun-snow` the sun sits on the left so
+ * the signature pivots at (10, 12). Even without a transform on this
+ * motion, the pivot matters because OTHER motions in the family may
+ * use it.
  *
- * **ViewBox safety**: scale peaks at 1.06. For the regular `sun`'s
- * rays that extend to y=2 (one viewBox unit from the edge at
- * strokeWidth=2) this leaves the outermost stroke at y≈0.4 — inside.
- * Every other sun variant has rays further from the viewBox edge so
- * the same amplitude has more headroom there.
+ * The central circle is first in Lucide's path order for `sun-dim`
+ * and `sun-medium`, so the cascade reads as the sun's centre flaring
+ * first and the rays following.
  */
 export const sunRayPulse: Motion = {
   matches: matchAnyPath,
   factory: (ctx) => ({
-    rest: { scale: 1, opacity: 1 },
+    rest: { opacity: 1 },
     active: {
-      scale: [1, 1.06, 1],
       opacity: [1, 0.45, 1],
       transition: {
         duration: ctx.duration,

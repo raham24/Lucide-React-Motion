@@ -15,13 +15,25 @@ Before anything else, read `docs/signatures.md` end-to-end. It's the source of t
 2. **Cohesion — every path tracks the host.** Both Tier 1 markers AND Tier 2 physical elements inherit the host's primary transform via `inherit: true` per-value transitions.
 3. **Stay within the 24×24 viewBox.** Scale-based motion should be a contraction (`scale ≤ 1`), not an expansion — anatomically more accurate for most icons AND keeps the stroke inside the SVG (which defaults to `overflow: hidden`). Remember the scaled-stroke gotcha: `transform: scale(1.2)` also scales the strokeWidth by 1.2, so a path's visible edge is `scaled_endpoint + scaled_stroke_radius`, not just the scaled endpoint.
 
-Then read existing family motions for the quality bar:
+### Read the bell family first — it is the canonical template
 
-- `motions/bell-shell.ts`, `motions/bell-clapper.ts`, `motions/bell-sound-waves.ts` — pendulum physics, exported keyframes, host coupling.
-- `motions/heart-beat.ts`, `motions/heart-pulse-line.ts` — lub-dub contraction + EKG paper-tape sweep.
+Before reading any other family, read the bell family motions end-to-end. **Bell is the template every other family is shaped against.** It covers, in one place, every structural pattern you will need to write a new family. When you start a new family with state-modifier variants (`-off`, `-plus`, `-minus`, `-check`, `-dot`), copy bell's layout first and adapt the physics.
+
+- `motions/bell-shell.ts` — the host motion. Specific path match via `matchPathDOneOf` over a registry (Lucide reshapes the shell across variants — every shape goes in the registry). Exports `BELL_SHELL_KEYFRAMES` so other family motions can inherit the rock.
+- `motions/bell-clapper.ts` — a second physical element inside the host with its own physics (free pendulum inside the rocking shell), coupled to the shell's rhythm via inherited keyframes.
+- `motions/bell-sound-waves.ts` — Tier 2 emitted physical elements (the radiating arcs). Bespoke draw-in physics + host-rotation inheritance for cohesion.
+- `motions/bell-modifier-reveal.ts` — **the family wildcard for state modifiers** (slash for `bell-off`, plus / minus / check stroke markers in `bell-plus` / `bell-minus` / `bell-check`). `matchAnyPath` placed LAST in the compose list, `pathLength` + `opacity` draw-in plus inherited host rotation. Copy this shape whenever a new family needs `-off` / `-plus` / `-minus` / `-check` variants.
+- `motions/bell-dot-reveal.ts` — the geometric-marker counterpart of the family wildcard, for `<circle>` modifiers (the notification dot in `bell-dot`). Same shape as the wildcard but matches by `cx` / `cy` / `r` and uses `scale` + `opacity` (no `pathLength` on circles).
+
+`signatures/bell-off.ts` is the textbook composition order: `[bellClapper, bellShell, bellModifierReveal]` — specific physics first, family wildcard LAST. When you build a new family with state-modifier variants, mirror this layout exactly.
+
+Then skim these for additional vocabulary:
+
+- `motions/heart-beat.ts` + `motions/heart-modifier-reveal.ts` — bell template applied to a uniform-scale host (the registry is `HEART_PATHS`; the modifier-reveal inherits `scale` instead of `rotate`).
 - `motions/flame-flicker.ts` — per-element-direction physics (scaleY contraction, base-anchored sway, brightness flicker — *not* a uniform scale).
-- `motions/cloud-rain-drops.ts` vs `motions/cloud-snow-dots.ts` vs `motions/cloud-lightning-bolt.ts` — three different precipitation types, three different motions.
+- `motions/cloud-rain-drops.ts` vs `motions/cloud-snow-dots.ts` vs `motions/cloud-lightning-bolt.ts` — three different precipitation types, three different motions inside one family.
 - `motions/moon-glow.ts` (opacity only — moon reflects) vs `motions/sun-ray-pulse.ts` (radial scale + opacity — sun emits).
+- `motions/eye-blink.ts` + `motions/eye-modifier-reveal.ts` — bell template applied to an **axis-asymmetric** host (eye blink is `scaleY`-only); the modifier-reveal deliberately does NOT inherit the host transform. See step 4's tier-1 markers note for why.
 
 The host-coupling pattern (section 5's worked example) is mandatory for any family whose host transforms.
 
@@ -42,7 +54,7 @@ How to apply this in practice:
 1. Open `src/generated/<icon>.tsx` and **enumerate the `nodes` array out loud** — every entry corresponds to one drawable stroke. Label each one by what it depicts (handle, canopy, slash, ray, sparkle, …).
 2. For each anatomical role, decide its own physical motion. If two roles share the same physics (e.g. the upper and lower fragments of a split `cloud-off` body both want the cloud's gentle breath), one motion can cover both via a shared `d`-list matcher. If two roles need different physics, they get separate motion modules.
 3. Match by **path data**, not index — `matchPathD`, `matchPathDOneOf`, a regex over `ctx.pathAttrs.d`, or geometric predicates over `ctx.pathTag` / `pathAttrs.cx` / `cy` / `r`. The path list is anatomy; the index list is incidental ordering.
-4. If a path's role doesn't have a clear real-life motion (e.g. a decorative state marker), use the family's coupled modifier reveal — but it still needs `inherit: true` per-value transitions so the marker stays anchored to whatever the host does.
+4. If a path's role doesn't have a clear real-life motion (e.g. a decorative state marker), use the family's coupled modifier reveal. Whether it inherits the host transform depends on the host's transform shape — see step 4's tier-1 markers note (in-plane host transforms get inherited, axis-asymmetric host transforms don't).
 
 When in doubt, ask: "Could this anatomical part move independently of the rest of the icon in reality?" If yes, it deserves its own motion. If no (rigid sub-part of a larger piece), it can share its parent's motion. Either way, the decision happens at the **path level**, not the icon level.
 
@@ -56,6 +68,7 @@ These are mistakes prior attempts have made; the user has explicitly rejected th
 - **"Match by `ctx.index`."** Lucide reorders paths. Always match by `d` data (`matchPathD`, `matchPathDOneOf`, or a regex over `pathAttrs.d`) or by SVG element geometry (`pathTag` + `cx`/`cy`/`r` etc.).
 - **"Use `matchAnyPath` as the only matcher in a multi-element signature."** It'll claim every path including ones that need bespoke physics. `matchAnyPath` belongs LAST in a compose list, only as a wildcard fallback.
 - **"One motion for the whole icon when the icon has multiple moving parts."** If the icon depicts an object whose anatomical parts move differently in real life — clock face vs hands, bell shell vs clapper vs waves, flame vs kindling, cloud vs rain drops — you need one motion *per role* matched by path data, not one shared transform smeared across every path. See "Animate per path" above.
+- **"Inherit an axis-asymmetric host transform on an overlay marker."** Bell / heart / cloud modifier-reveals inherit the host transform because the host moves in-plane (rotation / uniform scale). When the host moves axis-asymmetrically (eye blink's `scaleY` only), the marker stays rigid — inheriting a vertical-only squeeze on a diagonal slash flattens it unnaturally. See step 4's tier-1 markers note.
 
 ### Future feature you might be asked about
 
@@ -117,7 +130,12 @@ For every pending icon in the family, follow section 4 of the doc:
 2. **Decide tier per path** (section 3). Remember: tier only decides what *additional* motion the path gets — both tiers inherit the host's transform.
 3. **Reuse existing motions** by path-data match. If a variant reshapes the host's `d` slightly, extend the host motion's `matchPathDOneOf` list rather than writing a new motion.
 4. **Make sure the host motion exports its keyframe constants** (`HEART_BEAT_KEYFRAMES`, `BELL_SHELL_KEYFRAMES` are the precedent). Other family motions inherit them.
-5. **Tier 1 markers** — use the family's coupled modifier reveal (`heartModifierReveal`, `bellModifierReveal`, etc.). If the family doesn't have one yet, build it: a `matchAnyPath` motion that combines `pathLength` + `opacity` reveal with the host's primary transform via per-value `inherit: true` transitions. For circle markers, build a geometry-matched equivalent (`bellDotReveal`).
+5. **Tier 1 markers** — use the family's coupled modifier reveal (`heartModifierReveal`, `bellModifierReveal`, etc.) as the template. If the family doesn't have one yet, build it: a `matchAnyPath` motion that combines `pathLength` + `opacity` reveal, placed LAST in the compose list. For circle markers, build a geometry-matched equivalent (`bellDotReveal`).
+
+   Whether the marker *also* inherits the host's primary transform depends on the **shape** of that host transform:
+
+   - **In-plane host transforms (rotation, uniform `scale`, translation)** — inherit via per-value `inherit: true` so the marker tracks the host. Slash rocks with the bell, slash scales with the heart, slash breathes with the cloud. Precedent: `bellModifierReveal` / `heartModifierReveal` / `cloudModifierReveal`.
+   - **Axis-asymmetric host transforms (`scaleY` only, `scaleX` only)** — DO NOT inherit. A diagonal marker (slash, plus, check) inheriting a vertical-only squeeze flattens toward the horizontal axis at the host's collapse-apex, and reads as *the marker itself blinking* rather than as a strikethrough sitting on top of a blinking host. The marker stays rigid as a stable overlay while the host moves underneath. Precedent: `eyeModifierReveal` (eye blinks via `scaleY` only; the slash strikes through on top and does not co-blink).
 6. **Tier 2 with bespoke physics** — write a new motion under `src/modes/motions/`, named `<icon>-<role>.ts`. Design it from "how does this real-world thing actually behave?". If it sits inside or attached to a transforming host, also inherit the host's keyframes via the same per-value pattern.
 7. **Write the signature** as a thin `compose()` call (`src/modes/signatures/<icon>.ts`).
 8. **Don't force motion on icons where `draw` is the right answer** — if a variant has no clear physical or semantic motion, skip its signature and let it fall back to draw.

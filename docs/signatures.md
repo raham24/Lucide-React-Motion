@@ -1,14 +1,21 @@
 # Signature animations — authoring guide
 
-This is the contributor-facing reference for writing `mode="signature"`
-animations. It describes the architecture, the two-tier rule the
-project follows, the step-by-step workflow for adding a signature, and
-a roadmap of which icon families to tackle next.
+> ### Source of truth
+>
+> **`.claude/skills/lucide-signature.md` is the authoritative authoring guide for agents and humans.** It carries the current three principles, the Tier 1 vocabulary table, the three-criteria check for overlay markers, and the anti-pattern catalog. Read it first.
+>
+> This document is a deeper reference. Use it for:
+>
+> - Section 2 — file layout, match helpers, the `ctx` interface.
+> - Section 4 — the long-form authoring workflow with code excerpts.
+> - Section 5 — the bell worked example end-to-end.
+> - Section 6 — the catalog of motions currently available (append rows when you add a motion).
+> - Section 7 — the family roadmap and priority order.
+> - Section 8 — the validation checklist.
+>
+> Sections 1 (principles), 3 (tier rule), 9 (known pitfalls) duplicate material from the skill at lower fidelity and may lag. When the skill and this doc disagree, the skill wins.
 
-> Read this end-to-end before authoring your first signature. Three
-> things in particular matter and trip people up: matching paths by
-> data not by index, picking the right tier per path, and reusing
-> motions across variants instead of re-typing physics.
+This is the contributor-facing reference for writing `mode="signature"` animations. It describes the architecture, the two-tier rule the project follows, the step-by-step workflow for adding a signature, and a roadmap of which icon families to tackle next.
 
 ---
 
@@ -71,15 +78,29 @@ reality?" If yes, it deserves its own motion module matched by
 a larger piece), it can share its parent's motion via the host-
 coupling pattern in section 5.
 
-**2. Cohesion — every path tracks the host.** A modifier (`+`, `−`,
-`×`, `✓`, slash, notification dot, crack zigzag, EKG trace) sitting
-statically over a moving host reads as clip art floating over an
-animation. Every non-shell path in a signed icon inherits the host's
-primary transform via the host-keyframes pattern (section 5's
-*"Coupling every non-shell path to the host's motion"*) — and that
-applies to **both** Tier 1 UI markers and Tier 2 physical elements,
-not just Tier 2. If the bell rocks, the `+` rocks with it. If the
-heart contracts, the EKG line contracts with it.
+**2. Cohesion — every non-shell path shares kinetic life with the host.**
+A modifier (`+`, `−`, `×`, `✓`, slash, notification dot, crack zigzag,
+EKG trace) sitting statically over a moving host reads as clip art
+floating over an animation. Both Tier 1 markers AND Tier 2 elements
+need motion that shares the host's `times`, but the *mechanism*
+depends on the host's transform shape:
+
+- **In-plane host transforms** (rotation, uniform scale, translation):
+  the path directly inherits the host transform via per-value
+  `inherit: true`. Slash rocks with the bell, slash scales with the
+  heart, EKG line contracts with the heart.
+- **Axis-asymmetric host transforms** (`scaleY`-only blink,
+  `scaleX`-only sway): direct inheritance distorts the marker (a 45°
+  diagonal slash inheriting `scaleY`-only flattens horizontally). The
+  path instead synthesizes an in-plane companion (uniform `scale` dip,
+  `opacity` dip) pinned to the host's `times`. Precedent:
+  `eyeModifierReveal`, which defines its own `scale: [1, 0.85, 1]`
+  over `EYE_BLINK_KEYFRAMES.times`. Going fully rigid is also wrong;
+  the skill's three-criteria check covers this.
+
+See section 5's worked example for the in-plane case, and
+`.claude/skills/lucide-signature.md` step 4 (tier-1 markers note) for
+the asymmetric case + the three-criteria check.
 
 **3. Stay within the 24×24 viewBox.** SVGs default to
 `overflow: hidden`, so any motion that pushes the stroke past the
@@ -242,27 +263,15 @@ verbatim — never hand-roll prop fallbacks inside a motion.
 
 ## 3. The two-tier rule
 
-The single most important judgment call when authoring a signature.
-For each non-base path in an icon, classify it into one of two tiers
-— but note up-front that **every path, regardless of tier, inherits
-the host's primary transform** (principle 2 from section 1). The tier
-decides what *additional* motion the path gets; it never decides
-whether the path moves with the host.
+> The authoritative tier definitions (including the full Tier 1 marker vocabulary table sorted by Lucide-catalog frequency) live in `.claude/skills/lucide-signature.md`. The summary below is for context; route through the skill if they conflict.
 
-**Tier 1 — UI / state markers.** Plus, minus, check, ×, slash,
-off-mark, dot indicator, badge, etc. These are abstract semantic
-decorations whose purpose is to *signify a state* (added, removed,
-confirmed, silenced, has-notification). They don't represent anything
-physical, so they don't get bespoke physics — they reveal quietly
-(`pathLength` + `opacity` for paths; `scale` + `opacity` for circles).
+The single most important judgment call when authoring a signature. For each non-base path in an icon, classify it into one of two tiers. Both tiers share kinetic life with the host (principle 2). The tier decides what *additional* motion the path gets and which mechanism it shares the host's kinetic life through.
 
-Use the family's **coupled** modifier reveal — `heartModifierReveal`,
-`bellModifierReveal`, etc. — which combines the quiet reveal with the
-host's primary transform inherited via `inherit: true` per-value
-transitions (see section 5). Drop these last in the compose `motions`
-list (after any base-shape motions) since they `matchAnyPath`. For
-circle markers (notification dots) build the family's geometry-matched
-equivalent (`bellDotReveal`).
+**Tier 1 — UI / state markers.** Plus, minus, check, ×, slash, off-mark, dot indicator, alert, warning, question mark, arrow markers, percent, info, asterisk. Lucide uses a fixed vocabulary of these across the catalog (full table in the skill). These are abstract semantic decorations whose purpose is to *signify a state* (added, removed, confirmed, silenced, has-notification). They don't represent anything physical, so they don't get bespoke physics. They reveal quietly (`pathLength` + `opacity` for paths; `scale` + `opacity` for circles).
+
+Use the family's **coupled** modifier reveal (`heartModifierReveal`, `bellModifierReveal`, `eyeModifierReveal`, etc.). Place it LAST in the compose `motions` list since it `matchAnyPath`. The kinetic companion follows the host-transform-shape rule from principle 2: directly inherit if the host is in-plane (bell rotation, heart uniform scale); synthesize an in-plane companion pinned to the host's `times` if the host is axis-asymmetric (eye `scaleY` blink). See section 5 for the in-plane worked example.
+
+For circle markers (notification dots), build the family's geometry-matched equivalent (`bellDotReveal`).
 
 Generic `modifierReveal` / `dotReveal` (no host coupling) stay
 available for the rare case of a family whose host motion is itself a
@@ -314,10 +323,7 @@ statically over the moving host (see section 5).
 | `moon-star`'s crescent | **2** | `moonGlow` — same opacity-only glow; signature pivots at the star centre (20, 5), but opacity is unaffected |
 | `moon-star`'s four-pointed sparkle | **2** | `moonStarTwinkle` — sharp scale + opacity twinkle, scaled in place around the star's own centre |
 
-When in doubt, ask: "does this path depict an actual physical thing
-that has its own motion in the real world, or is it a marker?" If the
-former, design Tier 2 motion. If the latter, use the family's coupled
-modifier reveal. **Either way, the path inherits the host transform.**
+When in doubt, ask: "does this path depict an actual physical thing that has its own motion in the real world, or is it a marker?" If the former, design Tier 2 motion. If the latter, use the family's coupled modifier reveal. **Either way, the path shares kinetic life with the host** via the in-plane-vs-asymmetric mechanism in principle 2.
 
 ## 4. Authoring workflow
 
@@ -908,13 +914,12 @@ you exactly which path needs a motion module.
 
 ## Companion references
 
-- **Architecture overview**: this doc.
-- **Two-tier rule**: this doc, section 3.
+- **Authoritative authoring guide**: `.claude/skills/lucide-signature.md` (read this first; this doc is a deeper reference for sections 2, 4, 5, 6, 7, 8).
+- **Architecture overview**: this doc, sections 2 and 5.
+- **Tier definitions and overlay-marker rules**: the skill is authoritative; this doc's section 3 is a summary.
 - **Engine source**: `packages/lucide-react-motion/src/engine.tsx`.
 - **Compose source**: `packages/lucide-react-motion/src/modes/compose.ts`.
-- **Memory** (across Claude sessions): `feedback_signature_design.md`
-  contains the tier rule; `feedback_phase_review.md` describes the
-  per-phase self-review cadence.
+- **Memory** (across Claude sessions): `feedback_signature_design.md` (tier rule and host-coupling history), `feedback_animation_temporal_review.md` (three-criteria check), `feedback_phase_review.md` (per-phase self-review).
 
 This doc is point-in-time; the source of truth for any specific
 behavior is the engine + compose code. If the doc and code disagree,

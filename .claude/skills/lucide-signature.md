@@ -9,7 +9,7 @@ You're authoring the next pending signature family for `lucide-react-motion`. Th
 
 ## Workflow at a glance
 
-1. **Read the source-of-truth docs** — `docs/signatures.md` end-to-end + the bell family motions (≈10 min). Bell is the canonical template; mirror its layout when authoring a family with state-modifier variants.
+1. **Read this skill end-to-end + the bell family motions** (≈10 min). This skill is the authoritative authoring guide. Bell is the canonical template; mirror its layout when authoring a family with state-modifier variants. `docs/signatures.md` is a deeper reference (mechanism details in section 2, worked bell example in section 5, motion catalog in section 6, family roadmap in section 7, validation checklist in section 8) that you can dip into as needed.
 2. **Pick the next family** — parse `pnpm --filter lucide-react-motion status --json` and apply the priority order from Step 2 below.
 3. **Pre-flight** — `git status`, branch check, scan project memory.
 4. **For each variant** — inspect the generated tsx, decide a motion per anatomical role, reuse or author motions, compose the signature.
@@ -20,9 +20,11 @@ You're authoring the next pending signature family for `lucide-react-motion`. Th
 
 One family per invocation. Don't start the next one without explicit user approval.
 
-## Step 1 — Read the authoring guide
+## Step 1 — Internalize the three principles + the bell template
 
-Before anything else, read `docs/signatures.md` end-to-end. It's the source of truth. The three principles in section 1 govern every motion you write:
+This skill is the authoritative authoring guide. `docs/signatures.md` is a deeper reference (mechanism details, worked bell example, motion catalog, family roadmap, validation checklist). Skim its section 5 for the bell-coupling worked example after the principles below, but you do not need to read it end-to-end before authoring.
+
+The three principles govern every motion you write:
 
 1. **Real-life physics first — bespoke per object.** Each motion must mimic how *this specific real-world thing* actually behaves. **Never default to a generic pulse / shake / spin / scale to make an icon "feel alive."** A flame flickers in HEIGHT not width; a heart contracts inward during systole, not outward; sound waves radiate from their source, not from the icon centre; a moon reflects light (opacity only) rather than emitting it (no radial scale); a clock's hands tick clockwise in discrete steps, not smooth sweeps. If you're tempted to "just rotate the whole icon" or "just add a uniform scale pulse," stop and design what the real-life referent actually does instead.
 2. **Cohesion — every non-shell path shares kinetic life with the host.** A modifier or attached element sitting statically over a moving host reads as clip art floating over an animation. The cohesion mechanism depends on the host's transform shape:
@@ -30,9 +32,9 @@ Before anything else, read `docs/signatures.md` end-to-end. It's the source of t
    - **Axis-asymmetric host transforms** (`scaleY`-only blink, `scaleX`-only sway) — direct inheritance distorts the marker (a 45° slash inheriting `scaleY` only flattens horizontally). The non-shell path instead synthesizes an in-plane companion (uniform `scale` dip, `opacity` dip) pinned to the host's `times` so it shares a kinetic peak with the host without orientation distortion. Going fully rigid is also wrong — see the three-criteria check in step 4.
 3. **Stay within the 24×24 viewBox.** Scale-based motion should be a contraction (`scale ≤ 1`), not an expansion — anatomically more accurate for most icons AND keeps the stroke inside the SVG (which defaults to `overflow: hidden`). Remember the scaled-stroke gotcha: `transform: scale(1.2)` also scales the strokeWidth by 1.2, so a path's visible edge is `scaled_endpoint + scaled_stroke_radius`, not just the scaled endpoint.
 
-### The two tiers (brief definition)
+### The two tiers
 
-`docs/signatures.md` section 3 is the canonical definition; the quick mental model:
+Authoritative definition. (`docs/signatures.md` section 3 has the long-form prose discussion, but this skill carries the current rules.)
 
 - **Tier 1 — UI / state markers.** Abstract semantic decorations that *signify a state* — they don't represent anything physical. Lucide uses a fixed vocabulary of these across the catalog; when you see a path or `<circle>` matching any of these patterns, it is Tier 1 by default:
 

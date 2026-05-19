@@ -1,19 +1,43 @@
 ---
 name: lucide-signature
-description: Author the next high-priority pending Lucide signature family for the lucide-react-motion library. Use when the user says "work on the next family", "continue signatures", "next signature family", "do the next family", "/signature", or otherwise asks Claude to extend signature coverage. Auto-detects what's next by running `pnpm --filter lucide-react-motion status --json` and cross-referencing the section 7 priority list in `docs/signatures.md`. Falls back to one-off decorative icons after all priority families are done. Follows the project's signature authoring guide end-to-end — three principles (real-life physics, cohesion, within-bounds), two-tier rule, host-keyframes coupling pattern, full validation checklist.
+description: Author the next high-priority pending Lucide signature family for the lucide-react-motion library. Use this skill whenever the user says "work on the next family", "continue signatures", "next signature family", "do the next family", "/signature", or otherwise asks Claude to extend signature motion coverage — even when they don't name the file or path. Bell family (`bellShell` + `bellClapper` + `bellSoundWaves` + `bellModifierReveal` + `bellDotReveal`) is the canonical template every other family is shaped against. Auto-detects what's next by running `pnpm --filter lucide-react-motion status --json` and cross-referencing the section 7 priority list in `docs/signatures.md`. Falls back to one-off decorative icons after all priority families are done. Enforces the three-criteria check on every overlay marker — continuous kinetic life, non-distortion, apex alignment — so the agent doesn't ship partially-fixed motion.
 ---
 
 # Lucide signature authoring workflow
 
 You're authoring the next pending signature family for `lucide-react-motion`. The user did not specify which family — you pick the highest-priority one with pending icons. Be explicit with the user about what you picked and why, then proceed.
 
+## Workflow at a glance
+
+1. **Read the source-of-truth docs** — `docs/signatures.md` end-to-end + the bell family motions (≈10 min). Bell is the canonical template; mirror its layout when authoring a family with state-modifier variants.
+2. **Pick the next family** — parse `pnpm --filter lucide-react-motion status --json` and apply the priority order from Step 2 below.
+3. **Pre-flight** — `git status`, branch check, scan project memory.
+4. **For each variant** — inspect the generated tsx, decide a motion per anatomical role, reuse or author motions, compose the signature.
+5. **Run the three-criteria check** on every overlay marker (slash / plus / minus / check / dot) before declaring done — see step 4's check-list.
+6. **Validate** — generate + typecheck + test must all pass.
+7. **Commit** on the current branch (no Co-Authored-By trailer per project memory).
+8. **Hand back** to the user for visual review — list variants + what to look for.
+
+One family per invocation. Don't start the next one without explicit user approval.
+
 ## Step 1 — Read the authoring guide
 
 Before anything else, read `docs/signatures.md` end-to-end. It's the source of truth. The three principles in section 1 govern every motion you write:
 
 1. **Real-life physics first — bespoke per object.** Each motion must mimic how *this specific real-world thing* actually behaves. **Never default to a generic pulse / shake / spin / scale to make an icon "feel alive."** A flame flickers in HEIGHT not width; a heart contracts inward during systole, not outward; sound waves radiate from their source, not from the icon centre; a moon reflects light (opacity only) rather than emitting it (no radial scale); a clock's hands tick clockwise in discrete steps, not smooth sweeps. If you're tempted to "just rotate the whole icon" or "just add a uniform scale pulse," stop and design what the real-life referent actually does instead.
-2. **Cohesion — every path tracks the host.** Both Tier 1 markers AND Tier 2 physical elements inherit the host's primary transform via `inherit: true` per-value transitions.
+2. **Cohesion — every non-shell path shares kinetic life with the host.** A modifier or attached element sitting statically over a moving host reads as clip art floating over an animation. The cohesion mechanism depends on the host's transform shape:
+   - **In-plane host transforms** (rotation, uniform `scale`, translation) — the non-shell path directly inherits the host transform via per-value `inherit: true`. Slash rocks with the bell, slash scales with the heart.
+   - **Axis-asymmetric host transforms** (`scaleY`-only blink, `scaleX`-only sway) — direct inheritance distorts the marker (a 45° slash inheriting `scaleY` only flattens horizontally). The non-shell path instead synthesizes an in-plane companion (uniform `scale` dip, `opacity` dip) pinned to the host's `times` so it shares a kinetic peak with the host without orientation distortion. Going fully rigid is also wrong — see the three-criteria check in step 4.
 3. **Stay within the 24×24 viewBox.** Scale-based motion should be a contraction (`scale ≤ 1`), not an expansion — anatomically more accurate for most icons AND keeps the stroke inside the SVG (which defaults to `overflow: hidden`). Remember the scaled-stroke gotcha: `transform: scale(1.2)` also scales the strokeWidth by 1.2, so a path's visible edge is `scaled_endpoint + scaled_stroke_radius`, not just the scaled endpoint.
+
+### The two tiers (brief definition)
+
+`docs/signatures.md` section 3 is the canonical definition; the quick mental model:
+
+- **Tier 1 — UI / state markers** (`+`, `−`, `×`, `✓`, slash, off-mark, notification dot). The decorative overlay that disambiguates a variant. Authored as a family-wide modifier-reveal (`bellModifierReveal`, `heartModifierReveal`, `eyeModifierReveal`): `pathLength` + `opacity` draw-in (or `scale` + `opacity` for `<circle>` markers like `bellDotReveal`), plus a kinetic companion sharing the host's `times` — see principle 2.
+- **Tier 2 — Real-life-grounded elements** (sound waves, flames, water drops, smoke, sparkles, EKG traces, cracks). Things that exist as physical parts of the depicted object. Bespoke physics designed from "how does this real-world thing actually behave," plus host-keyframe inheritance for cohesion.
+
+Tier only determines what *additional* motion the path gets. Both tiers share kinetic life with the host (principle 2).
 
 ### Read the bell family first — it is the canonical template
 
@@ -54,21 +78,19 @@ How to apply this in practice:
 1. Open `src/generated/<icon>.tsx` and **enumerate the `nodes` array out loud** — every entry corresponds to one drawable stroke. Label each one by what it depicts (handle, canopy, slash, ray, sparkle, …).
 2. For each anatomical role, decide its own physical motion. If two roles share the same physics (e.g. the upper and lower fragments of a split `cloud-off` body both want the cloud's gentle breath), one motion can cover both via a shared `d`-list matcher. If two roles need different physics, they get separate motion modules.
 3. Match by **path data**, not index — `matchPathD`, `matchPathDOneOf`, a regex over `ctx.pathAttrs.d`, or geometric predicates over `ctx.pathTag` / `pathAttrs.cx` / `cy` / `r`. The path list is anatomy; the index list is incidental ordering.
-4. If a path's role doesn't have a clear real-life motion (e.g. a decorative state marker), use the family's coupled modifier reveal. Whether it *directly* inherits the host transform depends on the host's transform shape — see step 4's tier-1 markers note (in-plane host transforms get inherited; axis-asymmetric host transforms get a synthesized in-plane companion instead, never direct inheritance and never fully rigid).
+4. If a path's role doesn't have a clear real-life motion (e.g. a decorative state marker), use the family's coupled modifier reveal — see Step 4 item 5 for the inheritance-vs-synthesize choice and the three-criteria check.
 
 When in doubt, ask: "Could this anatomical part move independently of the rest of the icon in reality?" If yes, it deserves its own motion. If no (rigid sub-part of a larger piece), it can share its parent's motion. Either way, the decision happens at the **path level**, not the icon level.
 
-### Anti-patterns — what NOT to do
+### Design anti-patterns — what NOT to do
 
-These are mistakes prior attempts have made; the user has explicitly rejected them, and you must not repeat them:
+Conceptual mistakes (about *what* motion to design). Technical wiring gotchas are covered separately at the end under "Common pitfalls."
 
-- **"Use sunRotate / sunRayPulse / cloudBody / etc. for every variant in the family by default."** Lazy reuse of a family's wildcard motion for asymmetric variants reads as the wrong physics. (sun-moon's moon must glow, not rotate around the icon centre; sun-snow's snowflake must twinkle in place, not spin with the sun.) Design what *this specific composite icon* does in reality, then layer specific motions per element role.
-- **"Generic pulse / shake / spin to make it feel alive."** These belong in the `mode="pulse"` / `mode="spin"` etc. generic modes for consumers who explicitly opt in. Signatures are about the icon's identity — every icon should have a motion that *only makes sense for that icon*. If you find yourself reaching for a uniform scale pulse, ask whether the real-world referent has a more specific behaviour (it almost always does).
-- **"Scale up to make the motion punchier."** Per principle 3 and the scaled-stroke gotcha. The right answer is almost always contraction (`scale ≤ 1`), and the brightness/character comes from opacity dips or per-axis transforms (scaleY only, rotation pivoted at a meaningful point).
-- **"Match by `ctx.index`."** Lucide reorders paths. Always match by `d` data (`matchPathD`, `matchPathDOneOf`, or a regex over `pathAttrs.d`) or by SVG element geometry (`pathTag` + `cx`/`cy`/`r` etc.).
-- **"Use `matchAnyPath` as the only matcher in a multi-element signature."** It'll claim every path including ones that need bespoke physics. `matchAnyPath` belongs LAST in a compose list, only as a wildcard fallback.
-- **"One motion for the whole icon when the icon has multiple moving parts."** If the icon depicts an object whose anatomical parts move differently in real life — clock face vs hands, bell shell vs clapper vs waves, flame vs kindling, cloud vs rain drops — you need one motion *per role* matched by path data, not one shared transform smeared across every path. See "Animate per path" above.
-- **"Directly inherit an axis-asymmetric host transform on an overlay marker."** Bell / heart / cloud modifier-reveals inherit the host transform directly because the host moves in-plane (rotation / uniform scale). When the host moves axis-asymmetrically (eye blink's `scaleY` only), direct inheritance flattens the marker unnaturally — *but* going fully rigid (no kinetic life on the marker at all) is also wrong; it reads as a static line popping over a moving icon. Synthesize an in-plane companion (uniform `scale` dip, `opacity` dip) over the host's `times` so the marker shares a kinetic peak with the host without orientation distortion. See step 4's tier-1 markers note.
+- **Defaulting to a family's wildcard motion for every variant.** ("Just use `sunRotate` / `eyeBlink` / `cloudBody` for everything.") Lazy reuse reads as wrong physics — sun-moon's moon must glow, not rotate; sun-snow's snowflake must twinkle in place, not spin. Design what *this specific composite icon* does in reality, then layer specific motions per element role.
+- **Generic pulse / shake / spin to make an icon "feel alive."** Those belong in `mode="pulse"` / `mode="spin"` for consumers who explicitly opt in. A signature should be a motion that *only makes sense for that icon* — flames flicker in height, hearts contract during systole, clocks tick clockwise in discrete steps, moons reflect (no radial scale).
+- **Scaling up for emphasis.** Per principle 3, the right answer is almost always contraction (`scale ≤ 1`). Brightness/character comes from opacity dips or per-axis transforms, not from ballooning past the viewBox.
+- **One motion smeared across an icon with multiple moving parts.** If the icon depicts something whose anatomical parts move differently in real life (clock face vs hands, bell shell vs clapper vs waves, flame vs kindling, cloud vs rain drops), each role needs its own motion matched by path data. See "Animate per path" above.
+- **Partial-fixing an overlay marker.** Fixing one of the three criteria (kinetic life / non-distortion / apex alignment) by breaking another. The recurring pattern: agent fixes "marker is co-blinking" (criterion 2) by removing inheritance and breaks criterion 1 (now static); or fixes "marker is static" (criterion 1) by direct-inheriting and breaks criterion 2 (now distorted). Run all three checks; see Step 4's three-criteria table.
 
 ### Future feature you might be asked about
 
@@ -127,20 +149,29 @@ Before writing any code:
 For every pending icon in the family, follow section 4 of the doc:
 
 1. **Inspect the paths** — open `src/generated/<icon>.tsx`, note how many paths it has, what each one represents in the real-world referent.
-2. **Decide tier per path** (section 3). Remember: tier only decides what *additional* motion the path gets — both tiers inherit the host's transform.
+2. **Decide tier per path** (Step 1's "two tiers" definition, or section 3 of the doc). Tier only decides what *additional* motion the path gets — both tiers share kinetic life with the host (see principle 2 for the inherit-vs-synthesize rule).
 3. **Reuse existing motions** by path-data match. If a variant reshapes the host's `d` slightly, extend the host motion's `matchPathDOneOf` list rather than writing a new motion.
 4. **Make sure the host motion exports its keyframe constants** (`HEART_BEAT_KEYFRAMES`, `BELL_SHELL_KEYFRAMES` are the precedent). Other family motions inherit them.
-5. **Tier 1 markers** — use the family's coupled modifier reveal (`heartModifierReveal`, `bellModifierReveal`, etc.) as the template. If the family doesn't have one yet, build it: a `matchAnyPath` motion that combines `pathLength` + `opacity` reveal, placed LAST in the compose list. For circle markers, build a geometry-matched equivalent (`bellDotReveal`).
-
-   Whether the marker *also* inherits the host's primary transform depends on the **shape** of that host transform:
-
-   - **In-plane host transforms (rotation, uniform `scale`, translation)** — inherit via per-value `inherit: true` so the marker tracks the host. Slash rocks with the bell, slash scales with the heart, slash breathes with the cloud. Precedent: `bellModifierReveal` / `heartModifierReveal` / `cloudModifierReveal`.
-   - **Axis-asymmetric host transforms (`scaleY` only, `scaleX` only)** — do NOT inherit the asymmetric transform directly (it flattens the marker — a diagonal slash inheriting a vertical-only squeeze collapses toward the horizontal axis and reads as the marker itself blinking). But the marker still needs continuous kinetic life timed to the host's apex, or it pops in as a static line over a moving icon and reads disconnected from the host motion. **Synthesize an in-plane companion** — a uniform `scale` dip (e.g. `[1, 0.85, 1]`) and/or an `opacity` dip — and pin it to the host's `times` so the marker shares a temporal peak with the host without orientation distortion. Time the `pathLength` strike to **complete at** the host's apex (not after it) so the draw-in and the host collapse share a single peak. Precedent: `eyeModifierReveal` (eye blinks via `scaleY` only; the slash strikes through with a uniform-scale companion timed to the blink apex via `EYE_BLINK_KEYFRAMES.times`, and the pathLength peaks at the same `0.5` mark as the blink).
-6. **Tier 2 with bespoke physics** — write a new motion under `src/modes/motions/`, named `<icon>-<role>.ts`. Design it from "how does this real-world thing actually behave?". If it sits inside or attached to a transforming host, also inherit the host's keyframes via the same per-value pattern.
+5. **Tier 1 markers — use the family's coupled modifier reveal** (`heartModifierReveal`, `bellModifierReveal`, `eyeModifierReveal`) as the template. If the family doesn't have one yet, build a `matchAnyPath` motion that combines `pathLength` + `opacity` reveal (or `scale` + `opacity` for `<circle>` markers — see `bellDotReveal`) and place it LAST in the compose list. The kinetic companion follows principle 2's host-transform-shape rule:
+   - **In-plane host** → directly inherit the host's primary transform. Examples: `bellModifierReveal` inherits `BELL_SHELL_KEYFRAMES.rotate`; `heartModifierReveal` inherits `HEART_BEAT_KEYFRAMES.scale`; `cloudModifierReveal` inherits `CLOUD_BODY_KEYFRAMES.scale`.
+   - **Axis-asymmetric host** → synthesize an in-plane companion (uniform `scale` dip like `[1, 0.85, 1]`, or `opacity` dip) and pin it to the host's `times`. Example: `eyeModifierReveal` defines its own `scale: [1, 0.85, 1]` over `EYE_BLINK_KEYFRAMES.times` because the eye's `scaleY`-only blink would flatten a diagonal slash if inherited directly.
+6. **Tier 2 with bespoke physics** — write a new motion under `src/modes/motions/`, named `<icon>-<role>.ts`. Design it from "how does this real-world thing actually behave?". If it sits inside or attached to a transforming host, also share the host's kinetic life via principle 2 (direct inherit or synthesized companion as appropriate).
 7. **Write the signature** as a thin `compose()` call (`src/modes/signatures/<icon>.ts`).
 8. **Don't force motion on icons where `draw` is the right answer** — if a variant has no clear physical or semantic motion, skip its signature and let it fall back to draw.
 
 After each phase of work, **self-review before moving on** (project memory `feedback_phase_review.md`): fix issues and re-review before the next phase.
+
+### Three-criteria check (run on EVERY overlay marker before declaring done)
+
+Recurring corrections happen when you fix one symptom and introduce another. To prevent that, walk every modifier-reveal and overlay marker through these three checks. All three must pass.
+
+| # | Criterion | What it means | How to verify |
+|---|---|---|---|
+| 1 | **Continuous kinetic life** | The marker is doing *something* throughout the cycle — not just at start/end. A static overlay reads as disconnected from the host. | Look at the marker's `active` block. Is there a transform that varies across the cycle (rotate, scale, opacity dip)? Or does the marker only animate `pathLength` + `opacity` and otherwise sit still? Sit-still = fail. |
+| 2 | **Non-distortion** | The marker's intrinsic shape stays intact (a 45° diagonal slash stays a 45° diagonal; a `+` sign stays orthogonal). No axis-asymmetric host transform inherited directly. | Is the marker inheriting `scaleY` only or `scaleX` only from the host? If yes, replace with synthesized in-plane companion (see step 5). |
+| 3 | **Apex alignment** | The marker's `pathLength` strike *completes at* the host's primary event peak, not after it. The draw-in and the host's peak event share one peak. | Compare the marker's `pathLength` times to the host's keyframe times. The end of the strike (`pathLength → 1`) should land at the same time fraction as the host's apex (e.g. `0.5` for `EYE_BLINK_KEYFRAMES.times = [0, 0.5, 1]`). |
+
+The recurring failure mode this guards against: fix criterion 2 by removing inheritance → break criterion 1 (marker now static). Or fix criterion 1 by inheriting → break criterion 2 (marker distorts). The synthesized in-plane companion + apex-aligned pathLength is the configuration that satisfies all three.
 
 ## Step 5 — Validate (code-side)
 
@@ -175,14 +206,20 @@ Report to the user:
 - Commit hash + subject.
 - New status (`pnpm --filter lucide-react-motion status`) so they see coverage progress.
 - The list of variants to hover in `/playground` with `mode="signature"` at size 56 AND 120.
-- What to look for: real-life motion reads correctly, every non-shell path tracks the host, no clipping at the edges, no static modifiers floating over moving icons.
+- **What to look for** — frame this as the three-criteria check so the user knows what visual signal to attend to:
+  1. **Real-life motion reads correctly** — flame flickers in height, heart contracts inward, clock ticks discretely, etc. No generic pulse/spin that could apply to any icon.
+  2. **Overlay markers have continuous kinetic life AND stay undistorted AND complete at the host's apex** — slash strikes through *as* the eye reaches max-close (not after); the slash stays a 45° diagonal throughout (no horizontal flattening); the slash isn't a static line popping in over a moving icon.
+  3. **No clipping at the 24×24 edges, no static modifiers floating over moving icons.**
 
-**Do not start the next family without explicit user approval.** One family per invocation. The user reviews visually, requests adjustments if needed (those become a refinement fix commit), then approves moving on.
+**Do not start the next family without explicit user approval.** One family per invocation. The user reviews visually, requests adjustments if needed (those become a refinement `fix(lib): ...` commit), then approves moving on.
 
-## Common pitfalls (from `docs/signatures.md` section 9 — re-read before submitting)
+## Common pitfalls — technical wiring gotchas (re-read before submitting)
 
-- **`inherit: true` is REQUIRED on every per-value transition.** Without it, motion-dom replaces the parent transition entirely, dropping `duration`/`delay`/`repeat` and falling back to its 300 ms default — the modifier ends up out of phase with the rest of the icon.
-- **`scale > 1` clips at viewBox edges.** Design scale rhythms as contractions (`scale ≤ 1`). Real things squeeze when they pulse, they don't balloon.
-- **Match paths by `d` data**, never by `ctx.index` — Lucide reorders paths sometimes.
-- **`matchAnyPath` is greedy.** Always last in the compose `motions` list.
-- **Regenerate after writing a signature.** The codegen reads `src/modes/signatures/` at generate-time; `prebuild` and `predev` handle it automatically, but you'll need to run it manually outside those flows.
+Distinct from the conceptual anti-patterns above; these are the wiring traps that produce silent/subtle bugs even when the design is right.
+
+- **`inherit: true` on every per-value transition.** Required because motion-dom otherwise replaces the parent transition entirely, dropping `duration` / `delay` / `repeat` and falling back to its default 300 ms — the modifier ends up out of phase with the rest of the icon.
+- **Match by `d` data, not `ctx.index`.** Lucide reorders paths sometimes. Use `matchPathD`, `matchPathDOneOf`, a regex over `pathAttrs.d`, or `<circle>` geometry (`cx` / `cy` / `r`).
+- **`matchAnyPath` is greedy — last in the compose list.** Otherwise it claims paths that need bespoke physics. The compose iterator is first-match-wins (`src/modes/compose.ts`).
+- **`scale > 1` clips at viewBox edges.** Design scale rhythms as contractions. Also remember the scaled-stroke gotcha — `transform: scale(1.2)` scales `strokeWidth` by 1.2 too, so the visible edge is `scaled_endpoint + scaled_stroke_radius`.
+- **Regenerate after writing a signature.** The codegen reads `src/modes/signatures/` at generate-time; `prebuild` and `predev` handle it automatically, but standalone changes need a manual `pnpm --filter lucide-react-motion generate`.
+- **Run the three-criteria check on every overlay marker before commit.** See the table in Step 4. The recurring failure mode is partial-fixing one criterion and silently breaking another.

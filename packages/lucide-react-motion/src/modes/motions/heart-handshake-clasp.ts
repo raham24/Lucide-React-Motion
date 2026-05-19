@@ -10,11 +10,13 @@ import { matchPathD, type Motion } from "../compose";
  * hands still.
  *
  * **Reading**: rather than fight that constraint, the motion leans into
- * it. The entire icon does a single gentle scale bump from the icon
- * center — a quiet inhale-and-settle that reads as warmth being given
- * and received between the clasped hands. Amplitude is intentionally
- * small (6%) so the hands don't visibly inflate; the heart sits at icon
- * center where the scale effect is most legible.
+ * it. The entire icon does a single gentle scale contraction from the
+ * icon center — a quiet inhale-and-settle that reads as warmth being
+ * shared between the clasped hands. Amplitude is intentionally small
+ * (6% inward, scale ≤ 1 per principle 3) so the hands don't visibly
+ * contort; the heart sits at icon center where the scale effect is
+ * most legible. Inward also reads more anatomically as "clasp" since
+ * hands clasping draws inward, not outward.
  *
  * Tier 2 in spirit (the icon depicts a real human moment) but the merged
  * path forces a whole-icon gesture rather than per-element physics.
@@ -27,7 +29,7 @@ export const heartHandshakeClasp: Motion = {
   factory: (ctx) => ({
     rest: { scale: 1 },
     active: {
-      scale: [1, 1.06, 1],
+      scale: [1, 0.94, 1],
       transition: {
         duration: ctx.duration,
         delay: ctx.delay + ctx.index * ctx.stagger,

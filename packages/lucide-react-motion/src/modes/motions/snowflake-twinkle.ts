@@ -11,10 +11,12 @@ import { matchPathDOneOf, type Motion } from "../compose";
  * facets align with and lose alignment with light sources. The
  * dominant variation is brightness, not size. Modeled here as a
  * sharp opacity double-pulse (a bright flash, a dim, a brighter
- * flash, a softer dim, settle) layered over a barely-perceptible
- * scale wobble for cohesion with the sun's ray pulse — both halves
- * of the icon read as alive without the snowflake claiming the
- * sun's emission character.
+ * flash, a softer dim, settle) — pure opacity, no scale, because
+ * scaling a snowflake either violates principle 3 (peak scale > 1)
+ * or reads as the crystal physically growing/shrinking, neither of
+ * which matches ice. The sun's `sunRayPulse` also dropped scale for
+ * the same reason, so the family stays cohesive in style: both halves
+ * of the icon flare via opacity, not size.
  *
  * The opacity dip goes deeper than `sunRayPulse`'s (0.3 vs 0.45)
  * because a real snowflake's sparkle has higher contrast than the
@@ -34,9 +36,8 @@ const SNOWFLAKE_PATHS = [
 export const snowflakeTwinkle: Motion = {
   matches: matchPathDOneOf(...SNOWFLAKE_PATHS),
   factory: (ctx) => ({
-    rest: { scale: 1, opacity: 1 },
+    rest: { opacity: 1 },
     active: {
-      scale: [1, 1.02, 0.98, 1.01, 1],
       opacity: [1, 0.3, 1, 0.55, 1],
       transition: {
         duration: ctx.duration,

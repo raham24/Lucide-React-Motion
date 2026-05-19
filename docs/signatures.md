@@ -132,6 +132,12 @@ packages/lucide-react-motion/src/modes/
 │   ├── cloud-lightning-bolt.ts       lightning flash-flicker (Tier 2)
 │   ├── cloud-modifier-reveal.ts      alert/check/slash/cog/arrows/sync reveal + breathes with body
 │   │
+│   ├── droplet-shimmer.ts            Droplet family — drop bob + contraction + opacity dim (Tier 2)
+│   ├── droplet-modifier-reveal.ts    droplet-off slash reveal + breathes with droplet
+│   │
+│   ├── umbrella-canopy.ts            Umbrella family — gentle sway + canopy contraction (Tier 2)
+│   ├── umbrella-modifier-reveal.ts   umbrella-off slash reveal + sways with canopy
+│   │
 │   └── loader-spin.ts
 │
 └── signatures/           One file per signed icon; thin compose() calls
@@ -627,6 +633,10 @@ motion matches the path you're animating, just import and reuse.
 | `motions/cloud-fog-streaks.ts` | `cloud-fog`'s two horizontal d's (`M16 17H7`, `M17 21H9`) | pathLength reveal + opacity dim/recover to suggest fog rolling. Inherits cloudBody scale (Tier 2) |
 | `motions/cloud-lightning-bolt.ts` | `cloud-lightning`'s bolt d | Sharp opacity flash-flicker (bright/dark/bright/dark/bright/settle) layered over a quick pathLength reveal. Inherits cloudBody scale (Tier 2) |
 | `motions/cloud-modifier-reveal.ts` | `matchAnyPath` (wildcard) | pathLength + opacity reveal that also scales with the host `cloudBody`. Used by cloud variants whose modifiers aren't covered by the bespoke weather motions — alert mark, check, off-slash, cog gear, download/upload arrows, sync/backup loops |
+| `motions/droplet-shimmer.ts` | Any path with an arc command (`[Aa]\d…`) — catches drop shapes across `droplet`, `droplets`, and the two split fragments in `droplet-off`; the slash `m2 2 20 20` has no arc so it falls through | y-bob + scale-contraction + opacity dim — surface tension drawing the drop inward as it nears release (Tier 2). Exports `DROPLET_KEYFRAMES` |
+| `motions/droplet-modifier-reveal.ts` | `matchAnyPath` (wildcard) | pathLength + opacity reveal for `droplet-off`'s slash; inherits `dropletShimmer`'s scale so the slash breathes with the drop fragments |
+| `motions/umbrella-canopy.ts` | Explicit d-list — handle + tip + canopy + the two canopy fragments in `umbrella-off` | Scale contraction + rotation sway + opacity dim — umbrella catching wind, canopy resisting the gust (Tier 2). Exports `UMBRELLA_KEYFRAMES` |
+| `motions/umbrella-modifier-reveal.ts` | `matchAnyPath` (wildcard) | pathLength + opacity reveal for `umbrella-off`'s slash; inherits `umbrellaCanopy`'s scale + rotate so the slash sways with the rest |
 | `motions/loader-spin.ts` | `matchAnyPath` for loader | Infinite rotation (via `atom/spin`) |
 | `motions/atom/spin.ts` | (factory only, no matches) | Pure rotation math; reused by `spin` Mode + `loader-spin` |
 
@@ -676,18 +686,16 @@ family is self-contained — finish one, get review, then start the next.
    `sunrise` / `sunset` icons are still pending — they're in the
    `sunrise`/`sunset` first-hyphen families, not the `sun-*` group.
 
-4. **`cloud-*` + `droplet*`** — Cloud family done (20/20):
-   `cloudBody` (subtle scale + opacity pulse) anchors every variant;
-   weather elements get bespoke physics — `cloudRainDrops`
-   (pathLength reveal that traces drops top-to-bottom),
-   `cloudSnowDots` (contraction twinkle, scale ≤ 1 so the bottom-row
-   dots can't clip), `cloudFogStreaks` (horizontal reveal + opacity
-   roll), `cloudLightningBolt` (flash flicker). UI variants
-   (alert/check/off/cog/download/upload/sync/backup) use
-   `cloudModifierReveal` (wildcard). Composites (`cloud-sun`,
-   `cloud-sun-rain`, `cloud-moon`, `cloud-moon-rain`) reuse
-   `sunRayPulse` and `moonGlow`. Still pending: `droplet`,
-   `droplets`, `umbrella`.
+4. **`cloud-*` + `droplet*` + `umbrella`** — Whole group done:
+   cloud (20/20), droplet (2/2), droplets (1/1), umbrella (2/2).
+   `cloudBody` anchors every cloud variant; weather elements get
+   bespoke physics — `cloudRainDrops`, `cloudSnowDots`,
+   `cloudFogStreaks`, `cloudLightningBolt`. UI variants use
+   `cloudModifierReveal`. Composites reuse `sunRayPulse` and
+   `moonGlow`. The water-drop icons (`droplet`, `droplets`,
+   `droplet-off`) use `dropletShimmer` (y-bob + surface-tension
+   contraction) and inherit-coupled modifier reveals. Umbrellas
+   sway via `umbrellaCanopy` (scale + rotate + opacity).
 
 5. **`flame*` / `fire`** — flame, flame-kindling, fire, candle (if
    present). Tier 2 flicker on each flame layer.

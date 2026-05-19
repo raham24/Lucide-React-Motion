@@ -1,52 +1,74 @@
 import { matchAnyPath, type Motion } from "../compose";
+import { EYE_BLINK_KEYFRAMES } from "./eye-blink";
 
 /**
- * Eye-family wildcard reveal — a stable `pathLength` + `opacity` draw-in
- * that strikes through on top of the eye. Used for any state modifier
- * overlaid on the eye (the diagonal slash in `eye-off`, and future
- * markers like plus / minus / check / dot / x if Lucide ships them).
+ * Eye-family wildcard reveal — `pathLength` + `opacity` draw-in that
+ * strikes through on top of the eye, timed to **complete at the blink's
+ * apex** (50% of the cycle) and paired with a uniform `scale` dip that
+ * gives the slash kinetic life without distorting it.
  *
- * Crucially, this motion does NOT inherit the host `eyeBlink`'s
- * `scaleY` collapse, even though the bell / heart / cloud family
- * modifier-reveals do inherit their host's primary transform. Why the
- * deviation: the eye's primary motion is asymmetric (scaleY only — a
- * vertical squeeze). A 45° diagonal slash inheriting a vertical squeeze
- * would flatten asymmetrically toward the horizontal axis, which reads
- * as "the slash itself is also blinking" rather than as a strikethrough
- * sitting on top of a blinking eye. So the overlay stays rigid and the
- * eye blinks underneath it.
+ * Used for any state modifier overlaid on the eye (the diagonal slash
+ * in `eye-off`, and future markers like plus / minus / check / dot if
+ * Lucide ships them).
  *
- * Rule of thumb (capture in the family skill if extending to more
- * icons): overlay modifiers inherit the host's primary transform when
- * that transform is in-plane — rotation, uniform scale, translation
- * (slash rocks with bell, slash scales with heart). Overlay modifiers
- * stay rigid when the host's primary transform is axis-asymmetric
- * (scaleY only, scaleX only) because inheriting distorts the marker
- * unnaturally.
+ * ## Why uniform `scale` and not `scaleY`
  *
- * Catches whatever's left after `eyeBlink` matches the registered eye-
- * body paths and pupil circle. Place this LAST in the compose `motions`
- * list — `matchAnyPath` is greedy and would otherwise claim eye-body
- * paths.
+ * The eye's primary motion (`eyeBlink`) is axis-asymmetric — `scaleY`
+ * only. A diagonal slash inheriting that vertical-only squeeze flattens
+ * toward the horizontal axis at the apex and reads as the slash itself
+ * blinking. That's wrong: the slash is an overlay, not an eye part.
+ *
+ * But going fully rigid is also wrong — without any kinetic life, the
+ * slash is a static line that pops in over a moving icon, and the read
+ * is disconnected. The bell / heart / cloud modifier-reveals feel
+ * smooth because their slashes share continuous motion with the host
+ * (rotation, uniform scale, breath) — that's what makes them feel like
+ * one coordinated gesture rather than two separate animations.
+ *
+ * Solution: give the slash a uniform `scale` dip (`[1, 0.85, 1]`) timed
+ * to the blink's apex via `EYE_BLINK_KEYFRAMES.times`. Uniform scale
+ * contracts the slash proportionally — it stays a 45° diagonal,
+ * unflattened — while sharing a temporal peak with the blink so the
+ * two motions feel like a single coordinated gesture. This is the same
+ * isotropic-inheritance pattern as `heart-modifier-reveal`'s `scale`,
+ * synthesized for the eye family (the eye itself has no uniform scale
+ * since blink is axis-asymmetric, so the slash defines its own).
+ *
+ * ## Why the timing
+ *
+ * `pathLength` + `opacity` peak at the blink apex (`times: [0, 0.15,
+ * 0.5]`) — the strike *completes* right as the eye reaches max close,
+ * so the two events share a single peak instead of staggering. After
+ * the apex, the slash holds drawn while the eye reopens around it.
+ *
+ * Place this LAST in the compose `motions` list — `matchAnyPath` is
+ * greedy and would otherwise claim eye-body paths.
  */
 export const eyeModifierReveal: Motion = {
   matches: matchAnyPath,
   factory: (ctx) => ({
-    rest: { pathLength: 1, opacity: 1 },
+    rest: { pathLength: 1, opacity: 1, scale: 1 },
     active: {
       pathLength: [0, 0, 1],
       opacity: [0, 0, 1],
+      scale: [1, 0.85, 1],
       transition: {
         duration: ctx.duration,
         delay: ctx.delay + ctx.index * ctx.stagger,
         repeat: ctx.repeat,
-        // Marker draws in on its own delayed schedule — holds invisible
-        // through the eye's collapse, strikes in as the eye reopens, and
-        // stays drawn through the rest of the cycle. No `inherit: true`
-        // on a host transform because the eye's scaleY is asymmetric;
-        // see the docblock above.
-        pathLength: { ease: "easeOut", times: [0, 0.25, 0.6] },
-        opacity: { ease: "easeOut", times: [0, 0.25, 0.6] },
+        // Strike completes AT the blink apex (50% of cycle): brief
+        // anticipation hold, then a decisive easeOut draw-in.
+        pathLength: { inherit: true, ease: "easeOut", times: [0, 0.15, 0.5] },
+        opacity: { inherit: true, ease: "easeOut", times: [0, 0.15, 0.5] },
+        // Uniform scale dip shares the blink's times so the slash
+        // proportionally contracts at the same moment the eye reaches
+        // max close. Stays a 45° line — not asymmetric. easeInOut to
+        // match the eye's smooth bell-curve easing.
+        scale: {
+          inherit: true,
+          ease: ctx.easing,
+          times: EYE_BLINK_KEYFRAMES.times,
+        },
       },
     },
   }),

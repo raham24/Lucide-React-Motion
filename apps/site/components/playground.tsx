@@ -22,6 +22,7 @@ import {
   Zap,
 } from "lucide-react-motion";
 import { MotionIconConfig, type MotionIconHandle } from "lucide-react-motion";
+import { motion, useReducedMotion } from "motion/react";
 import { cn } from "@/lib/utils";
 
 /**
@@ -38,20 +39,45 @@ function Section({
   description: string;
   children: ReactNode;
 }) {
+  const reduced = useReducedMotion();
+  const y = reduced ? 0 : 10;
   return (
-    <section className="mt-16 first:mt-0">
-      <div className="mb-6 border-b border-border pb-4">
+    <motion.section
+      className="mt-16 first:mt-0"
+      initial={{ opacity: 0, y }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-10% 0px -8% 0px" }}
+      transition={{
+        duration: reduced ? 0 : 0.85,
+        ease: [0.16, 1, 0.3, 1],
+        staggerChildren: reduced ? 0 : 0.06,
+        delayChildren: reduced ? 0 : 0.05,
+      }}
+    >
+      <motion.div
+        className="mb-6 border-b border-border pb-4"
+        initial={{ opacity: 0, y }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-10% 0px -8% 0px" }}
+        transition={{ duration: reduced ? 0 : 0.8, ease: [0.16, 1, 0.3, 1] }}
+      >
         <h2 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
           {title}
         </h2>
         <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
           {description}
         </p>
-      </div>
-      <div className="grid grid-cols-2 border-l border-t border-border sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+      </motion.div>
+      <motion.div
+        className="grid grid-cols-2 border-l border-t border-border sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5"
+        initial={{ opacity: 0, y }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-10% 0px -8% 0px" }}
+        transition={{ duration: reduced ? 0 : 0.85, delay: reduced ? 0 : 0.08, ease: [0.16, 1, 0.3, 1] }}
+      >
         {children}
-      </div>
-    </section>
+      </motion.div>
+    </motion.section>
   );
 }
 

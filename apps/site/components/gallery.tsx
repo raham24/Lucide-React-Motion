@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState, type ComponentType } from "react";
+import { motion, useReducedMotion } from "motion/react";
 import { manifest } from "lucide-react-motion/manifest";
 import * as Icons from "lucide-react-motion";
 import type { DrawIconProps, ModeName } from "lucide-react-motion";
@@ -27,6 +28,7 @@ export function Gallery() {
   const [query, setQuery] = useState("");
   const [limit, setLimit] = useState(PAGE_SIZE);
   const [mode, setMode] = useState<ModeName>("draw");
+  const reduced = useReducedMotion();
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -93,17 +95,28 @@ export function Gallery() {
           </div>
         ) : (
           <div className="grid grid-cols-4 border-l border-t border-border sm:grid-cols-5 md:grid-cols-5 lg:grid-cols-6">
-            {visible.map((m) => {
+            {visible.map((m, i) => {
               const Icon = IconMap[m.component];
               if (!Icon) return null;
               return (
-                <IconCell
+                <motion.div
                   key={m.name}
-                  name={m.name}
-                  component={m.component}
-                  Icon={Icon}
-                  mode={mode}
-                />
+                  initial={reduced ? false : { opacity: 0, y: 6 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, amount: 0.15, margin: "0px 0px 4% 0px" }}
+                  transition={{
+                    duration: 1.3,
+                    delay: reduced ? 0 : (i % 6) * 0.09,
+                    ease: [0.16, 1, 0.3, 1],
+                  }}
+                >
+                  <IconCell
+                    name={m.name}
+                    component={m.component}
+                    Icon={Icon}
+                    mode={mode}
+                  />
+                </motion.div>
               );
             })}
           </div>

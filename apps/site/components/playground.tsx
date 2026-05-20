@@ -2,7 +2,6 @@
 
 import { useRef, type ReactNode } from "react";
 import {
-  ArrowDown,
   Bell,
   BellCheck,
   BellDot,
@@ -271,22 +270,13 @@ export function Playground() {
 
       <Section
         title="Modes"
-        description="Pick which animation plays. The default is the stroke draw; generic modes (pulse, spin, shake, bounce) work on every icon. Per-icon prop on top of trigger=hover."
+        description="Pick which animation plays. The default is the stroke draw; mode='signature' plays the icon's bespoke animation. Per-icon prop on top of trigger=hover."
       >
         <Demo label='mode="draw" (default)'>
           <Heart size={56} />
         </Demo>
-        <Demo label='mode="pulse"'>
-          <Heart size={56} mode="pulse" />
-        </Demo>
-        <Demo label='mode="spin"'>
-          <Settings size={56} mode="spin" />
-        </Demo>
-        <Demo label='mode="shake"'>
-          <Bell size={56} mode="shake" />
-        </Demo>
-        <Demo label='mode="bounce"'>
-          <ArrowDown size={56} mode="bounce" />
+        <Demo label='mode="signature"'>
+          <Heart size={56} mode="signature" />
         </Demo>
       </Section>
 

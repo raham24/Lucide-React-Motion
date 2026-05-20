@@ -10,9 +10,9 @@ import { matchPathD, type Motion } from "../compose";
  * tachometers — they read as *alive* because of subtle non-linearities
  * in how the loop renders. A pure linear spin (what
  * {@link import("./loader-spin").loaderSpin} provides for the base
- * `loader` icon, and what `mode="spin"` offers as a generic) feels
- * mechanical. This signature adds two characteristics that make
- * `loader-circle` read as "the system is working":
+ * `loader` icon) feels mechanical. This signature adds two
+ * characteristics that make `loader-circle` read as "the system is
+ * working":
  *
  * - **Surge-and-settle ease per cycle.** `easeInOut` on the rotation
  *   gives every full revolution a built-in acceleration at the start

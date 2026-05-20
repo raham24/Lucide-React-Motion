@@ -15,14 +15,7 @@ const IconMap = Icons as unknown as Record<string, IconComponent | undefined>;
 const ICON_COUNT_FORMATTED = ICON_COUNT.toLocaleString();
 const PAGE_SIZE = 96;
 
-const MODE_OPTIONS: ModeName[] = [
-  "draw",
-  "signature",
-  "pulse",
-  "spin",
-  "shake",
-  "bounce",
-];
+const MODE_OPTIONS: ModeName[] = ["draw", "signature"];
 
 export function Gallery() {
   const [query, setQuery] = useState("");

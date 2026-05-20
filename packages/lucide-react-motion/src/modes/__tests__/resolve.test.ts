@@ -17,12 +17,8 @@ describe("resolveMode", () => {
       expect(resolveMode(undefined, "heart", undefined)).toBe(builtInModes.draw);
     });
 
-    it("resolves each generic mode by name", () => {
+    it("resolves draw by name", () => {
       expect(resolveMode("draw", "heart", undefined)).toBe(builtInModes.draw);
-      expect(resolveMode("pulse", "heart", undefined)).toBe(builtInModes.pulse);
-      expect(resolveMode("spin", "heart", undefined)).toBe(builtInModes.spin);
-      expect(resolveMode("shake", "heart", undefined)).toBe(builtInModes.shake);
-      expect(resolveMode("bounce", "heart", undefined)).toBe(builtInModes.bounce);
     });
   });
 

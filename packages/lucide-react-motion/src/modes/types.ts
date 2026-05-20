@@ -84,10 +84,4 @@ export interface Mode {
  * Built-in mode identifiers. `"signature"` is the special lookup mode that
  * uses the per-icon registry and falls back to `"draw"` when no entry exists.
  */
-export type ModeName =
-  | "draw"
-  | "pulse"
-  | "spin"
-  | "shake"
-  | "bounce"
-  | "signature";
+export type ModeName = "draw" | "signature";

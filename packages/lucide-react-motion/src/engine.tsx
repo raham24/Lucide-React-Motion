@@ -150,10 +150,9 @@ export interface DrawIconProps
   reducedMotion?: ReducedMotion;
   /**
    * Named motion preset, or a factory `(ctx) => Variants`. `"draw"` (default)
-   * runs the stroke-on animation; generic modes (`"pulse"`, `"spin"`,
-   * `"shake"`, `"bounce"`) work on any icon; `"signature"` plays the
-   * per-icon-specific animation (falls back to `"draw"` if none is
-   * registered). The `variants` prop, if set, wins over `mode`.
+   * runs the stroke-on animation; `"signature"` plays the per-icon-specific
+   * animation (falls back to `"draw"` if none is registered). The `variants`
+   * prop, if set, wins over `mode`.
    */
   mode?: ModeName | ModeFactory;
   /**

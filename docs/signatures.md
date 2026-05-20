@@ -47,11 +47,9 @@ array.
 **Never default to a generic pulse / shake / spin** to make an
 icon "feel alive." If you find yourself reaching for a uniform
 scale pulse, ask whether the real-world referent has a more
-specific behaviour — it almost always does. Generic motion belongs
-in the `mode="pulse"` / `mode="spin"` / etc. *generic modes* for
-consumers who opt in; signatures are about the icon's identity, so
-every signature should have a motion that *only makes sense for
-that icon*.
+specific behaviour — it almost always does. Signatures are about
+the icon's identity, so every signature should have a motion that
+*only makes sense for that icon*.
 
 **Animate per path — Lucide's path list IS the icon's anatomy.**
 Lucide draws each icon as a list of SVG `<path>` / `<circle>` /
@@ -158,12 +156,6 @@ packages/lucide-react-motion/src/modes/
 ├── compose.ts            compose(), matchPathD, matchPathDOneOf, matchAnyPath
 ├── resolve.ts            resolveMode() — picks the right Mode at render time
 ├── draw.ts               The default stroke-on draw factory
-│
-├── generic/              Named modes (mode="pulse" etc.)
-│   ├── pulse.ts
-│   ├── spin.ts
-│   ├── shake.ts
-│   └── bounce.ts
 │
 ├── motions/              Per-path animation modules — the reusable units
 │   ├── atom/
@@ -703,10 +695,13 @@ motion matches the path you're animating, just import and reuse.
 | `motions/flame-kindling-embers.ts` | The two crossed-kindling diagonals in `flame-kindling` | Opacity-only ember glow (real burning wood doesn't translate, just glows) + inherited rotate from `flameFlicker` so the sticks rock subtly with the fire's draft (Tier 2) |
 | `motions/fire-extinguisher-ready.ts` | `matchAnyPath` for `fire-extinguisher` | Subtle two-pulse scale contraction + opacity dim — a device-armed pulse rather than flame physics, because the extinguisher is a tool and never burns itself |
 | `motions/loader-spin.ts` | `matchAnyPath` for loader | Infinite rotation (via `atom/spin`) |
-| `motions/loader-circle-sweep.ts` | `loader-circle`'s single arc d | Continuous 0→360 rotation with `easeInOut` per cycle (surge-and-settle) + a mid-cycle opacity breath `[1, 0.78, 1]`. Differentiates from `mode="spin"` (linear, no opacity) and from the base `loader` signature. Exports `LOADER_CIRCLE_KEYFRAMES` (Tier 2) |
+| `motions/loader-circle-sweep.ts` | `loader-circle`'s single arc d | Continuous 0→360 rotation with `easeInOut` per cycle (surge-and-settle) + a mid-cycle opacity breath `[1, 0.78, 1]`. Differentiates from the base `loader` signature. Exports `LOADER_CIRCLE_KEYFRAMES` (Tier 2) |
 | `motions/loader-pinwheel-blade.ts` | The three `loader-pinwheel` blade d's | Rigid 0→360 rotation under `easeInOut` (gust-driven cadence) + per-blade reflectance opacity dip phase-shifted by 0, 1/3, 2/3 of the cycle so the bright/dim wave moves around the pinwheel rather than pulsing uniformly. Exports `LOADER_PINWHEEL_KEYFRAMES` (Tier 2) |
 | `motions/loader-pinwheel-hub.ts` | `<circle cx=12 cy=12 r=10>` in `loader-pinwheel` | Rigid 0→360 rotation inherited from `LOADER_PINWHEEL_KEYFRAMES` so the outer rim stays rigidly coupled to the blades. No opacity variation (circle has rotational symmetry) (Tier 2 housing) |
-| `motions/atom/spin.ts` | (factory only, no matches) | Pure rotation math; reused by `spin` Mode + `loader-spin` |
+| `motions/refresh-arc-cycle.ts` | Arcs + tick arrowheads across `refresh-cw`, `refresh-ccw`, `refresh-ccw-dot`, and `refresh-cw-off`'s four broken-arc fragments | pathLength `[1, 0, 1]` wipe-then-redraw + opacity dim. The path's stored direction encodes cw vs ccw — pathLength 0→1 visually rotates in the named direction without applying any transform (literal rotation would clip the corner tick marks at radius √162 ≈ 12.73 against the 24×24 viewBox). Exports `REFRESH_ARC_KEYFRAMES` (Tier 2 — the icon's identity is cyclical redraw) |
+| `motions/refresh-center-dot.ts` | `<circle cx=12 cy=12 r=1>` in `refresh-ccw-dot` | Subtle scale + opacity contraction pinned to `REFRESH_ARC_KEYFRAMES.times` so the "pending content" indicator dims at the wipe trough and recovers as the arcs redraw — synthesized in-plane companion because the host transforms `pathLength` (non-shape) and the circle has no `d` to inherit (Tier 2) |
+| `motions/refresh-modifier-reveal.ts` | `matchAnyPath` (wildcard) | pathLength + opacity reveal for `refresh-cw-off`'s diagonal slash, timed to complete AT the host's wipe trough (`t = 0.4`) so the slash is the only thing visible at the cycle's narrative low point. Synthesized uniform `scale` dip `[1, 0.92, 1]` over `REFRESH_ARC_KEYFRAMES.times` provides continuous kinetic life without rotating the slash (which would defeat the strike-through reading) |
+| `motions/atom/spin.ts` | (factory only, no matches) | Pure rotation math; reused by `loader-spin` and other rotation signatures |
 
 Update this table when you add a new motion module.
 
@@ -776,10 +771,17 @@ family is self-contained — finish one, get review, then start the next.
    not currently in Lucide's set; if it ever lands, expect a
    flame-flicker on the tip + a steady-stem motion.
 
-6. **`loader-*` / `refresh-*` / `rotate-*`** — loader-circle, loader-
-   pinwheel, refresh-ccw, refresh-cw, rotate-cw, rotate-ccw, repeat-
-   *. Most reuse infinite-spin. Refresh icons may have a partial-arc
-   variant.
+6. **`loader-*` / `refresh-*` / `rotate-*`** — loader (3/3) and
+   refresh (4/4) done. Loader variants use rotation-based motions
+   (`loaderSpin` linear, `loaderCircleSweep` surge-and-settle,
+   `loaderPinwheelBlade` gust-driven with per-blade reflectance).
+   Refresh deliberately *doesn't* rotate — the corner tick marks
+   at radius √162 ≈ 12.73 would clip the 24×24 viewBox at
+   intermediate angles, so `refreshArcCycle` uses a pathLength
+   wipe-redraw cycle and lets the path data's stored sweep
+   direction encode cw vs ccw. `rotate-*`, `repeat-*` are still
+   pending; expect them to reuse the rotation atoms where the
+   geometry allows.
 
 7. **`wifi-*` / `signal-*` / `volume-*`** — wifi, wifi-{high,low,off,
    zero}, signal, signal-{high,low,medium,zero}, volume, volume-x,

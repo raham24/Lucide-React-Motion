@@ -18,8 +18,7 @@ const warnedMissingSignatures = new Set<string>();
  *   warning per `iconName` so the gap is visible during local work; the
  *   warning is dead-code-eliminated in production via
  *   `process.env.NODE_ENV`.
- * - Named modes (`"draw"`, `"pulse"`, etc.): looked up in the built-in
- *   registry.
+ * - Named modes (`"draw"`): looked up in the built-in registry.
  * - `undefined`: defaults to `"draw"`.
  */
 export function resolveMode(

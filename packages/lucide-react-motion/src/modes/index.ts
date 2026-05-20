@@ -1,8 +1,4 @@
 import { draw } from "./draw";
-import { bounce } from "./generic/bounce";
-import { pulse } from "./generic/pulse";
-import { shake } from "./generic/shake";
-import { spin } from "./generic/spin";
 import type { Mode, ModeName } from "./types";
 
 export type {
@@ -22,8 +18,4 @@ export { resolveMode } from "./resolve";
  */
 export const builtInModes: Record<Exclude<ModeName, "signature">, Mode> = {
   draw,
-  pulse,
-  spin,
-  shake,
-  bounce,
 };

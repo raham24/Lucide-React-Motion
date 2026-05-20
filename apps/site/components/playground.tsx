@@ -2,16 +2,27 @@
 
 import { useRef, type ReactNode } from "react";
 import {
+  ArrowDown,
   Bell,
+  BellCheck,
+  BellDot,
+  BellMinus,
+  BellOff,
+  BellPlus,
+  BellRing,
+  Eye,
   Heart,
+  Loader,
   Rocket,
   Send,
   Settings,
   Sparkles,
   Star,
+  Sun,
   Zap,
 } from "lucide-react-motion";
 import { MotionIconConfig, type MotionIconHandle } from "lucide-react-motion";
+import { motion, useReducedMotion } from "motion/react";
 import { cn } from "@/lib/utils";
 
 /**
@@ -28,20 +39,45 @@ function Section({
   description: string;
   children: ReactNode;
 }) {
+  const reduced = useReducedMotion();
+  const y = reduced ? 0 : 10;
   return (
-    <section className="mt-16 first:mt-0">
-      <div className="mb-6 border-b border-border pb-4">
+    <motion.section
+      className="mt-16 first:mt-0"
+      initial={{ opacity: 0, y }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-10% 0px -8% 0px" }}
+      transition={{
+        duration: reduced ? 0 : 0.85,
+        ease: [0.16, 1, 0.3, 1],
+        staggerChildren: reduced ? 0 : 0.06,
+        delayChildren: reduced ? 0 : 0.05,
+      }}
+    >
+      <motion.div
+        className="mb-6 border-b border-border pb-4"
+        initial={{ opacity: 0, y }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-10% 0px -8% 0px" }}
+        transition={{ duration: reduced ? 0 : 0.8, ease: [0.16, 1, 0.3, 1] }}
+      >
         <h2 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
           {title}
         </h2>
         <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
           {description}
         </p>
-      </div>
-      <div className="grid grid-cols-2 border-l border-t border-border sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+      </motion.div>
+      <motion.div
+        className="grid grid-cols-2 border-l border-t border-border sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5"
+        initial={{ opacity: 0, y }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-10% 0px -8% 0px" }}
+        transition={{ duration: reduced ? 0 : 0.85, delay: reduced ? 0 : 0.08, ease: [0.16, 1, 0.3, 1] }}
+      >
         {children}
-      </div>
-    </section>
+      </motion.div>
+    </motion.section>
   );
 }
 
@@ -231,6 +267,78 @@ export function Playground() {
           label="has-data-[motion-state=drawing]:text-primary"
           pinned
         />
+      </Section>
+
+      <Section
+        title="Modes"
+        description="Pick which animation plays. The default is the stroke draw; generic modes (pulse, spin, shake, bounce) work on every icon. Per-icon prop on top of trigger=hover."
+      >
+        <Demo label='mode="draw" (default)'>
+          <Heart size={56} />
+        </Demo>
+        <Demo label='mode="pulse"'>
+          <Heart size={56} mode="pulse" />
+        </Demo>
+        <Demo label='mode="spin"'>
+          <Settings size={56} mode="spin" />
+        </Demo>
+        <Demo label='mode="shake"'>
+          <Bell size={56} mode="shake" />
+        </Demo>
+        <Demo label='mode="bounce"'>
+          <ArrowDown size={56} mode="bounce" />
+        </Demo>
+      </Section>
+
+      <Section
+        title="Signature animations"
+        description="mode='signature' plays the icon's character animation — a heart beats, a bell rings, a loader spins forever. Icons without a registered signature silently fall back to mode='draw' (and warn once in dev)."
+      >
+        <Demo label="heart — beats">
+          <Heart size={56} mode="signature" />
+        </Demo>
+        <Demo label="bell — rings">
+          <Bell size={56} mode="signature" />
+        </Demo>
+        <Demo label="eye — blinks">
+          <Eye size={56} mode="signature" />
+        </Demo>
+        <Demo label="star — twinkles">
+          <Star size={56} mode="signature" />
+        </Demo>
+        <Demo label="sun — slow rotate">
+          <Sun size={56} mode="signature" />
+        </Demo>
+        <Demo label="loader — infinite">
+          <Loader size={56} mode="signature" />
+        </Demo>
+      </Section>
+
+      <Section
+        title="Bell family — composed signatures"
+        description="Every bell variant reuses the same shell + clapper physics (single source of truth) and layers a modifier-specific motion on top. Hover any cell to play. The reveal motion for the modifier (+, −, ✓, /, sound waves, dot) appears mid-ring after the bell starts swinging."
+      >
+        <Demo label="bell">
+          <Bell size={56} mode="signature" />
+        </Demo>
+        <Demo label="bell-plus">
+          <BellPlus size={56} mode="signature" />
+        </Demo>
+        <Demo label="bell-minus">
+          <BellMinus size={56} mode="signature" />
+        </Demo>
+        <Demo label="bell-check">
+          <BellCheck size={56} mode="signature" />
+        </Demo>
+        <Demo label="bell-off">
+          <BellOff size={56} mode="signature" />
+        </Demo>
+        <Demo label="bell-ring">
+          <BellRing size={56} mode="signature" />
+        </Demo>
+        <Demo label="bell-dot">
+          <BellDot size={56} mode="signature" />
+        </Demo>
       </Section>
 
       <Section

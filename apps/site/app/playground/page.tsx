@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { FadeIn } from "@/components/fade-in";
 import { Playground } from "@/components/playground";
 
 const DESCRIPTION =
@@ -35,21 +36,27 @@ export default function PlaygroundPage() {
       <div className="mx-auto w-full max-w-[1180px] px-6 py-12 sm:px-10">
         {/* Header */}
         <header className="space-y-5 border-b border-border pb-10">
-          <div className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-            Live feature reference
-          </div>
-          <h1 className="text-5xl font-semibold tracking-tight sm:text-6xl">
-            Playground
-          </h1>
-          <p className="max-w-2xl text-sm leading-relaxed text-muted-foreground">
-            Every animation knob the library exposes, in one hoverable page.
-            Timing, triggers, leave behavior, custom variants, the{" "}
-            <code className="text-[0.95em]">MotionIconConfig</code>{" "}
-            provider, <code className="text-[0.95em]">absoluteStrokeWidth</code>
-            , and reduced-motion handling — each as its own self-contained demo
-            with the exact prop shown beneath it. Use it to verify behavior,
-            compare presets, or copy a pattern into your app.
-          </p>
+          <FadeIn delay={0} y={6}>
+            <div className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+              Live feature reference
+            </div>
+          </FadeIn>
+          <FadeIn delay={0.08}>
+            <h1 className="text-5xl font-semibold tracking-tight sm:text-6xl">
+              Playground
+            </h1>
+          </FadeIn>
+          <FadeIn delay={0.18}>
+            <p className="max-w-2xl text-sm leading-relaxed text-muted-foreground">
+              Every animation knob the library exposes, in one hoverable page.
+              Timing, triggers, leave behavior, custom variants, the{" "}
+              <code className="text-[0.95em]">MotionIconConfig</code>{" "}
+              provider, <code className="text-[0.95em]">absoluteStrokeWidth</code>
+              , and reduced-motion handling — each as its own self-contained demo
+              with the exact prop shown beneath it. Use it to verify behavior,
+              compare presets, or copy a pattern into your app.
+            </p>
+          </FadeIn>
         </header>
 
         {/* Playground */}

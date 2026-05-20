@@ -12,4 +12,12 @@ export {
   type Trigger,
 } from "./engine";
 
+export type {
+  Mode,
+  ModeContext,
+  ModeDefaults,
+  ModeFactory,
+  ModeName,
+} from "./modes";
+
 export * from "./generated";

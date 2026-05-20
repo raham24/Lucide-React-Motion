@@ -45,17 +45,18 @@ See [Animation](/docs/animation) for live demos.
 
 ### Behavior props
 
-| Prop            | Type              | Default       | Notes                                                                       |
-| --------------- | ----------------- | ------------- | --------------------------------------------------------------------------- |
-| `trigger`       | `Trigger`         | `"hover"`     | When/how the animation fires. See [Triggers](/docs/triggers).               |
-| `onLeave`       | `OnLeave`         | `"complete"`  | What happens when trigger ends. See [Leave behavior](/docs/leave-behavior). |
-| `reducedMotion` | `ReducedMotion`   | `"system"`    | Respect / force / disable reduced-motion. See [Accessibility](/docs/accessibility). |
+| Prop            | Type                            | Default       | Notes                                                                       |
+| --------------- | ------------------------------- | ------------- | --------------------------------------------------------------------------- |
+| `trigger`       | `Trigger`                       | `"hover"`     | When/how the animation fires. See [Triggers](/docs/triggers).               |
+| `onLeave`       | `OnLeave`                       | `"complete"`  | What happens when trigger ends. See [Leave behavior](/docs/leave-behavior). |
+| `reducedMotion` | `ReducedMotion`                 | `"system"`    | Respect / force / disable reduced-motion. See [Accessibility](/docs/accessibility). |
+| `mode`          | `ModeName` or `ModeFactory`     | `"draw"`      | Which animation to play. See [Modes](/docs/modes).                          |
 
 ### Escape hatch
 
 | Prop       | Type                                          | Notes                                                                  |
 | ---------- | --------------------------------------------- | ---------------------------------------------------------------------- |
-| `variants` | `Variants` or `(i: number) => Variants`       | Replace the draw entirely. See [Custom motion](/docs/custom-motion).   |
+| `variants` | `Variants` or `(i: number) => Variants`       | Bypass `mode` and supply Motion variants directly. See [Custom motion](/docs/custom-motion). |
 
 ### DOM attributes the engine writes
 
@@ -83,6 +84,40 @@ type OnLeave = "complete" | "snap" | "redraw";
 type ReducedMotion = "system" | "always" | "never";
 
 type MotionState = "resting" | "drawing";
+
+type ModeName =
+  | "draw"
+  | "pulse"
+  | "spin"
+  | "shake"
+  | "bounce"
+  | "signature";
+
+interface ModeContext {
+  iconName: string;
+  index: number;
+  duration: number;
+  delay: number;
+  stagger: number;
+  easing: Easing | Easing[];
+  repeat: number;
+}
+
+type ModeFactory = (ctx: ModeContext) => Variants;
+
+interface ModeDefaults {
+  duration?: number;
+  delay?: number;
+  stagger?: number;
+  easing?: Easing | Easing[];
+  repeat?: number;
+}
+
+interface Mode {
+  factory: ModeFactory;
+  defaults?: ModeDefaults;
+  needsTransformOrigin?: boolean;
+}
 
 interface MotionIconHandle {
   play: () => void;
@@ -115,6 +150,7 @@ interface MotionIconConfigValue {
   trigger?: Trigger;
   onLeave?: OnLeave;
   reducedMotion?: ReducedMotion;
+  mode?: ModeName | ModeFactory;
 }
 
 function MotionIconConfig(
@@ -133,6 +169,11 @@ import {
   PARENT_HOVER_ATTR,   // = "data-motion-icon-group"
   type DrawIconProps,
   type IconNode,
+  type Mode,
+  type ModeContext,
+  type ModeDefaults,
+  type ModeFactory,
+  type ModeName,
   type MotionIconConfigValue,
   type MotionIconHandle,
   type MotionState,

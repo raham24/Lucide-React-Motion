@@ -35,6 +35,13 @@ import {
   type SVGMotionProps,
   type Variants,
 } from "motion/react";
+import {
+  resolveMode,
+  type Mode,
+  type ModeDefaults,
+  type ModeFactory,
+  type ModeName,
+} from "./modes";
 type LegacyAnimationControls = ReturnType<typeof useAnimation>;
 
 // ---------------------------------------------------------------------------
@@ -93,6 +100,7 @@ export interface MotionIconConfigValue {
   trigger?: Trigger;
   onLeave?: OnLeave;
   reducedMotion?: ReducedMotion;
+  mode?: ModeName | ModeFactory;
 }
 
 /**
@@ -101,7 +109,19 @@ export interface MotionIconConfigValue {
  * `style`, `onClick`, `aria-*`, and `data-*`.
  */
 export interface DrawIconProps
-  extends Omit<SVGAttributes<SVGSVGElement>, "ref" | "children"> {
+  extends Omit<
+    SVGAttributes<SVGSVGElement>,
+    | "ref"
+    | "children"
+    | "mode"
+    // The engine owns these — motion-dom's animation lifecycle drives
+    // `data-motion-state`. Accepting consumer-supplied handlers would
+    // race with the internal handlers, so they're stripped before the
+    // passthrough. Omit them from the public type so TypeScript doesn't
+    // suggest them on `<DrawIcon />` or any generated icon.
+    | "onAnimationStart"
+    | "onAnimationComplete"
+  > {
   /** Lucide icon node array. Generated icons fill this in for you. */
   nodes: IconNode[];
   /** Pixel size of the icon. Default: 24. */
@@ -128,6 +148,28 @@ export interface DrawIconProps
   onLeave?: OnLeave;
   /** Respect, force on, or force off the OS reduced-motion preference. */
   reducedMotion?: ReducedMotion;
+  /**
+   * Named motion preset, or a factory `(ctx) => Variants`. `"draw"` (default)
+   * runs the stroke-on animation; generic modes (`"pulse"`, `"spin"`,
+   * `"shake"`, `"bounce"`) work on any icon; `"signature"` plays the
+   * per-icon-specific animation (falls back to `"draw"` if none is
+   * registered). The `variants` prop, if set, wins over `mode`.
+   */
+  mode?: ModeName | ModeFactory;
+  /**
+   * Lucide name of the icon being rendered. Set automatically by every
+   * generated icon component; only relevant if you're using `<DrawIcon />`
+   * directly with raw nodes. Used by `mode="signature"` to look up the
+   * per-icon animation and to identify the source in dev warnings.
+   */
+  iconName?: string;
+  /**
+   * The signature mode used when `mode="signature"`. Every generated icon
+   * with a registered signature sets this automatically; direct
+   * `<DrawIcon />` users can supply their own to make an arbitrary node
+   * set respond to `mode="signature"`.
+   */
+  signature?: Mode;
   /** Escape hatch: replace the default draw variants entirely. */
   variants?: Variants | ((index: number) => Variants);
   /** Imperative ref handle (React 19 ref-as-prop). */
@@ -154,6 +196,9 @@ const SVG_BASE = {
 export const PARENT_HOVER_ATTR = "data-motion-icon-group";
 const PARENT_HOVER_SELECTOR = `[${PARENT_HOVER_ATTR}]`;
 
+// `mode` is intentionally excluded — it's not a scalar with a default value,
+// it's a discriminated union resolved by `resolveMode`. Resolution still
+// honors the same priority order (prop > MotionIconConfig > built-in).
 const DEFAULTS = {
   size: 24,
   color: "currentColor",
@@ -167,7 +212,7 @@ const DEFAULTS = {
   trigger: "hover" as Trigger,
   onLeave: "complete" as OnLeave,
   reducedMotion: "system" as ReducedMotion,
-} satisfies Required<MotionIconConfigValue>;
+} satisfies Required<Omit<MotionIconConfigValue, "mode">>;
 
 type DefaultKey = keyof typeof DEFAULTS;
 type Resolved = { [K in DefaultKey]: (typeof DEFAULTS)[K] };
@@ -197,14 +242,29 @@ export function MotionIconConfig({
 }: MotionIconConfigProps) {
   const parent = useContext(MotionIconContext);
 
-  // Serialize config as the memo key so the value's identity is stable across
-  // renders unless an actual config value changed. Assumes primitive props -
-  // which is the intended API; passing functions/objects would defeat the memo.
-  const configKey = JSON.stringify(config);
+  // Stabilize the provider value's identity so consumers don't re-render on
+  // every parent render. Listing each config field individually is verbose
+  // but lets React compare them by reference — which is the right behavior
+  // for function-valued props like `easing` and `mode` that an earlier
+  // `JSON.stringify(config)` approach silently collapsed to the same key.
   const value = useMemo<MotionIconConfigValue>(
     () => ({ ...parent, ...config }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [parent, configKey]
+    [
+      parent,
+      config.size,
+      config.color,
+      config.strokeWidth,
+      config.absoluteStrokeWidth,
+      config.duration,
+      config.delay,
+      config.stagger,
+      config.easing,
+      config.repeat,
+      config.trigger,
+      config.onLeave,
+      config.reducedMotion,
+      config.mode,
+    ]
   );
 
   return (
@@ -215,58 +275,37 @@ export function MotionIconConfig({
 }
 
 // ---------------------------------------------------------------------------
-// Prop resolution: prop -> context -> built-in default
+// Prop & mode resolution
+// Resolution order for timing props: prop > MotionIconConfig > mode.defaults
+// > engine DEFAULTS. The `mode` itself is resolved separately via
+// `resolveMode` since it has no scalar default value.
 // ---------------------------------------------------------------------------
 
 function resolveProps(
   props: DrawIconProps,
-  ctx: MotionIconConfigValue
+  ctx: MotionIconConfigValue,
+  modeDefaults?: ModeDefaults
 ): Resolved {
   const out = {} as Resolved;
   const p = props as unknown as Record<DefaultKey, unknown>;
   const c = ctx as unknown as Record<DefaultKey, unknown>;
+  const m = (modeDefaults ?? {}) as Record<DefaultKey, unknown>;
   for (const key of Object.keys(DEFAULTS) as DefaultKey[]) {
     const fromProps = p[key];
     const fromCtx = c[key];
+    const fromMode = m[key];
     const value =
       fromProps !== undefined
         ? fromProps
         : fromCtx !== undefined
           ? fromCtx
-          : DEFAULTS[key];
+          : fromMode !== undefined
+            ? fromMode
+            : DEFAULTS[key];
     // Safe: each DefaultKey resolves to its own typed slot in DEFAULTS.
     (out as Record<DefaultKey, unknown>)[key] = value;
   }
   return out;
-}
-
-// ---------------------------------------------------------------------------
-// Default draw variants
-// ---------------------------------------------------------------------------
-
-interface TimingArgs {
-  duration: number;
-  delay: number;
-  stagger: number;
-  easing: Easing | Easing[];
-  repeat: number;
-}
-
-function buildDrawVariants(index: number, t: TimingArgs): Variants {
-  return {
-    rest: { pathLength: 1, opacity: 1 },
-    active: {
-      pathLength: [0, 1],
-      opacity: [0.25, 1],
-      transition: {
-        duration: t.duration,
-        delay: t.delay + index * t.stagger,
-        ease: t.easing,
-        repeat: t.repeat,
-        repeatType: "loop",
-      },
-    },
-  };
 }
 
 // ---------------------------------------------------------------------------
@@ -289,8 +328,36 @@ interface TriggerEffectsArgs {
   onLeave: OnLeave;
   controls: LegacyAnimationControls;
   svgRef: RefObject<SVGSVGElement | null>;
-  inView: boolean;
   isReduced: boolean;
+}
+
+/**
+ * Internal subscriber for `trigger="in-view"`. Mounted by `DrawIcon` only
+ * when the trigger is `"in-view"`, so we don't subscribe an IntersectionObserver
+ * for every icon on the page when most of them use other triggers (hover,
+ * click, parent-hover, etc.). Renders nothing — it exists purely for its
+ * hooks lifecycle.
+ */
+function InViewSubscriber({
+  svgRef,
+  controls,
+  isReduced,
+}: {
+  svgRef: RefObject<SVGSVGElement | null>;
+  controls: LegacyAnimationControls;
+  isReduced: boolean;
+}): null {
+  const inView = useInView(svgRef);
+
+  // Replay every time the icon scrolls back into view. Reset to rest on exit
+  // so the keyframe array re-fires from 0 on the next entry.
+  useEffect(() => {
+    if (isReduced) return;
+    if (inView) controls.start("active");
+    else controls.start("rest", { duration: 0 });
+  }, [inView, controls, isReduced]);
+
+  return null;
 }
 
 function useTriggerEffects({
@@ -298,7 +365,6 @@ function useTriggerEffects({
   onLeave,
   controls,
   svgRef,
-  inView,
   isReduced,
 }: TriggerEffectsArgs): void {
   // mount: fire once on first paint.
@@ -307,14 +373,8 @@ function useTriggerEffects({
     if (trigger === "mount") controls.start("active");
   }, [trigger, controls, isReduced]);
 
-  // in-view: replay every time the icon scrolls back into view. Reset to rest
-  // on exit so the keyframe array re-fires from 0 on the next entry.
-  useEffect(() => {
-    if (isReduced) return;
-    if (trigger !== "in-view") return;
-    if (inView) controls.start("active");
-    else controls.start("rest", { duration: 0 });
-  }, [trigger, inView, controls, isReduced]);
+  // in-view handled by <InViewSubscriber /> (rendered conditionally in
+  // DrawIcon) so we don't run useInView for every icon on the page.
 
   // parent-hover: bind to mouseenter/mouseleave on the nearest ancestor that
   // carries [data-motion-icon-group].
@@ -378,11 +438,23 @@ function getMotionProps(
  * <button onClick={() => iconRef.current?.play()}>play</button>
  */
 export function DrawIcon(props: DrawIconProps) {
-  const { nodes, variants, className, style, onClick, ref, ...passthrough } =
-    props;
+  const {
+    nodes,
+    variants,
+    className,
+    style,
+    onClick,
+    ref,
+    mode: modeProp,
+    iconName: iconNameProp,
+    signature,
+    ...passthrough
+  } = props;
+  const iconName = iconNameProp ?? "";
 
   const ctx = useContext(MotionIconContext) ?? {};
-  const r = resolveProps(props, ctx);
+  const resolvedMode = resolveMode(modeProp ?? ctx.mode, iconName, signature);
+  const r = resolveProps(props, ctx, resolvedMode.defaults);
 
   // Lucide-parity: keep stroke pixel-constant when absoluteStrokeWidth is set.
   const effectiveStrokeWidth = r.absoluteStrokeWidth
@@ -396,7 +468,6 @@ export function DrawIcon(props: DrawIconProps) {
 
   const controls = useAnimation();
   const svgRef = useRef<SVGSVGElement | null>(null);
-  const inView = useInView(svgRef);
 
   // Broadcast lifecycle phase as `data-motion-state` so consumers can sync
   // host CSS (e.g. parent `hover:text-primary`) with the draw, which can
@@ -427,7 +498,16 @@ export function DrawIcon(props: DrawIconProps) {
       reset: () => {
         controls.start("rest");
       },
-      node: svgRef.current,
+      // Getter so `node` reads `svgRef.current` lazily on access. The
+      // deps list below intentionally omits `svgRef` (refs don't
+      // belong in deps), so a property-style `node: svgRef.current`
+      // would capture the value at factory time and go stale if the
+      // svg were ever replaced without unmounting the React component.
+      // SVG DOM identity is stable in practice today, but the getter
+      // costs nothing and guards against future structural changes.
+      get node() {
+        return svgRef.current;
+      },
     }),
     [controls]
   );
@@ -437,7 +517,6 @@ export function DrawIcon(props: DrawIconProps) {
     onLeave: r.onLeave,
     controls,
     svgRef,
-    inView,
     isReduced,
   });
 
@@ -463,6 +542,19 @@ export function DrawIcon(props: DrawIconProps) {
     ...style,
   };
 
+  // Transform-based modes (pulse, spin, shake, bounce, signature transforms)
+  // need each animated child's transform origin set in viewBox coordinates.
+  // Default origin is icon center; modes can override for physics-aware
+  // pivots (e.g. a bell rocking from its top mount). `transformBox:
+  // "view-box"` also makes translation/scale values relative to user units
+  // so the motion scales with `size`.
+  const childStyle: CSSProperties | undefined = resolvedMode.needsTransformOrigin
+    ? {
+        transformOrigin: resolvedMode.transformOrigin ?? "12px 12px",
+        transformBox: "view-box",
+      }
+    : undefined;
+
   // Strip prop names we've already consumed so they don't leak onto the DOM.
   const cleanedPassthrough: Record<string, unknown> = {
     ...(passthrough as unknown as Record<string, unknown>),
@@ -479,40 +571,66 @@ export function DrawIcon(props: DrawIconProps) {
   delete cleanedPassthrough["data-motion-state"];
 
   return (
-    <motion.svg
-      // Spreads first; explicit props after so our overrides always win.
-      {...SVG_BASE}
-      {...motionProps}
-      {...cleanedPassthrough}
-      ref={svgRef}
-      width={r.size}
-      height={r.size}
-      stroke={r.color}
-      strokeWidth={effectiveStrokeWidth}
-      className={className}
-      onClick={handleClick}
-      onAnimationStart={handleAnimationStart}
-      onAnimationComplete={handleAnimationComplete}
-      data-motion-state={motionState}
-      style={mergedStyle}
-    >
+    <>
+      {r.trigger === "in-view" && (
+        <InViewSubscriber
+          svgRef={svgRef}
+          controls={controls}
+          isReduced={isReduced}
+        />
+      )}
+      <motion.svg
+        // Spreads first; explicit props after so our overrides always win.
+        {...SVG_BASE}
+        {...motionProps}
+        {...cleanedPassthrough}
+        ref={svgRef}
+        width={r.size}
+        height={r.size}
+        stroke={r.color}
+        strokeWidth={effectiveStrokeWidth}
+        className={className}
+        onClick={handleClick}
+        onAnimationStart={handleAnimationStart}
+        onAnimationComplete={handleAnimationComplete}
+        data-motion-state={motionState}
+        style={mergedStyle}
+      >
       {nodes.map((node, i) => {
         const [Tag, attrs] = node;
         // motion is keyed by SVG tag name. Cast widens for dynamic lookup.
         const MotionTag =
           (motion as unknown as Record<string, ElementType>)[Tag] ??
           motion.path;
-        // `variants` prop fully replaces the default draw motion. Accepts
-        // either an object { rest, active } or a function (i) -> object.
-        // Custom variants must still expose "rest" and "active" so the
-        // trigger system works.
+        // `variants` prop fully replaces the resolved mode. Accepts either an
+        // object { rest, active } or a function (i) -> object. Custom variants
+        // must still expose "rest" and "active" so the trigger system works.
         const v: Variants =
           typeof variants === "function"
             ? variants(i)
-            : (variants ?? buildDrawVariants(i, r));
-        return <MotionTag key={i} {...attrs} variants={v} />;
+            : (variants ??
+              resolvedMode.factory({
+                iconName,
+                index: i,
+                pathTag: Tag,
+                pathAttrs: attrs,
+                duration: r.duration,
+                delay: r.delay,
+                stagger: r.stagger,
+                easing: r.easing,
+                repeat: r.repeat,
+              }));
+        return (
+          <MotionTag
+            key={i}
+            {...attrs}
+            variants={v}
+            style={childStyle}
+          />
+        );
       })}
-    </motion.svg>
+      </motion.svg>
+    </>
   );
 }
 

@@ -714,6 +714,10 @@ motion matches the path you're animating, just import and reuse.
 | `motions/rotate-3d-orbit.ts` | `matchAnyPath` (wildcard) for `rotate-3d` | Single eased 0→−360° counter-clockwise revolution of the whole icon. The two perpendicular orbital ellipses sweeping past each other through the cycle reads as 3D rotation, distinguishing this variant from the family's quarter-turn-and-back gesture. All path vertices sit at radii ≤ 9.86 from (12, 12) so no contraction is needed; `rotate` is set as the `[0, -360]` keyframes array (not a scalar `-360`) so each hover replays from 0 (Tier 2) |
 | `motions/signal-bar.ts` | The 4 signal-strength bar d's (`M7 20v-4`, `M12 20v-8`, `M17 20V8`, `M22 4v16`) across `signal`, `signal-high`, `signal-medium`, `signal-low` | Bars rest at full height; a wave of pressure travels through them left-to-right — each bar in turn briefly `scaleY`-contracts toward the baseline (y=20) and dims, then springs back. Reads as a signal pulse radiating across the indicator. Signature pivots at `"12px 20px"` so contraction operates from the common baseline regardless of which x each bar lives at, and normalises Lucide's mixed stroke directions (one of the bars is stored top-to-bottom). Contraction-only per principle 3 — the tallest bar already reaches y=4 so any expansion would clip. Per-path stagger (`ctx.index` left-to-right) produces the wave. Exports `SIGNAL_BAR_KEYFRAMES` (Tier 2) |
 | `motions/signal-dot.ts` | The degenerate dot `M2 20h.01` (zero-strength indicator) in every signal variant including `signal-zero` | Inherits `SIGNAL_BAR_KEYFRAMES.opacity` so the dot dim/recovers in step with the bar wave's leading edge — fires first (index 0) and the wave proceeds through the bars from there. Opacity only — the dot sits on the signature's baseline pivot where `scaleY` would compress its round stroke caps unnaturally (Tier 2 — semantic floor of the signal-strength scale, not a state marker) |
+| `motions/battery-case.ts` | Battery terminal, base `<rect x=2 y=6 width=16 height=12 rx=2>`, and split casing fragments in `battery-charging`, `battery-plus`, `battery-warning` | Stable casing wake: pathLength traces the frame/terminal on, then opacity briefly dims and recovers as the power meter settles. Exports `BATTERY_CASE_KEYFRAMES` with `powerPeak = 0.64` so in-cell state markers reveal at the frame's ready moment (Tier 2 host casing) |
+| `motions/battery-cell-fill.ts` | Charge cell bars at x=6/10/14 across `battery-low`, `battery-medium`, `battery-full` (`M6 14v-4`, `M10 14v-4`, `M6 10v4`, `M10 10v4`, `M14 10v4`) | State-aware fill cascade: each cell uses `pathLength` + `scaleY` from its own bottom baseline (`transformOrigin: "<x>px 14px"`) and opacity recovery. Internal timing fills left-to-right independent of Lucide node order, and contraction-only rebound keeps the strokes inside the case (Tier 2 charge-state cells) |
+| `motions/battery-charging-bolt.ts` | `battery-charging` lightning bolt `m11 7-3 5h4l-3 5` | Incoming-current flash: the bolt draws in quickly, reaches full size at the charge peak, then dips opacity/scale and recovers. Uniform contraction keeps the bolt shape intact and inside the battery casing (Tier 2 charging current) |
+| `motions/battery-modifier-reveal.ts` | `matchAnyPath` wildcard for remaining in-cell plus/warning strokes after the casing matches | Tier 1 state marker reveal for `battery-plus` and `battery-warning`: pathLength completes at the battery frame's `powerPeak`, with uniform scale `[1, 0.9, 1, 0.96, 1]` and opacity cadence for continuous kinetic life without distorting the plus or exclamation marker. Place last because it is greedy |
 | `motions/atom/spin.ts` | (factory only, no matches) | Pure rotation math; reused by `loader-spin` and other rotation signatures |
 
 Update this table when you add a new motion module.
@@ -806,8 +810,10 @@ family is self-contained — finish one, get review, then start the next.
 **Tier-1-dominant families (medium impact):**
 
 8. **`battery-*`** — battery, battery-charging, battery-full, battery-
-   low, battery-medium, battery-warning. Cell-fill cascade is Tier 2
-   (state-aware fill animation).
+   low, battery-medium, battery-plus, battery-warning (7/7 done).
+   Cell-fill cascade is Tier 2 (state-aware fill animation);
+   charging bolt flashes as incoming current; plus/warning markers
+   use the family modifier reveal.
 
 9. **`mail-*` / `send`** — mail, mail-open, mail-plus, send, send-
    horizontal. Envelope flap is Tier 2; send is paper-plane flight.

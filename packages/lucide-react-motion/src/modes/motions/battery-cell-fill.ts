@@ -2,13 +2,14 @@ import type { Motion } from "../compose";
 
 /**
  * Battery charge bars. The short vertical strokes are the visible
- * state-of-charge cells, so they fill from the bottom baseline upward
- * in left-to-right order regardless of Lucide's per-icon node order.
+ * state-of-charge cells, so they stay visible and carry a voltage
+ * ripple: each cell briefly sags toward the bottom baseline, dims,
+ * then recovers in left-to-right order regardless of Lucide's
+ * per-icon node order.
  */
 export const BATTERY_CELL_KEYFRAMES = {
-  pathLength: [0, 0, 1, 1, 1],
-  scaleY: [0.16, 0.16, 1, 0.88, 1],
-  opacity: [0, 0, 1, 0.68, 1],
+  scaleY: [1, 0.68, 1, 0.88, 1],
+  opacity: [1, 0.42, 1, 0.72, 1],
 };
 
 const CELL_PATH_PATTERN = /^M(6|10|14) (?:10v4|14v-4)$/;
@@ -32,14 +33,12 @@ export const batteryCellFill: Motion = {
 
     return {
       rest: {
-        pathLength: 1,
         scaleY: 1,
         opacity: 1,
         transformBox: "view-box",
         transformOrigin: `${x}px 14px`,
       },
       active: {
-        pathLength: BATTERY_CELL_KEYFRAMES.pathLength,
         scaleY: BATTERY_CELL_KEYFRAMES.scaleY,
         opacity: BATTERY_CELL_KEYFRAMES.opacity,
         transformBox: "view-box",
@@ -48,19 +47,14 @@ export const batteryCellFill: Motion = {
           duration: ctx.duration,
           delay: ctx.delay,
           repeat: ctx.repeat,
-          pathLength: {
-            inherit: true,
-            ease: "easeOut",
-            times: cellTimes(x),
-          },
           scaleY: {
             inherit: true,
-            ease: "easeOut",
+            ease: "easeInOut",
             times: cellTimes(x),
           },
           opacity: {
             inherit: true,
-            ease: "easeOut",
+            ease: "easeInOut",
             times: cellTimes(x),
           },
         },

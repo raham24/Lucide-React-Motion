@@ -811,9 +811,9 @@ family is self-contained — finish one, get review, then start the next.
 
 8. **`battery-*`** — battery, battery-charging, battery-full, battery-
    low, battery-medium, battery-plus, battery-warning (7/7 done).
-   Cell-fill cascade is Tier 2 (state-aware fill animation);
-   charging bolt flashes as incoming current; plus/warning markers
-   use the family modifier reveal.
+   Charge cells use a visible-at-rest voltage ripple rather than
+   draw-on; charging bolt flashes as incoming current; plus/warning
+   markers pulse/blink through the family modifier motion.
 
 9. **`mail-*` / `send`** — mail, mail-open, mail-plus, send, send-
    horizontal. Envelope flap is Tier 2; send is paper-plane flight.

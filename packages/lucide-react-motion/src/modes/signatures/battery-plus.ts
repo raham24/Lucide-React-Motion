@@ -3,8 +3,8 @@ import { batteryCase } from "../motions/battery-case";
 import { batteryModifierReveal } from "../motions/battery-modifier-reveal";
 
 /**
- * Battery-plus — the split casing wakes while the plus marker reveals
- * at the power-ready peak and continues a small in-place cadence.
+ * Battery-plus — the split casing ripples while the visible plus
+ * marker performs a small press/rebound pulse.
  */
 export default compose({
   motions: [batteryCase, batteryModifierReveal],

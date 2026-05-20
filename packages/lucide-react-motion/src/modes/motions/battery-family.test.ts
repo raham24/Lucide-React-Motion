@@ -123,32 +123,35 @@ describe("battery family signatures", () => {
     __resetComposeWarnings();
   });
 
-  it("matches every node in every battery variant", () => {
+  it("matches every node in every battery variant without draw-on fallback", () => {
     const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
     for (const variant of variants) {
       variant.nodes.forEach((node, index) => {
-        variant.signature.factory(ctx(variant.iconName, index, node));
+        const resolved = variant.signature.factory(
+          ctx(variant.iconName, index, node)
+        );
+        expect("pathLength" in (resolved.active as Record<string, unknown>)).toBe(
+          false
+        );
       });
     }
 
     expect(warnSpy).not.toHaveBeenCalled();
   });
 
-  it("fills charge cells upward from their own bottom baseline", () => {
+  it("ripples charge cells from their own bottom baseline", () => {
     const variants = batteryCellFill.factory(
       ctx("battery-full", 1, ["path", { d: "M14 10v4" }])
     );
 
     expect(variants.rest).toMatchObject({
-      pathLength: 1,
       scaleY: 1,
       opacity: 1,
       transformBox: "view-box",
       transformOrigin: "14px 14px",
     });
     expect(variants.active).toMatchObject({
-      pathLength: BATTERY_CELL_KEYFRAMES.pathLength,
       scaleY: BATTERY_CELL_KEYFRAMES.scaleY,
       opacity: BATTERY_CELL_KEYFRAMES.opacity,
       transformBox: "view-box",

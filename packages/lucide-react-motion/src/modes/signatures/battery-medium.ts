@@ -3,8 +3,8 @@ import { batteryCase } from "../motions/battery-case";
 import { batteryCellFill } from "../motions/battery-cell-fill";
 
 /**
- * Battery-medium — the casing wakes while the first two charge cells
- * fill left-to-right from the bottom baseline.
+ * Battery-medium — the first two charge cells carry a left-to-right
+ * voltage ripple while the casing stays visible.
  */
 export default compose({
   motions: [batteryCellFill, batteryCase],

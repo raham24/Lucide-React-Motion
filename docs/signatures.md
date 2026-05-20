@@ -698,9 +698,9 @@ motion matches the path you're animating, just import and reuse.
 | `motions/loader-circle-sweep.ts` | `loader-circle`'s single arc d | Continuous 0→360 rotation with `easeInOut` per cycle (surge-and-settle) + a mid-cycle opacity breath `[1, 0.78, 1]`. Differentiates from the base `loader` signature. Exports `LOADER_CIRCLE_KEYFRAMES` (Tier 2) |
 | `motions/loader-pinwheel-blade.ts` | The three `loader-pinwheel` blade d's | Rigid 0→360 rotation under `easeInOut` (gust-driven cadence) + per-blade reflectance opacity dip phase-shifted by 0, 1/3, 2/3 of the cycle so the bright/dim wave moves around the pinwheel rather than pulsing uniformly. Exports `LOADER_PINWHEEL_KEYFRAMES` (Tier 2) |
 | `motions/loader-pinwheel-hub.ts` | `<circle cx=12 cy=12 r=10>` in `loader-pinwheel` | Rigid 0→360 rotation inherited from `LOADER_PINWHEEL_KEYFRAMES` so the outer rim stays rigidly coupled to the blades. No opacity variation (circle has rotational symmetry) (Tier 2 housing) |
-| `motions/refresh-arc-cycle.ts` | Arcs + tick arrowheads across `refresh-cw`, `refresh-ccw`, `refresh-ccw-dot`, and `refresh-cw-off`'s four broken-arc fragments | pathLength `[1, 0, 1]` wipe-then-redraw + opacity dim. The path's stored direction encodes cw vs ccw — pathLength 0→1 visually rotates in the named direction without applying any transform (literal rotation would clip the corner tick marks at radius √162 ≈ 12.73 against the 24×24 viewBox). Exports `REFRESH_ARC_KEYFRAMES` (Tier 2 — the icon's identity is cyclical redraw) |
-| `motions/refresh-center-dot.ts` | `<circle cx=12 cy=12 r=1>` in `refresh-ccw-dot` | Subtle scale + opacity contraction pinned to `REFRESH_ARC_KEYFRAMES.times` so the "pending content" indicator dims at the wipe trough and recovers as the arcs redraw — synthesized in-plane companion because the host transforms `pathLength` (non-shape) and the circle has no `d` to inherit (Tier 2) |
-| `motions/refresh-modifier-reveal.ts` | `matchAnyPath` (wildcard) | pathLength + opacity reveal for `refresh-cw-off`'s diagonal slash, timed to complete AT the host's wipe trough (`t = 0.4`) so the slash is the only thing visible at the cycle's narrative low point. Synthesized uniform `scale` dip `[1, 0.92, 1]` over `REFRESH_ARC_KEYFRAMES.times` provides continuous kinetic life without rotating the slash (which would defeat the strike-through reading) |
+| `motions/refresh-arc-cycle.ts` | Arcs + tick arrowheads across `refresh-cw`, `refresh-ccw`, `refresh-ccw-dot`, and `refresh-cw-off`'s four broken-arc fragments | Pinch-then-spin physics: scale `[1, 0.85, 0.85, 1]` (contracts inward, holds while spinning, releases back), rotate `[0, 0, ±360, ±360]` (full revolution in the named direction, performed *while contracted* so the corner caps stay inside the viewBox — corner cap envelope ≈ 0.85 × 13.45 ≈ 11.43 from centre, comfortably inside the inscribed circle of radius 12). Direction comes from `iconName` (cw = +360, ccw = -360). Exports `REFRESH_ARC_KEYFRAMES` (Tier 2 — mechanical wind-up + rotation, the canonical refresh-button gesture) |
+| `motions/refresh-center-dot.ts` | `<circle cx=12 cy=12 r=1>` in `refresh-ccw-dot` | Inherits `REFRESH_ARC_KEYFRAMES.scale` so the indicator pinches in lockstep with the wheel + opacity dip `[1, 0.55, 0.55, 1]` (dim during the spin, bright at rest = fresh data ready). Skips rotate inheritance because a circle at the rotation pivot is rotationally symmetric (Tier 2) |
+| `motions/refresh-modifier-reveal.ts` | `matchAnyPath` (wildcard) | pathLength + opacity reveal for `refresh-cw-off`'s diagonal slash, timed to complete at the rotation midpoint (`t = 0.5`, the moment the wheel has spun 180°) — the slash strikes through at the apex of the action. Inherits the host's pinch via `REFRESH_ARC_KEYFRAMES.scale` for kinetic-life share but skips rotate (would carry the slash around the wheel and destroy the strike-through reading) |
 | `motions/atom/spin.ts` | (factory only, no matches) | Pure rotation math; reused by `loader-spin` and other rotation signatures |
 
 Update this table when you add a new motion module.
@@ -772,14 +772,16 @@ family is self-contained — finish one, get review, then start the next.
    flame-flicker on the tip + a steady-stem motion.
 
 6. **`loader-*` / `refresh-*` / `rotate-*`** — loader (3/3) and
-   refresh (4/4) done. Loader variants use rotation-based motions
+   refresh (4/4) done. Loader variants use continuous rotation
    (`loaderSpin` linear, `loaderCircleSweep` surge-and-settle,
    `loaderPinwheelBlade` gust-driven with per-blade reflectance).
-   Refresh deliberately *doesn't* rotate — the corner tick marks
-   at radius √162 ≈ 12.73 would clip the 24×24 viewBox at
-   intermediate angles, so `refreshArcCycle` uses a pathLength
-   wipe-redraw cycle and lets the path data's stored sweep
-   direction encode cw vs ccw. `rotate-*`, `repeat-*` are still
+   Refresh uses a mechanical wind-up: scale contracts to 0.85 to
+   pull the corner tick marks (at radius √162 ≈ 12.73, outside
+   the viewBox's inscribed circle) safely inside, performs one
+   full 360° revolution in the named direction *while
+   contracted*, then expands back to rest. Reads as the
+   canonical refresh-button gesture without clipping the corner
+   caps at intermediate angles. `rotate-*`, `repeat-*` are still
    pending; expect them to reuse the rotation atoms where the
    geometry allows.
 

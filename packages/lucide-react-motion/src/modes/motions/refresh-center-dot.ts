@@ -5,34 +5,35 @@ import { REFRESH_ARC_KEYFRAMES } from "./refresh-arc-cycle";
  * The notification dot at the centre of `refresh-ccw-dot` —
  * `<circle cx="12" cy="12" r="1">`. In Lucide's UI vocabulary a
  * `*-dot` variant means "this surface has a pending indicator",
- * so for refresh the dot reads as "there is fresh content waiting
- * to be pulled."
+ * so for refresh the dot reads as fresh content waiting to be
+ * pulled in by the next cycle.
  *
- * **Real-life motion**: a "new data here" indicator pulses to draw
- * attention. The dot contracts and dims at the host's wipe trough
- * — the moment the arcs vanish — then recovers as the loop
- * redraws. Visually, the dot is the persistent anchor that the
- * refresh action revolves around: while the arcs disappear and
- * redraw, the dot stays present (just dimmer and smaller),
- * communicating "the pending state survives the refresh cycle."
+ * **Real-life motion**: the dot is the persistent anchor that the
+ * spinning wheel turns around. It doesn't rotate (rotating a
+ * point at the rotation pivot would be visually invisible anyway,
+ * since the dot sits exactly at (12, 12) — the host's transform
+ * origin), but it shares the host's pinch by inheriting
+ * `REFRESH_ARC_KEYFRAMES.scale` and dims its opacity while the
+ * action is in flight. Reads as "the indicator quietly holds
+ * its ground while the wheel turns around it, dim during the
+ * action and bright at rest."
  *
  * **Coupling pattern**: the host motion ({@link import("./refresh-arc-cycle").refreshArcCycle})
- * only transforms `pathLength` and `opacity` — both non-shape
- * transforms. There's no rotation or scale on the host for the
- * dot to inherit directly, so this motion synthesizes its own
- * `scale` + `opacity` dip pinned to `REFRESH_ARC_KEYFRAMES.times`
- * for an apex-aligned kinetic peak. Same shape as
- * `eyeModifierReveal`'s synthesized-companion pattern, applied
- * here because the host's transforms aren't directly inheritable
- * by a `<circle>` whose only geometry is `cx`/`cy`/`r`.
+ * transforms `scale` (uniform) + `rotate`. Uniform scale is
+ * directly inheritable — the dot pinches with the wheel and shares
+ * the same kinetic peak. Rotate is skipped on purpose: a circle
+ * at the rotation pivot has rotational symmetry, so inheriting
+ * rotate would only add invisible work to the animation. Opacity
+ * is synthesized to carry the dot's own "in-flight vs at rest"
+ * narrative.
  *
- * Matched by geometry (cx=12, cy=12, r=1) — if Lucide ever
- * reshapes the dot, this falls through to the family wildcard and
- * the dev warning surfaces it.
+ * Matched by geometry (cx=12, cy=12, r=1) — if Lucide reshapes
+ * the dot, this falls through to the family wildcard and the dev
+ * warning surfaces it.
  *
- * **ViewBox safety**: scale stays at or below 1, and the dot
- * pivots at its own centre (12, 12) — well within the viewBox at
- * any contraction. Opacity is bounds-safe by construction.
+ * **ViewBox safety**: scale stays at or below 1, opacity is
+ * bounds-safe by construction, and the dot's pivot is its own
+ * centre — no clipping concerns at any frame.
  */
 export const refreshCenterDot: Motion = {
   matches: (ctx) =>
@@ -43,11 +44,13 @@ export const refreshCenterDot: Motion = {
   factory: (ctx) => ({
     rest: { scale: 1, opacity: 1 },
     active: {
-      // Dot contracts sharply at the wipe trough but doesn't vanish
-      // — staying partially visible reads as "the pending indicator
-      // survives the refresh."
-      scale: [1, 0.5, 1],
-      opacity: [1, 0.45, 1],
+      // Inherit the wheel's pinch rhythm directly — the dot
+      // contracts and expands in lockstep with the arcs.
+      scale: REFRESH_ARC_KEYFRAMES.scale,
+      // Synthesized opacity arc — dim during the spin, bright at
+      // rest. Bright dot = "fresh data ready"; dim dot = "action
+      // in flight, indicator stepping aside."
+      opacity: [1, 0.55, 0.55, 1],
       transition: {
         duration: ctx.duration,
         delay: ctx.delay + ctx.index * ctx.stagger,

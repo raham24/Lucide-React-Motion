@@ -37,10 +37,11 @@ export function Gallery() {
 
   return (
     <>
-      {/* Sticky control bar — search + mode toggle. top-13.25 (= 53px) is the
-          exact SiteNav height (py-3 + h-7 button row + 1px border), so the
-          bar tucks flush under it instead of slipping behind or leaving a gap. */}
-      <div className="sticky top-13.25 z-10 -mx-6 mt-8 border-b border-border bg-background/90 px-6 py-4 backdrop-blur sm:-mx-10 sm:px-10">
+      {/* Sticky control bar — search + mode toggle. Pinned to --site-nav-height
+          (defined in globals.css) so it tucks flush under the nav instead of
+          slipping behind or leaving a gap. Updating the nav's height now only
+          requires updating the CSS variable, not hunting magic numbers. */}
+      <div className="sticky top-[var(--site-nav-height)] z-10 -mx-6 mt-8 border-b border-border bg-background/90 px-6 py-4 backdrop-blur sm:-mx-10 sm:px-10">
         <div className="flex flex-wrap items-center gap-3">
           <label className="flex min-w-[220px] flex-1 items-center gap-2 border border-foreground bg-background px-3 py-2 text-sm focus-within:border-primary">
             <span className="text-muted-foreground">/</span>

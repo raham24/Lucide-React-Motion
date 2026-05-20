@@ -10,6 +10,11 @@
 @source "../node_modules/fumadocs-ui/dist/**/*.js";
 
 :root {
+  /* SiteNav height — py-3 + h-7 content row + 1px border = 53px. Used by
+     sticky elements (gallery search/mode bar, etc.) that need to tuck flush
+     under the nav. Update this if SiteNav's padding or content row changes. */
+  --site-nav-height: 53px;
+
   --background: oklch(98.178% 0.00528 95.189);
   --foreground: oklch(0.3438 0.0269 95.7226);
   --card: oklch(0.9456 0.0123 91.0000);

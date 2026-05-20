@@ -328,8 +328,36 @@ interface TriggerEffectsArgs {
   onLeave: OnLeave;
   controls: LegacyAnimationControls;
   svgRef: RefObject<SVGSVGElement | null>;
-  inView: boolean;
   isReduced: boolean;
+}
+
+/**
+ * Internal subscriber for `trigger="in-view"`. Mounted by `DrawIcon` only
+ * when the trigger is `"in-view"`, so we don't subscribe an IntersectionObserver
+ * for every icon on the page when most of them use other triggers (hover,
+ * click, parent-hover, etc.). Renders nothing — it exists purely for its
+ * hooks lifecycle.
+ */
+function InViewSubscriber({
+  svgRef,
+  controls,
+  isReduced,
+}: {
+  svgRef: RefObject<SVGSVGElement | null>;
+  controls: LegacyAnimationControls;
+  isReduced: boolean;
+}): null {
+  const inView = useInView(svgRef);
+
+  // Replay every time the icon scrolls back into view. Reset to rest on exit
+  // so the keyframe array re-fires from 0 on the next entry.
+  useEffect(() => {
+    if (isReduced) return;
+    if (inView) controls.start("active");
+    else controls.start("rest", { duration: 0 });
+  }, [inView, controls, isReduced]);
+
+  return null;
 }
 
 function useTriggerEffects({
@@ -337,7 +365,6 @@ function useTriggerEffects({
   onLeave,
   controls,
   svgRef,
-  inView,
   isReduced,
 }: TriggerEffectsArgs): void {
   // mount: fire once on first paint.
@@ -346,14 +373,8 @@ function useTriggerEffects({
     if (trigger === "mount") controls.start("active");
   }, [trigger, controls, isReduced]);
 
-  // in-view: replay every time the icon scrolls back into view. Reset to rest
-  // on exit so the keyframe array re-fires from 0 on the next entry.
-  useEffect(() => {
-    if (isReduced) return;
-    if (trigger !== "in-view") return;
-    if (inView) controls.start("active");
-    else controls.start("rest", { duration: 0 });
-  }, [trigger, inView, controls, isReduced]);
+  // in-view handled by <InViewSubscriber /> (rendered conditionally in
+  // DrawIcon) so we don't run useInView for every icon on the page.
 
   // parent-hover: bind to mouseenter/mouseleave on the nearest ancestor that
   // carries [data-motion-icon-group].
@@ -447,7 +468,6 @@ export function DrawIcon(props: DrawIconProps) {
 
   const controls = useAnimation();
   const svgRef = useRef<SVGSVGElement | null>(null);
-  const inView = useInView(svgRef);
 
   // Broadcast lifecycle phase as `data-motion-state` so consumers can sync
   // host CSS (e.g. parent `hover:text-primary`) with the draw, which can
@@ -497,7 +517,6 @@ export function DrawIcon(props: DrawIconProps) {
     onLeave: r.onLeave,
     controls,
     svgRef,
-    inView,
     isReduced,
   });
 
@@ -552,23 +571,31 @@ export function DrawIcon(props: DrawIconProps) {
   delete cleanedPassthrough["data-motion-state"];
 
   return (
-    <motion.svg
-      // Spreads first; explicit props after so our overrides always win.
-      {...SVG_BASE}
-      {...motionProps}
-      {...cleanedPassthrough}
-      ref={svgRef}
-      width={r.size}
-      height={r.size}
-      stroke={r.color}
-      strokeWidth={effectiveStrokeWidth}
-      className={className}
-      onClick={handleClick}
-      onAnimationStart={handleAnimationStart}
-      onAnimationComplete={handleAnimationComplete}
-      data-motion-state={motionState}
-      style={mergedStyle}
-    >
+    <>
+      {r.trigger === "in-view" && (
+        <InViewSubscriber
+          svgRef={svgRef}
+          controls={controls}
+          isReduced={isReduced}
+        />
+      )}
+      <motion.svg
+        // Spreads first; explicit props after so our overrides always win.
+        {...SVG_BASE}
+        {...motionProps}
+        {...cleanedPassthrough}
+        ref={svgRef}
+        width={r.size}
+        height={r.size}
+        stroke={r.color}
+        strokeWidth={effectiveStrokeWidth}
+        className={className}
+        onClick={handleClick}
+        onAnimationStart={handleAnimationStart}
+        onAnimationComplete={handleAnimationComplete}
+        data-motion-state={motionState}
+        style={mergedStyle}
+      >
       {nodes.map((node, i) => {
         const [Tag, attrs] = node;
         // motion is keyed by SVG tag name. Cast widens for dynamic lookup.
@@ -602,7 +629,8 @@ export function DrawIcon(props: DrawIconProps) {
           />
         );
       })}
-    </motion.svg>
+      </motion.svg>
+    </>
   );
 }
 

@@ -1,54 +1,57 @@
 import { matchPathDOneOf, type Motion } from "../compose";
 
 /**
- * The zap lightning-bolt — a rapid descent from above the viewBox
- * followed by a flash-and-flicker pattern, matching the canonical
- * physics of a real lightning strike.
+ * The zap lightning-bolt — a visible downward strike with multi-flash
+ * after-glow. Real lightning is a fast-moving charge that leaves a
+ * visible trail before settling at residual brightness; we render
+ * that as a translate descent paired with an opacity flicker.
  *
- * **Real-life motion**: lightning is a fast-moving charge that
- * carves a visible trail from cloud to ground. We render that by
- * translating the bolt from above the viewBox (y = -24 in viewBox
- * units, fully clipped by the SVG's overflow boundary) down to its
- * rest position. Opacity ramps from 0 to 1 over the same window so
- * the bolt becomes visible *as it strikes* rather than fading in
- * from a held position. After landing, opacity flickers in the
- * classic 1 → 0.15 → 1 → 0.4 → 1 pattern of secondary flashes
- * before settling at residual brightness.
+ * **Key design constraint**: a too-fast descent over a long distance
+ * reads as a glitch, not a strike — the eye can't track the motion.
+ * The previous version translated 24 viewBox units in 80ms (the
+ * full height of the icon), which made the bolt appear to teleport
+ * into position. This version uses a smaller distance (-6 → 0, so
+ * only the top of the bolt is above the viewBox at start) over a
+ * longer descent (40% of the cycle), with opacity reaching 1 well
+ * before the descent completes (t=0.20) so the second half of the
+ * fall is fully visible — the bolt clearly drops into place rather
+ * than popping in.
  *
- * **Why translate-and-flicker, not pathLength reveal**: pathLength
- * draw-in is a generic move that belongs to Tier 1 markers
- * (check / plus / minus / off slashes). Tier 2 elements need real
- * physics — translation, rotation, or loops — that depict what the
- * thing actually does. A lightning bolt moves through space. We
- * render the movement explicitly.
+ * After landing, opacity flickers in the classic 1 → 0.15 → 1 →
+ * 0.4 → 1 pattern of secondary flashes before holding at residual
+ * brightness.
+ *
+ * **Why translate + opacity, not pathLength**: pathLength draw-in
+ * is a Tier 1 marker move (check / plus / minus / off slashes).
+ * Tier 2 elements like a lightning bolt need real physics —
+ * translation, rotation, or loops — depicting what the thing
+ * actually does. A lightning bolt physically descends; we
+ * translate it.
  *
  * Matches the full zap bolt path AND the three fragments in
  * `zap-off` where the slash splits the bolt — each fragment shares
- * the descent + flicker so the broken bolt strikes together, and
- * the slash strikes through afterward via the family modifier-
- * reveal.
- *
- * **ViewBox safety**: translation is the only transform that can
- * push content out of the viewBox, and we deliberately *use* that
- * for the pre-strike phase (y = -24 clips the bolt entirely above
- * the visible area). At rest position (y = 0) the bolt's
- * geometry matches Lucide's own design which is already viewBox-
- * safe. No scale > 1.
+ * the descent + flicker so the broken bolt strikes together.
  *
  * Exports `ZAP_KEYFRAMES` so the family modifier-reveal can pin
  * its own scale dip to the same flicker schedule.
  */
 export const ZAP_KEYFRAMES: {
   y: number[];
+  yTimes: number[];
   opacity: number[];
-  times: number[];
+  opacityTimes: number[];
 } = {
-  // Descent finishes by the first flash peak (t = 0.10). After
-  // landing, the bolt holds at y=0 while opacity carries the
-  // multi-flash flicker.
-  y: [-24, 0, 0, 0, 0, 0],
-  opacity: [0, 1, 0.15, 1, 0.4, 1],
-  times: [0, 0.10, 0.18, 0.28, 0.40, 1],
+  // Descent from -6 (top clipped above viewBox) to 0 (rest). Single
+  // easeIn segment over 40% of the cycle — slow start, fast impact,
+  // gravity-like.
+  y: [-6, 0, 0, 0, 0, 0],
+  yTimes: [0, 0.40, 0.50, 0.60, 0.75, 1],
+  // Opacity ramps to 1 by t=0.20 — half-way through the descent.
+  // This makes the second half of the fall fully visible (so it
+  // reads as motion, not a teleport), then holds bright through the
+  // landing (t=0.40) before the multi-flash flicker takes over.
+  opacity: [0, 1, 1, 0.15, 1, 0.4, 1],
+  opacityTimes: [0, 0.20, 0.40, 0.50, 0.60, 0.75, 1],
 };
 
 const BOLT_PATHS = [
@@ -74,15 +77,16 @@ export const zapStrike: Motion = {
         y: {
           inherit: true,
           // easeIn — the bolt accelerates downward like a gravity-
-          // pulled charge, slow at the start and fastest at impact.
+          // pulled charge, slow at the top of its fall and fastest
+          // at impact.
           ease: "easeIn",
-          times: ZAP_KEYFRAMES.times,
+          times: ZAP_KEYFRAMES.yTimes,
         },
         opacity: {
           inherit: true,
           // Linear keeps the flash peaks crisp and unsmoothed.
           ease: "linear",
-          times: ZAP_KEYFRAMES.times,
+          times: ZAP_KEYFRAMES.opacityTimes,
         },
       },
     },

@@ -6,23 +6,26 @@ import { matchAnyPath, type Motion } from "../compose";
  * bolt to indicate the lightning is suppressed).
  *
  * **Coupling pattern**: the host motion ({@link import("./zap-strike").zapStrike})
- * animates `y` (descent) + `opacity` (multi-flash). The slash skips
- * `y` inheritance entirely (a slash that slides down with the bolt
- * stops reading as a static strike-through), has its own
- * `pathLength` + `opacity` reveal completing at t=0.50 (the host's
- * first dim trough, right after the strike lands), and a
- * synthesized uniform `scale` dip `[1, 0.92, 1]` whose trough
- * aligns with the slash's strike apex.
+ * jolts `y` briefly downward at the strike and flickers `opacity`
+ * through the multi-flash schedule. The slash:
+ * - Skips `y` inheritance (a slash sliding with the jolt stops
+ *   reading as a static strike-through).
+ * - Holds invisible through the jolt + primary flash
+ *   (t = 0..0.10), then strikes through during the dim trough
+ *   (t = 0.10..0.15) right after the bolt's peak. The dark
+ *   moment is when the slash makes its narrative point.
+ * - Carries a synthesized uniform `scale` dip `[1, 0.92, 1]`
+ *   whose trough aligns with the strike apex — continuous
+ *   kinetic life that doesn't distort the 45° diagonal.
  *
  * Three-criteria check:
- * - **Kinetic life**: pathLength + opacity vary through the reveal
- *   (t=0..0.50); scale dip continues across the rest of the cycle
- *   (t=0.50..1) so the slash stays alive through the post-strike
- *   flicker. ✓
- * - **Non-distortion**: uniform scale, no rotation, no translation.
- *   The slash holds its 45° diagonal throughout. ✓
- * - **Apex alignment**: strike completes at t=0.50, the dark moment
- *   right after the bolt's first flash and before the second. ✓
+ * - **Kinetic life**: pathLength + opacity vary through the
+ *   reveal; scale dip continues from t=0.15 to t=1 so the slash
+ *   stays alive through the post-strike flicker. ✓
+ * - **Non-distortion**: uniform scale, no rotation, no
+ *   translation. ✓
+ * - **Apex alignment**: strike completes at the host's first
+ *   dim trough. ✓
  *
  * Place this LAST in the compose `motions` list — `matchAnyPath`
  * is greedy and would otherwise claim the bolt fragments.
@@ -32,10 +35,6 @@ export const zapModifierReveal: Motion = {
   factory: (ctx) => ({
     rest: { pathLength: 1, opacity: 1, scale: 1 },
     active: {
-      // Hold invisible through the descent + primary flash (t=0..0.40),
-      // then strike through during the dim trough (t=0.40..0.50). Slash
-      // lands when the bolt's brightness has just dropped — a clear
-      // "blocked just after the strike" beat.
       pathLength: [0, 0, 1],
       opacity: [0, 0, 1],
       scale: [1, 0.92, 1],
@@ -43,11 +42,11 @@ export const zapModifierReveal: Motion = {
         duration: ctx.duration,
         delay: ctx.delay + ctx.index * ctx.stagger,
         repeat: ctx.repeat,
-        pathLength: { inherit: true, ease: "easeOut", times: [0, 0.40, 0.50] },
-        opacity: { inherit: true, ease: "easeOut", times: [0, 0.40, 0.50] },
-        // Scale trough at t=0.50 = slash strike apex; recovers
+        pathLength: { inherit: true, ease: "easeOut", times: [0, 0.10, 0.15] },
+        opacity: { inherit: true, ease: "easeOut", times: [0, 0.10, 0.15] },
+        // Scale trough at t=0.15 = slash strike apex; recovers
         // across the bolt's secondary flickers.
-        scale: { inherit: true, ease: "easeInOut", times: [0, 0.50, 1] },
+        scale: { inherit: true, ease: "easeInOut", times: [0, 0.15, 1] },
       },
     },
   }),

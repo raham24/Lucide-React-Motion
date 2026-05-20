@@ -120,8 +120,17 @@ was rejected as a viewBox violation; see project memory
 `feedback_scaled_stroke_viewbox.md`.
 
 Icons without a registered signature fall back to `mode="draw"` (the
-default stroke-on) and emit a one-time dev warning, so coverage gaps
-are visible during development but never break consumer apps.
+default stroke-on) and emit a one-time dev warning. The fallback is a
+**runtime safety net only** — coverage gaps stay visible during
+development but never break consumer apps. **`draw` is never the
+design answer for any icon**; every icon eventually gets a real
+signature. If an icon's subject has no real-world physical motion
+(typography, geometric primitives, brand marks, alignment indicators,
+UI device depictions, emoji), assign it to one of the **abstract
+archetypes** — the authoritative catalog lives in
+`.claude/skills/lucide-signature.md` under step 1's "Abstract
+archetype catalog," and the per-family routing lives in section 7
+below.
 
 ## 2. How signatures work
 
@@ -725,6 +734,8 @@ motion matches the path you're animating, just import and reuse.
 | `motions/mail-flap.ts` | V-flap seam paths across the mail family (`m22 7...`, `m22 10...`) | Flap-raise gesture: `scaleY` contracts around the flap-corner pivot (`transformOrigin: "12px 7px"`), pulling the V's middle upward while the corners stay pinned. Opacity dips with the raise and recovers; no pathLength draw-on. Exports `MAIL_FLAP_KEYFRAMES` |
 | `motions/mail-modifier-pulse.ts` | `matchAnyPath` wildcard for Tier 1 mail markers after envelope/flap/search matches (`+`, `−`, `✓`, `×`, `!`, `?`) | Visible-at-rest marker pulses: plus/minus/check/x/question pulse like status badges, warning blinks sharply like an alert indicator. Uniform fill-box scale preserves marker shape while opacity follows the flap rhythm; no pathLength reveal |
 | `motions/mail-search-loupe.ts` | `mail-search` loupe path circle, duplicate `<circle cx=18 cy=18 r=3>`, and handle `m22 22-1.5-1.5` | Search loupe scan/focus pulse: uniform contraction + opacity dip in step with the envelope rhythm. The loupe stays visible and reads as a mounted search tool rather than a drawn marker |
+| `motions/send-paper-plane.ts` | The paper-plane body + crease d's in `send` (diagonal) and `send-horizontal` (rightward) | Launch-and-respawn: plane translates forward in its facing direction (`x +`, `y −` for `send`; `x +` only for `send-horizontal` — direction comes from `iconName`), holds briefly, fades to 0 as it "leaves the frame," snaps back to (0, 0) while invisible, then fades back in at rest. Scale dips slightly toward 0.88 at the far position to read as perspective foreshortening (contraction-only per principle 3). Translate magnitude (≤ 2 units) keeps the plane's tip inside the 24×24 viewBox at the far position — `send`'s tip already sits at (~21.85, ~2.15) so a larger throw would clip (Tier 2 — paper-plane flight per section 7) |
+| `motions/send-to-back.ts` | `send-to-back`'s front rect `<rect x=2 y=2 width=8 height=8>` plus a wildcard for the back rect + the two L-shaped connector paths | Front rect translates `+3, +3` toward the back rect's position and dims to 0.3 opacity, then returns — the direct visualisation of "send this layer to the back." Back rect + connector arrows share a quiet opacity sympathy dip on the same `times` so the icon reads as one cohesive shift gesture rather than the front rect moving alone (Tier 2 — UI layer-stacking command, distinct from the paper-plane `send` variants) |
 | `motions/atom/spin.ts` | (factory only, no matches) | Pure rotation math; reused by `loader-spin` and other rotation signatures |
 
 Update this table when you add a new motion module.
@@ -854,12 +865,29 @@ batches):**
 - `leaf` — fall + spin
 - `waves` — oscillation
 
-**Skip / defer:**
+**Abstract archetypes (icons without a real-world referent):**
 
-- Pure-text icons (`type`, `a-arrow-up`, etc.) — no clear motion.
-- Highly abstract icons (`shapes`, `dashes`, generic geometry) — fall
-  back to draw is fine.
-- Brand logos (if present) — no animation expected.
+Every icon gets a signature — no skip list. Icons whose subject has no
+real-world physical motion route through the abstract archetype
+catalog. Mechanics are defined in the skill
+(`.claude/skills/lucide-signature.md`, step 1 "Abstract archetype
+catalog"); the family-to-archetype routing is below.
+
+| Archetype | Families |
+| --- | --- |
+| **Typewriter stamp** | Typography: `a-arrow-*`, `a-large-small`, `ampersand`, `ampersands`, `asterisk`, `baseline`, `bold`, `case-*`, `heading`, `heading-1..6`, `italic`, `pilcrow`, `pilcrow-left`, `pilcrow-right`, `strikethrough`, `subscript`, `superscript`, `text-align-*`, `text-cursor`, `type` |
+| **Vertex sequence pulse** | Geometric primitives: `astroid`, `circle`, `cone`, `cube`, `cylinder`, `diamond`, `dot`, `hexagon`, `line-squiggle`, `octagon`, `parallelogram`, `pentagon`, `shapes`, `slash`, `spline`, `square`, `triangle` |
+| **Literal-depiction motion** | Brand marks doubling as an object: `apple` (fruit bob) |
+| **Alignment action** | Layout/alignment: `align-*` (22), `columns-*`, `rows-*`, `grid-*`, `panel-*`, `dock`, `layout-*`, `sidebar`, `kanban`, `sheet`, `wall`, `split` |
+| **Device interaction** | UI device depictions: `monitor`, `tv`, `smartphone`, `laptop`, `tablet`, `computer`, `keyboard`, `mouse`, `server`, `database`, `hard-drive*`, `app-window`, `app-window-mac` |
+| **Window-lights + settle** | Buildings, furniture, static objects: `building*`, `house*`, `castle`, `church`, `factory`, `hospital`, `hotel`, `landmark`, `school`, `store`, `university`, `warehouse`, `lamp-*`, `armchair`, `bath`, `bed*`, `couch`, `sofa`, `refrigerator`, `fence`, `tent` |
+| **Polished shine sweep** | Badges, awards, alerts, status markers: `badge-*`, `award`, `crown`, `gem`, `medal`, `ribbon`, `shield*`, `tag*`, `bookmark*`, `ban`, `circle-alert`, `triangle-alert`, `square-alert` |
+| **Expression intensification** | Emoji faces: `smile`, `smile-plus`, `angry`, `laugh`, `frown`, `meh`, `annoyed` |
+
+Each archetype is implemented as a single reusable motion factory
+(`makeTypewriterStamp`, `makeVertexSequencePulse`, etc.) and unlocks
+dozens of icons per archetype rather than per family. Build the
+archetype motion once, route the icons through it as a batch.
 
 ## 8. Validation & review checklist
 
@@ -868,15 +896,16 @@ Before asking for review on a family:
 - [ ] `pnpm --filter lucide-react-motion generate` runs without
       errors and reports the new icon count with signatures.
 - [ ] `pnpm --filter lucide-react-motion status` shows the family
-      transitioned from *partial* (or *pending*) to *done*. If any
-      icons are intentionally skipped (per section 7's "skip / defer"
-      list), note that in the review handoff.
+      transitioned from *partial* (or *pending*) to *done*. Every
+      icon gets a signature — if a particular icon's referent has no
+      real-world motion, route it through the matching abstract
+      archetype (section 7). No skip list.
 - [ ] `pnpm typecheck` from repo root — all three turbo tasks pass.
 - [ ] `pnpm --filter lucide-react-motion test` — all resolver tests
       pass.
-- [ ] No unexpected console warnings in dev (the
-      `[lucide-react-motion]` ones are intentional but should only
-      fire for icons you intentionally haven't covered yet).
+- [ ] No unexpected console warnings in dev. Any
+      `[lucide-react-motion]` warnings indicate icons that still need
+      a signature — they're authoring TODOs, not intentional skips.
 - [ ] Visual: open `/playground`, toggle to `signature` mode, hover
       every icon in the family. Each should animate.
 - [ ] Visual: each Tier 2 motion *reads as the real thing* (sound

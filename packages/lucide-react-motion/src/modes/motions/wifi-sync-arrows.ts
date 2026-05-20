@@ -2,9 +2,8 @@ import { matchPathDOneOf, type Motion } from "../compose";
 
 /**
  * Wifi-sync's paired arrows — Tier 2 sync-loop motion. The four
- * disjoint paths are separate Lucide strokes, but anatomically they
- * are one rotating sync control, so they rotate in lockstep around the
- * badge center while drawing in.
+ * disjoint paths spin about their own bounds, loader-style, rather
+ * than orbiting around a shared badge center.
  */
 const WIFI_SYNC_ARROW_PATHS = [
   "M11.965 10.105v4L13.5 12.5a5 5 0 0 1 8 1.5",
@@ -17,33 +16,21 @@ export const wifiSyncArrows: Motion = {
   matches: matchPathDOneOf(...WIFI_SYNC_ARROW_PATHS),
   factory: (ctx) => ({
     rest: {
-      pathLength: 1,
-      opacity: 1,
       rotate: 0,
-      transformOrigin: "18px 17px",
+      transformBox: "fill-box",
+      transformOrigin: "center",
     },
     active: {
-      pathLength: [0, 1, 1],
-      opacity: [0, 1, 1],
       rotate: [0, 360],
-      transformOrigin: "18px 17px",
+      transformBox: "fill-box",
+      transformOrigin: "center",
       transition: {
         duration: ctx.duration,
         delay: ctx.delay,
         repeat: ctx.repeat,
-        pathLength: {
-          inherit: true,
-          ease: "easeOut",
-          times: [0, 0.36, 1],
-        },
-        opacity: {
-          inherit: true,
-          ease: "easeOut",
-          times: [0, 0.24, 1],
-        },
         rotate: {
           inherit: true,
-          ease: "easeInOut",
+          ease: "linear",
           times: [0, 1],
         },
       },

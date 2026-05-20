@@ -4,10 +4,11 @@ import { cloudLightningBolt } from "../motions/cloud-lightning-bolt";
 
 /**
  * Cloud-lightning — cloud body breathes while the lightning bolt
- * draws in with a flash-flicker via {@link cloudLightningBolt}.
- * Real lightning peaks brighter than ambient, but at icon scale the
- * bolt reads best as a rapid opacity flicker (bright-dark-bright-
- * dark-bright-settle) layered over a quick pathLength reveal.
+ * descends from inside the cloud's underside and flashes via
+ * {@link cloudLightningBolt}. The bolt translates from a hidden
+ * position behind the cloud body down to its rest position with a
+ * rapid opacity ramp, then runs the multi-flash flicker
+ * (bright-dark-bright-dark-settle) of a real lightning strike.
  */
 export default compose({
   motions: [cloudBody, cloudLightningBolt],

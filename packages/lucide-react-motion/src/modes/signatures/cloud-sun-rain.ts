@@ -13,5 +13,5 @@ import { sunRayPulse } from "../motions/sun-ray-pulse";
  */
 export default compose({
   motions: [cloudBody, cloudRainDrops, sunRayPulse],
-  defaults: { duration: 1.4, easing: "easeInOut", stagger: 0.06 },
+  defaults: { duration: 1.4, easing: "easeInOut", stagger: 0.08 },
 });

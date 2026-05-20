@@ -4,10 +4,13 @@ import { cloudFogStreaks } from "../motions/cloud-fog-streaks";
 
 /**
  * Cloud-fog — cloud body breathes while two horizontal fog streaks
- * smoke into view via {@link cloudFogStreaks}: each streak draws in
- * from one end and pulses opacity to suggest fog rolling.
+ * drift laterally via {@link cloudFogStreaks}. Each streak sways
+ * along its own X axis and its density dips/recovers mid-cycle,
+ * reading as wisps catching the breeze rather than the icon
+ * writing itself in. Stagger offsets the two banks so the upper
+ * wisp drifts slightly ahead of the lower.
  */
 export default compose({
   motions: [cloudBody, cloudFogStreaks],
-  defaults: { duration: 1.6, easing: "easeInOut", stagger: 0.15 },
+  defaults: { duration: 2.0, easing: "easeInOut", stagger: 0.2 },
 });

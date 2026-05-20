@@ -7,24 +7,27 @@ import { CLOUD_BODY_KEYFRAMES } from "./cloud-body";
  * as a short straight stroke (vertical for rain/drizzle/hail,
  * slanted for rain-wind) sitting below the cloud body.
  *
- * Tier 2 motion: precipitation depicts an actual physical
- * phenomenon (water falling from a cloud), so it gets bespoke
- * draw-it-in physics rather than a generic reveal. Each drop
- * animates `pathLength` from 0 to 1, which renders as the stroke
- * extending from its start point toward its end point — for a
- * vertical line that starts above and ends below, that's a top-to-
- * bottom draw, exactly like a real drop falling. The `opacity`
- * fades in alongside so drops don't pop into existence; they emerge
- * as they fall.
+ * Tier 2 motion: real rain falls. Each drop translates downward
+ * through a small Y range (≈ 6px total) while its opacity envelope
+ * fades in as it leaves the cloud and out before it reaches the
+ * viewBox floor. The eye reads the continuous translation + soft
+ * fade as drops emerging, falling, and dissipating. Per-path
+ * stagger from the signature offsets each drop's phase so the rain
+ * reads as continuous rather than synchronised.
  *
- * Per-path stagger from the signature cascades the drops so they
- * don't all appear in lockstep — reads as rain falling rather than
- * a synchronised reveal.
+ * Single-cycle gesture: opacity returns to 0 at cycle end (matching
+ * cycle start) so if a consumer opts into `repeat: Infinity` the
+ * Y reset between cycles is invisible. Default plays once on hover.
  *
  * **Couples to the cloud body**: scale piggybacks on
- * `cloudBody`'s gentle pulse via `inherit: true` so the drops stay
- * loosely tied to the cloud rather than floating statically below
- * a breathing shape.
+ * `cloudBody`'s gentle pulse via `inherit: true` so the drops
+ * shrink slightly with the cloud's breath rather than floating
+ * independently.
+ *
+ * Earlier implementation used `pathLength` draw-in, which read as
+ * the icon writing itself rather than rain falling. Draw-in is a
+ * Tier 1 (state marker) mechanism; Tier 2 elements need real
+ * physics.
  */
 const RAIN_PATHS = [
   // cloud-rain — full-length drops
@@ -54,17 +57,20 @@ const RAIN_PATHS = [
 export const cloudRainDrops: Motion = {
   matches: matchPathDOneOf(...RAIN_PATHS),
   factory: (ctx) => ({
-    rest: { pathLength: 1, opacity: 1, scale: 1 },
+    rest: { y: 0, opacity: 1, scale: 1 },
     active: {
-      pathLength: [0, 0, 1],
-      opacity: [0, 0, 1],
+      y: [-3, -1.5, 1.5, 3],
+      opacity: [0, 1, 1, 0],
       scale: CLOUD_BODY_KEYFRAMES.scale,
       transition: {
         duration: ctx.duration,
         delay: ctx.delay + ctx.index * ctx.stagger,
         repeat: ctx.repeat,
-        pathLength: { inherit: true, ease: "easeOut", times: [0, 0.15, 0.5] },
-        opacity: { inherit: true, ease: "easeOut", times: [0, 0.15, 0.5] },
+        // Linear Y translation reads as gravity-driven falling at a
+        // constant rate. The opacity envelope fades the drop in as it
+        // leaves the cloud and out before it clips the viewBox floor.
+        y: { inherit: true, ease: "linear", times: [0, 0.15, 0.85, 1] },
+        opacity: { inherit: true, ease: "easeInOut", times: [0, 0.15, 0.85, 1] },
         scale: {
           inherit: true,
           ease: ctx.easing,

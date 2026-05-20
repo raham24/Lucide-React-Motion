@@ -4,13 +4,14 @@ import { cloudRainDrops } from "../motions/cloud-rain-drops";
 import { cloudSnowDots } from "../motions/cloud-snow-dots";
 
 /**
- * Cloud-hail — three larger vertical hailstone-trails draw in via
+ * Cloud-hail — three larger vertical hailstone chunks fall via
  * {@link cloudRainDrops}, while three smaller round hailstones
- * twinkle via {@link cloudSnowDots}. The double cascade reads as
- * mixed-size hail bouncing down — the bigger pieces falling
- * straight, the smaller ones flickering as they bounce.
+ * fall via {@link cloudSnowDots}. The two motion modules give
+ * the big chunks straight-vertical drops and the smaller pieces
+ * a slight sideways flutter, reading as mixed-size hail coming
+ * down together.
  */
 export default compose({
   motions: [cloudBody, cloudRainDrops, cloudSnowDots],
-  defaults: { duration: 1.4, easing: "easeInOut", stagger: 0.06 },
+  defaults: { duration: 1.4, easing: "easeInOut", stagger: 0.08 },
 });

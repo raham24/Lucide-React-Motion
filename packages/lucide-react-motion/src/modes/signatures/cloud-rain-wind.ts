@@ -4,12 +4,12 @@ import { cloudRainDrops } from "../motions/cloud-rain-drops";
 
 /**
  * Cloud-rain-wind — cloud body breathes while three diagonal rain
- * streaks draw in via {@link cloudRainDrops}. The streaks' slant is
- * baked into the path geometry, so the same draw motion that works
- * for vertical drops also captures the wind-blown character — the
- * pathLength reveal traces each streak along its slanted direction.
+ * streaks fall via {@link cloudRainDrops}. The streaks' slant is
+ * baked into the path geometry; falling translation moves each
+ * streak along its visual axis, the eye reads vertical translation
+ * + slanted shape as wind-blown rain.
  */
 export default compose({
   motions: [cloudBody, cloudRainDrops],
-  defaults: { duration: 1.4, easing: "easeInOut", stagger: 0.08 },
+  defaults: { duration: 1.4, easing: "easeInOut", stagger: 0.1 },
 });

@@ -11,5 +11,5 @@ import { moonGlow } from "../motions/moon-glow";
  */
 export default compose({
   motions: [cloudBody, cloudRainDrops, moonGlow],
-  defaults: { duration: 1.5, easing: "easeInOut", stagger: 0.06 },
+  defaults: { duration: 1.5, easing: "easeInOut", stagger: 0.08 },
 });

@@ -786,8 +786,14 @@ Update this table when you add a new motion module.
 
 ## 7. Family roadmap
 
-Before picking a family to work on, run the coverage report to see
-what's already done and what's outstanding:
+> **Read first:** the authoritative priority order now lives in
+> `.claude/skills/lucide-signature.md` Step 2 ("primitives-first"). It
+> covers the host-primitive table (file envelope, calendar frame,
+> badge shell, ...) that should be authored before composite families.
+> The family list below is the **third pass** — rich-physics families
+> that don't decompose into primitives.
+
+Before picking a family to work on, run the coverage report:
 
 ```bash
 pnpm --filter lucide-react-motion status        # human-readable
@@ -799,10 +805,11 @@ The report groups every Lucide icon by family (first hyphen segment) and
 labels each family **done**, **partial**, or **pending**. It's sourced
 directly from `src/modes/signatures/`, so it never goes stale.
 
-The list below is a suggested **priority order** for tackling pending
-families — picked for impact and motion clarity, not exhaustive. Use the
-status command for what's left; use this list for what to do next. Each
-family is self-contained — finish one, get review, then start the next.
+The list below is a suggested **priority order** for tackling rich-
+physics pending families after primitives are covered — picked for
+impact and motion clarity, not exhaustive. Use the status command for
+what's left; use this list for what to do next. Each family is
+self-contained — finish one, get review, then start the next.
 
 **Tier-2-rich families (highest impact):**
 

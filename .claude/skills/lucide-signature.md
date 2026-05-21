@@ -12,11 +12,12 @@ You're authoring the next pending signature family for `lucide-react-motion`. Th
 1. **Read this skill end-to-end + the bell family motions** (≈10 min). This skill is the authoritative authoring guide. Bell is the canonical template; mirror its layout when authoring a family with state-modifier variants. `docs/signatures.md` is a deeper reference (mechanism details in section 2, worked bell example in section 5, motion catalog in section 6, family roadmap in section 7, validation checklist in section 8) that you can dip into as needed.
 2. **Pick the next family** — parse `pnpm --filter lucide-react-motion status --json` and apply the priority order from Step 2 below.
 3. **Pre-flight** — `git status`, branch check, scan project memory.
-4. **For each variant** — inspect the generated tsx, decide a motion per anatomical role, reuse or author motions, compose the signature.
-5. **Run the three-criteria check** on every overlay marker (slash / plus / minus / check / dot) before declaring done — see step 4's check-list.
-6. **Validate** — generate + typecheck + test must all pass.
-7. **Commit** on the current branch (no Co-Authored-By trailer per project memory).
-8. **Hand back** to the user for visual review — list variants + what to look for.
+4. **Propose the motion plan and wait for user sign-off** — before writing any code, post a short plan: which anatomical roles you identified, what each role's motion is (host physics, Tier 1 reveals, Tier 2 bespoke), and which existing motions you'll reuse vs. author new. Wait for explicit user approval. Do not code first and ask after.
+5. **For each variant** — inspect the generated tsx, decide a motion per anatomical role, reuse or author motions, compose the signature.
+6. **Run the three-criteria check** on every overlay marker (slash / plus / minus / check / dot) before declaring done — see step 4's check-list.
+7. **Validate** — generate + typecheck + test must all pass.
+8. **Commit** on the current branch (no Co-Authored-By trailer per project memory).
+9. **Hand back** to the user for visual review — list variants + what to look for.
 
 One family per invocation. Don't start the next one without explicit user approval.
 
@@ -66,6 +67,8 @@ Authoritative definition. (`docs/signatures.md` section 3 has the long-form pros
   **Every Tier 1 marker is authored through the family-wide modifier-reveal** (`bellModifierReveal`, `heartModifierReveal`, `cloudModifierReveal`, `eyeModifierReveal`): `pathLength` + `opacity` draw-in for path markers, or `scale` + `opacity` for `<circle>` markers (see `bellDotReveal`). Placed LAST in the compose list. Kinetic companion sharing the host's `times` per principle 2.
 
   **Default to the family modifier-reveal whenever you see one of these suffixes.** Don't write a one-off `matchPathD("<exact d>")` motion for a state marker — that's how the eye-off pass initially went wrong. If the family doesn't have its modifier-reveal yet, build it (matchAnyPath wildcard) — once. Every future variant in that family will route through it for free.
+
+  **State markers are always External State Markers — even when they sit visually inside a container host.** The suffix list above wins regardless of containment. A check inside a search loupe (`search-check`), a plus on a mail envelope (`mail-plus`), an `x` inside a shield (`shield-x`), a slash through a circle (`circle-slash`) — all of these are *external state announcements applied to the host*, not "contained payload being inspected" and not "mounted UI badge pulsing in place." Draw them in via the family modifier-reveal, kinetically coupled to the host. The two existing exceptions (`searchScan` rotates `search-{check,code,slash,alert,x}` rigidly; `mailModifierPulse` does a press-rebound on `mail-{check,plus,minus,x,warning,question}`) are pending conversions, not patterns to copy. See project memory `feedback_state_markers_are_external.md`.
 
 - **Tier 2 — Real-life-grounded elements.** Things that exist as physical parts of the depicted object — sound waves, flames, water drops, smoke, sparkles, EKG traces, cracks, gears, locks, the second hand of a clock. Bespoke physics designed from "how does this real-world thing actually behave," plus host-keyframe inheritance for cohesion.
 
@@ -150,45 +153,106 @@ Conceptual mistakes (about *what* motion to design). Technical wiring gotchas ar
 
 There's a deferred `intensity` prop planned — see project memory `project_intensity_prop.md`. It would multiply keyframe amplitudes toward rest so consumers can dial each icon's motion up or down. Don't implement it unless the user explicitly asks; just be aware it exists and that any motion you write today should expect to eventually be wrapped by `attenuate(rest, keyframes, intensity)`.
 
-## Step 2 — Find the next family
+## Step 2 — Find the next family (primitives-first)
 
-Run the coverage report:
+The motion architecture composes per **path data**, not per icon name. A motion declared with `matchPathD(...)` or `matchPathDOneOf(...)` auto-applies anywhere that exact path appears in the catalog. So a host primitive (file envelope, calendar frame, badge wavy outline, message bubble, etc.) authored once unlocks every composite that contains it for free.
+
+**Author primitives BEFORE their composites.** This avoids retrofitting later and produces a cleaner motion catalog.
+
+### How to pick
+
+Step 2a — check what primitives still need a host motion:
 
 ```bash
-pnpm --filter lucide-react-motion status --json
+# Find the most-reused path-d's across the catalog
+python3 -c "
+import json
+data = json.load(open('node_modules/.pnpm/lucide-static@1.16.0/node_modules/lucide-static/icon-nodes.json'))
+counts = {}
+for icon, nodes in data.items():
+    for tag, attrs in nodes:
+        key = attrs.get('d') if tag == 'path' else (tag, attrs.get('cx'), attrs.get('cy'), attrs.get('r'))
+        counts.setdefault(key, []).append(icon)
+for k, v in sorted(counts.items(), key=lambda x: -len(x[1]))[:30]:
+    print(f'{len(v):3d}x  {str(k)[:60]}  {v[:3]}')
+"
 ```
 
-Parse the JSON. You'll get `families[]` with `family`, `total`, `signed`, `pending`, `status` for each.
+Then `grep matchPathD src/modes/motions/*.ts` to see which high-reuse paths are *already* covered. The gap is the primitive backlog.
 
-Pick the next target using this order:
+Step 2b — pick using this priority:
 
-1. **Partial families with 1–2 pending icons** that are listed in the section 7 priority roadmap — finish those first (less context-switching).
-2. Otherwise, the highest-priority **partial** family from section 7's order.
-3. Otherwise, the highest-priority **pending** family from section 7's order.
-4. If all section-7 families are done, fall back to the **one-off decorative** icons listed in section 7's "Decorative / one-off" block (sparkle*, zap, atom, compass, gauge, wind, leaf, waves, …). Pick them one at a time.
-5. **Icons with no real-world referent** (typography, geometric primitives, brand marks, alignment indicators, UI device depictions, emoji) route through the **abstract archetype catalog** in step 1. Identify the icon's bucket and use the matching archetype motion. **Never skip an icon; never let it fall back to `draw` as the design answer.**
+1. **Uncovered high-reuse primitive (≥10 hosts)** — author the host motion that unlocks the most composites. See "Primitive roadmap" below for the current count.
+2. **Partial families with 1–2 pending icons** that are listed in the family roadmap — finish those first (less context-switching).
+3. **Highest-priority partial family** from the family roadmap.
+4. **Highest-priority pending family** from the family roadmap.
+5. **One-off decorative** icons (sparkle*, zap, atom, compass, gauge, wind, leaf, waves, …).
+6. **Icons with no real-world referent** (typography, geometric primitives, brand marks, alignment indicators, UI device depictions, emoji) route through the **abstract archetype catalog** in step 1.
 
-Section 7's priority order (high to low):
+**Never skip an icon; never let it fall back to `draw` as the design answer.**
 
-- `heart-*`
-- `clock-*` (clock, alarm-clock, timer, watch, hourglass)
-- `sun-*` / `moon-*`
-- `cloud-*` + `droplet*`
-- `flame*` / `fire`
-- `loader-*` / `refresh-*` / `rotate-*`
-- `wifi-*` / `signal-*` / `volume-*`
-- `battery-*`
-- `mail-*` / `send`
-- `mic-*` / `mic-off`
-- `arrow-*` / `chevron-*` / `move-*`
-- `play` / `pause` / `stop` / media controls
-- `search`
+### Primitive roadmap
 
-Then the decoratives.
+The container hosts below cover 200+ composite icons between them. Each is one motion file matched by `matchPathD` (or `matchPathDOneOf` if Lucide reshapes across composites). Author in roughly this order — the count is the number of catalog icons that include the path:
+
+| # | Primitive | Motion file | Hosts | Examples |
+|---|---|---|---|---|
+| 1 | File envelope (body + folded corner) | `file-envelope.ts` | 50+ | `file`, `file-code`, `file-text`, `file-image`, `file-search`, ... |
+| 2 | Calendar frame (body + 2 pins + top line) | `calendar-frame.ts` | 22+ | `calendar`, `calendar-clock`, `calendar-check`, `calendar-search`, ... |
+| 3 | Badge wavy outline | `badge-shell.ts` | 17 | `badge`, `badge-alert`, `badge-check`, `badge-dollar-sign`, ... |
+| 4 | Book body | `book-body.ts` | 17 | `book`, `book-open`, `book-marked`, `book-key`, `book-heart`, ... |
+| 5 | Chart axes (L-shape) | `chart-axes.ts` | 17 | `chart-area`, `chart-bar-big`, `chart-column`, `chart-line`, ... |
+| 6 | Monitor frame | `monitor-frame.ts` | 15 | `monitor`, `monitor-check`, `monitor-cog`, `monitor-cloud`, ... |
+| 7 | Shield body | `shield-body.ts` | 12 | `shield`, `shield-alert`, `shield-check`, `shield-cog`, ... |
+| 8 | Message-square body | `message-square-body.ts` | 11 | `message-square`, `message-square-text`, `message-square-code`, ... |
+| 9 | Scan corner brackets (4-path set) | `scan-corners.ts` | 11 | `focus`, `fullscreen`, `scan-barcode`, `scan-eye`, ... |
+| 10 | Folder body | `folder-body.ts` | 10 | `folder`, `folder-open`, `folder-check`, `folder-git`, ... |
+| 11 | Message-circle body | `message-circle-body.ts` | 10 | `message-circle`, `message-circle-code`, `message-circle-heart`, ... |
+| 12 | Receipt body | `receipt-body.ts` | 10 | `receipt`, `receipt-cent`, `receipt-euro`, `receipt-text`, ... |
+
+After Round 1 (host primitives), Round 2 is the standalone primitive **subjects** that show up *inside* the hosts — author each once, and every composite that includes it (`file-code`, `mail-search`, `calendar-cog`, `badge-clock`, ...) gets the motion for free:
+
+| Subject | Motion | Hosts examples |
+|---|---|---|
+| `code` (chevron pair) | `code-symbol.ts` | `code`, `file-code`, `message-square-code`, `book-key` |
+| `search` (loupe + circle) | `search-loupe.ts` | `search`, `file-search`, `mail-search`, `calendar-search`, `database-search` |
+| `cog` (gear teeth) | `cog-gear.ts` | `settings`, `cog`, `file-cog`, `calendar-cog`, `badge-cog`, `cloud-cog` |
+| `lock`/`unlock` | `lock-shackle.ts` | `lock`, `file-lock`, `badge-lock`, `book-lock` |
+| `pen`/`edit` | `pen-write.ts` | `pen`, `pencil`, `file-pen`, `badge-edit`, `book-pen` |
+| `clock` (face + hands) | already authored as `clock-face` + `clock-hands` | `clock`, `file-clock`, `calendar-clock`, `badge-clock` |
+| `image` | `image-frame.ts` | `image`, `file-image`, `book-image` |
+| `arrow` directions | `arrow-glide.ts` | `arrow-up/down/left/right`, `file-arrow-up`, `calendar-arrow-up`, ... |
+| `share`/`graph` | `share-graph.ts` | `share`, `file-share`, `share-2` |
+
+Round 3 is the remaining **rich-physics families** that don't decompose cleanly (their parts couple in icon-specific ways): `heart-*`, `clock-*`, `sun-*`/`moon-*`, `cloud-*`, `flame-*`, `loader-*`/`refresh-*`/`rotate-*`, `wifi-*`/`signal-*`/`volume-*`, `battery-*`, `mail-*`/`send`, `mic-*`, `arrow-*`/`chevron-*`/`move-*`, media controls. Most of these are partially or fully authored already.
+
+### Before authoring a new motion, check what's already in the catalog
+
+```bash
+grep -r "matchPathD\|matchPathDOneOf" src/modes/motions/ | grep -v ".test.ts"
+```
+
+If a primitive you need is already covered by a `matchPathD` somewhere, **reuse it in the new signature's `compose({ motions: [...] })`**. Don't author a duplicate just because the new icon's family is different — that's how the catalog stays small and consistent.
 
 **Announce your pick** to the user before starting:
 
-> Picking the **`<family>`** family next — N pending icon(s): `a`, `b`, `c`. Status is currently `<partial|pending>` (M/N signed).
+> Picking **`<primitive | family>`** next — covers N icons: `a`, `b`, `c`, ... Status is currently `<pending | partial>` (M/N signed).
+
+Then immediately follow with the motion plan (next step) and wait for sign-off before coding.
+
+## Step 3.5 — Propose the motion plan and wait for sign-off
+
+Before writing any code for the picked family, post a concise plan and wait for the user to approve it. This is a gate — no edits until they say go. Format:
+
+> **Plan for `<family>`:**
+> - **Host motion:** `<motionName>` — `<one-line physics>` (existing | new).
+> - **Tier 1 markers (`-check`, `-plus`, `-off`, etc.):** family modifier-reveal `<name>` — draw-in via pathLength + opacity, kinetically coupled via `<inherit | synthesized in-plane companion>` (existing | new).
+> - **Tier 2 elements (per variant):** list each role and its bespoke motion. E.g. for `mail-open` — `mailEnvelope` (body breath) + `mailFlap` (raise gesture, replaces V-flap path).
+> - **New motions to author:** `<list>`.
+> - **Existing motions reused:** `<list>`.
+> - **Open design questions:** `<anything ambiguous about real-world referent, host coupling, or marker placement>`.
+
+The user will either approve, redirect, or answer the open questions. Only then move to Step 4. Per project memory `feedback_state_markers_are_external.md`: any state-marker suffix is an external draw-in; never propose a contained-payload or mounted-badge alternative.
 
 ## Step 3 — Pre-flight check
 

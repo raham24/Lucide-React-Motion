@@ -265,6 +265,7 @@ interface ModeContext {
   stagger: number;
   easing: Easing | Easing[];
   repeat: number;
+  pathLength: number;                              // measured via getTotalLength()
 }
 ```
 
@@ -272,6 +273,29 @@ interface ModeContext {
 the time the factory runs (per-icon prop > `MotionIconConfig` >
 mode-preferred defaults > engine defaults). Factories use them
 verbatim — never hand-roll prop fallbacks inside a motion.
+
+`pathLength` is the rendered element's real length in user units,
+measured by the engine via `getTotalLength()` in a layout effect. It
+exists because Motion's own `pathLength` value (the one you'd reach for
+as `pathLength: [0, 1]` in a variant) permanently writes
+`pathLength="1"` + `stroke-dasharray="1 1"` to the DOM. On
+open-but-closing paths (gear, cloud, heart) that leftover dash pattern
+produces a visible seam where the start and end meet. The default
+`draw` mode now uses `ctx.pathLength` to set a real `stroke-dasharray`
+and animate `stroke-dashoffset` directly, then clears both back to `0`
+via `transitionEnd` so the resting DOM is byte-identical to Lucide's
+static SVG.
+
+**Authoring rule:** when a NEW motion needs a stroke-on reveal, mirror
+the dasharray approach in `src/modes/draw.ts` instead of Motion's
+`pathLength` value. The existing bespoke modifier-reveal motions in
+`src/modes/motions/` still use `pathLength: [0, 1]` today — they're
+short open strokes where the seam isn't visible, and they're scheduled
+for a migration pass (see `project_pathlength_motion_migration` in
+memory). Until that migration lands, keep using Motion's `pathLength`
+when extending an existing modifier-reveal family for coupling
+consistency with neighbors; but any standalone new draw-in should use
+the dasharray pattern.
 
 ## 3. The two-tier rule
 

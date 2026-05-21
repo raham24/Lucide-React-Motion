@@ -46,4 +46,4 @@ import { MotionIconConfig } from "lucide-react-motion";
 </MotionIconConfig>;
 ```
 
-See the [documentation site](https://lucide-react-motion.dev) for the full API, gallery, and playground.
+See the [documentation site](https://lucide-react-motion-site.vercel.app/) for the full API, gallery, and playground.

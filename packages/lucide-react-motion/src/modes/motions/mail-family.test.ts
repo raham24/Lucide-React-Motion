@@ -121,6 +121,7 @@ function ctx(iconName: string, index: number, [pathTag, pathAttrs]: TestNode): M
     stagger: 0,
     easing: "easeInOut",
     repeat: 0,
+    pathLength: 100,
   };
 }
 
@@ -129,7 +130,7 @@ describe("mail family signatures", () => {
     __resetComposeWarnings();
   });
 
-  it("matches every node without falling back to draw or pathLength reveal", () => {
+  it("matches every node without falling back to draw", () => {
     const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
     for (const variant of variants) {
@@ -137,9 +138,12 @@ describe("mail family signatures", () => {
         const resolved = variant.signature.factory(
           ctx(variant.iconName, index, node)
         );
-        expect("pathLength" in (resolved.active as Record<string, unknown>)).toBe(
-          false
-        );
+        // Draw mode's fingerprint is `strokeDasharray` on the active variant.
+        // A bespoke family motion must produce its own transforms, not the
+        // default dash sweep.
+        expect(
+          "strokeDasharray" in (resolved.active as Record<string, unknown>)
+        ).toBe(false);
       });
     }
 

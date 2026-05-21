@@ -15,6 +15,7 @@ const baseCtx: ModeContext = {
   stagger: 0.055,
   easing: "easeOut",
   repeat: 0,
+  pathLength: 100,
 };
 
 describe("wifiSyncArrows", () => {

@@ -33,6 +33,15 @@ export interface ModeContext {
   easing: Easing | Easing[];
   /** Resolved repeat count. `0` plays once; `Infinity` loops. */
   repeat: number;
+  /**
+   * Measured total length of the rendered SVG geometry element in user units,
+   * from `getTotalLength()`. `0` only on the synchronous first render before
+   * `useLayoutEffect` has run; that render never reaches an active variant
+   * (the engine re-runs the factory with the real length before any
+   * animation can fire), so modes can treat this as always-truthy when
+   * sizing the active draw.
+   */
+  pathLength: number;
 }
 
 /**

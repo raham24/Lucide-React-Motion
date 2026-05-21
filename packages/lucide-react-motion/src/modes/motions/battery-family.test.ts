@@ -115,6 +115,7 @@ function ctx(iconName: string, index: number, [pathTag, pathAttrs]: TestNode): M
     stagger: 0,
     easing: "easeOut",
     repeat: 0,
+    pathLength: 100,
   };
 }
 
@@ -131,9 +132,11 @@ describe("battery family signatures", () => {
         const resolved = variant.signature.factory(
           ctx(variant.iconName, index, node)
         );
-        expect("pathLength" in (resolved.active as Record<string, unknown>)).toBe(
-          false
-        );
+        // Draw mode's fingerprint is `strokeDasharray` on the active variant;
+        // a bespoke battery motion must not produce it.
+        expect(
+          "strokeDasharray" in (resolved.active as Record<string, unknown>)
+        ).toBe(false);
       });
     }
 

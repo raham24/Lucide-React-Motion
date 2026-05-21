@@ -15,6 +15,7 @@ import {
   useContext,
   useEffect,
   useImperativeHandle,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -597,34 +598,17 @@ export function DrawIcon(props: DrawIconProps) {
       >
       {nodes.map((node, i) => {
         const [Tag, attrs] = node;
-        // motion is keyed by SVG tag name. Cast widens for dynamic lookup.
-        const MotionTag =
-          (motion as unknown as Record<string, ElementType>)[Tag] ??
-          motion.path;
-        // `variants` prop fully replaces the resolved mode. Accepts either an
-        // object { rest, active } or a function (i) -> object. Custom variants
-        // must still expose "rest" and "active" so the trigger system works.
-        const v: Variants =
-          typeof variants === "function"
-            ? variants(i)
-            : (variants ??
-              resolvedMode.factory({
-                iconName,
-                index: i,
-                pathTag: Tag,
-                pathAttrs: attrs,
-                duration: r.duration,
-                delay: r.delay,
-                stagger: r.stagger,
-                easing: r.easing,
-                repeat: r.repeat,
-              }));
         return (
-          <MotionTag
+          <AnimatedNode
             key={i}
-            {...attrs}
-            variants={v}
-            style={childStyle}
+            tag={Tag}
+            attrs={attrs}
+            index={i}
+            iconName={iconName}
+            timing={r}
+            modeFactory={resolvedMode.factory}
+            variantsOverride={variants}
+            childStyle={childStyle}
           />
         );
       })}
@@ -634,3 +618,88 @@ export function DrawIcon(props: DrawIconProps) {
 }
 
 DrawIcon.displayName = "DrawIcon";
+
+// ---------------------------------------------------------------------------
+// AnimatedNode
+//
+// One per Lucide IconNode. Owns a ref to the rendered SVG geometry element,
+// measures its real `getTotalLength()` on mount, and feeds the result into
+// the mode factory. This lets the default `draw` mode animate
+// `stroke-dashoffset` against a real dash array (and clear both at rest)
+// instead of using Motion's `pathLength` shortcut, which permanently writes
+// `pathLength="1"` + `stroke-dasharray="1 1"` to the DOM and produces a
+// visible seam on closed-loop paths (gear, cloud, heart, ...).
+// ---------------------------------------------------------------------------
+
+interface AnimatedNodeProps {
+  tag: string;
+  attrs: Record<string, string | number>;
+  index: number;
+  iconName: string;
+  timing: Pick<
+    Resolved,
+    "duration" | "delay" | "stagger" | "easing" | "repeat"
+  >;
+  modeFactory: (ctx: import("./modes").ModeContext) => Variants;
+  variantsOverride: DrawIconProps["variants"];
+  childStyle: CSSProperties | undefined;
+}
+
+function AnimatedNode({
+  tag,
+  attrs,
+  index,
+  iconName,
+  timing,
+  modeFactory,
+  variantsOverride,
+  childStyle,
+}: AnimatedNodeProps) {
+  const ref = useRef<SVGGeometryElement | null>(null);
+  // Real measured length once mounted. `0` only on the synchronous first
+  // render before useLayoutEffect runs; that render never reaches an active
+  // variant, so modes can rely on a real positive length whenever the draw
+  // actually plays.
+  const [pathLength, setPathLength] = useState(0);
+
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el || typeof el.getTotalLength !== "function") return;
+    try {
+      const length = el.getTotalLength();
+      if (length > 0 && length !== pathLength) setPathLength(length);
+    } catch {
+      // Degenerate geometry (zero-length path). Leave pathLength at 0 —
+      // there's nothing to draw, and the rest variant still renders fine.
+    }
+  }, [tag, attrs, pathLength]);
+
+  const MotionTag =
+    (motion as unknown as Record<string, ElementType>)[tag] ?? motion.path;
+
+  const v: Variants =
+    typeof variantsOverride === "function"
+      ? variantsOverride(index)
+      : (variantsOverride ??
+        modeFactory({
+          iconName,
+          index,
+          pathTag: tag,
+          pathAttrs: attrs,
+          duration: timing.duration,
+          delay: timing.delay,
+          stagger: timing.stagger,
+          easing: timing.easing,
+          repeat: timing.repeat,
+          pathLength,
+        }));
+
+  return (
+    <MotionTag
+      ref={ref as Ref<SVGGeometryElement>}
+      {...attrs}
+      variants={v}
+      style={childStyle}
+    />
+  );
+}

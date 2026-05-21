@@ -12,9 +12,13 @@ import { matchPathDOneOf, type Motion } from "../compose";
  *   every observed shape. All 27 variants share the same gentle
  *   paper-settle motion.
  * - **Corner** — the folded triangle at top-right (`M14 2v5a1 1 0 0 0
- *   1 1h5`), identical across all 50 host icons. Does a dog-ear flick:
- *   small counter-clockwise rotate around its hinge at (14, 2) so the
- *   corner "lifts" briefly like a thumb flipping a page edge.
+ *   1 1h5`), identical across all 50 host icons. Does a dog-ear
+ *   peel-down: small clockwise rotate around its hinge at (14, 2) so
+ *   the corner tucks INWARD toward the page body (positive rotate in
+ *   CSS = visually CW). Peeling outward would push the L's endpoint
+ *   beyond the body's diagonal edge — the fold indicator would
+ *   visibly detach from the outline. Peeling inward keeps every point
+ *   of the L inside the body shape.
  *
  * **Real-life physics**: a piece of paper. The body settles subtly
  * (gentle scale dip + a hair of vertical bob, as if the page is
@@ -90,11 +94,13 @@ export const FILE_ENVELOPE_KEYFRAMES = {
   // visibly moving. Closed cycle — first AND last value at rest.
   bodyScale: [1, 0.98, 1],
   bodyY: [0, 0.3, 0],
-  // Corner: dog-ear flick. -10° (counter-clockwise) around the fold
-  // hinge so the corner lifts up-and-right (peel-up reading) before
-  // settling back. ViewBox-safe — endpoint (20, 8) reaches roughly
-  // (20.95, 6.87) at peak, comfortably inside the 24×24 frame.
-  cornerRotate: [0, -10, 0],
+  // Corner: dog-ear peel-down. +10° (clockwise in CSS) around the
+  // fold hinge tucks the L inward toward the page body. ViewBox-safe
+  // and visually-bounded — endpoint (20, 8) reaches roughly
+  // (18.87, 8.95) at peak, and every point of the L stays inside the
+  // body's diagonal edge. Peel-up (negative) was the original choice
+  // but pushed the endpoint beyond the body outline.
+  cornerRotate: [0, 10, 0],
   // Shared timing for both body and corner so they read as one
   // coordinated gesture.
   times: [0, 0.4, 1],

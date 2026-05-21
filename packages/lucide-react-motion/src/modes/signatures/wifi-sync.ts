@@ -6,7 +6,7 @@ import { wifiSyncArrows } from "../motions/wifi-sync-arrows";
 
 /**
  * Wifi-sync — the remaining signal arcs radiate while the sync arrows
- * rotate as their own control loop.
+ * rotate as one refresh-ccw-style control loop around the badge center.
  */
 export default compose({
   motions: [

@@ -21,9 +21,11 @@ import { matchPathDOneOf, type Motion } from "../compose";
  *   of the L inside the body shape.
  *
  * **Real-life physics**: a piece of paper. The body settles subtly
- * (gentle scale dip + a hair of vertical bob, as if the page is
- * landing on a desk); the corner does its own dog-ear flick. The two
- * keyframe sets share `times` so they read as one coordinated gesture.
+ * (a hair of vertical bob, as if the page is landing on a desk); the
+ * corner does its own dog-ear flick. Both share the same y bob
+ * keyframe so the fold pivot (14, 2) stays attached to the body's
+ * top-right corner — scaling the body would pull that pivot inward
+ * and the L's stroke cap would visibly detach from the outline.
  *
  * Exports `FILE_ENVELOPE_KEYFRAMES` so future file-family motions
  * (badge subjects, state-marker reveals) can inherit the same timing
@@ -89,10 +91,12 @@ const matchFileBody = matchPathDOneOf(...FILE_BODY_PATHS);
  * with the body's settle and the corner's flick.
  */
 export const FILE_ENVELOPE_KEYFRAMES = {
-  // Body: gentle paper-settle. Contracts ~2% and bobs ~0.3px down so
-  // the file reads as "landing on the desk" without the badge content
-  // visibly moving. Closed cycle — first AND last value at rest.
-  bodyScale: [1, 0.98, 1],
+  // Body: paper-settle as a rigid y bob (no scale). Scaling the body
+  // around the icon center would pull the (14, 2) corner inward by
+  // ~0.04 px and up by ~0.2 px, breaking the body's seam with the
+  // L's pivot, which doesn't scale — the L's stroke cap then visibly
+  // pokes above the body's outline at the top of the fold. Keeping
+  // the body rigid and only translating it preserves the seam.
   bodyY: [0, 0.3, 0],
   // Corner: dog-ear peel-down. +10° (clockwise in CSS) around the
   // fold hinge tucks the L inward toward the page body. ViewBox-safe
@@ -137,13 +141,13 @@ export const fileEnvelope: Motion = {
         },
       };
     }
-    // Body — scales around the engine-default icon-center pivot
-    // (12px 12px) so the settle reads as the whole page compressing
-    // toward its middle.
+    // Body — rigid y bob (no scale). Sharing the same y keyframe as
+    // the corner means the fold-pivot (14, 2) stays attached to the
+    // body's top-right corner throughout the motion, so the L's
+    // stroke cap never separates from the body outline.
     return {
-      rest: { scale: 1, y: 0 },
+      rest: { y: 0 },
       active: {
-        scale: FILE_ENVELOPE_KEYFRAMES.bodyScale,
         y: FILE_ENVELOPE_KEYFRAMES.bodyY,
         transition: {
           duration: ctx.duration,

@@ -27,6 +27,14 @@ This skill is the authoritative authoring guide. `docs/signatures.md` is a deepe
 The three principles govern every motion you write:
 
 1. **Real-life physics first — bespoke per object.** Each motion must mimic how *this specific real-world thing* actually behaves. **Never default to a generic pulse / shake / spin / scale to make an icon "feel alive."** A flame flickers in HEIGHT not width; a heart contracts inward during systole, not outward; sound waves radiate from their source, not from the icon centre; a moon reflects light (opacity only) rather than emitting it (no radial scale); a clock's hands tick clockwise in discrete steps, not smooth sweeps. If you're tempted to "just rotate the whole icon" or "just add a uniform scale pulse," stop and design what the real-life referent actually does instead.
+
+   **Every icon gets a signature. No skip list, no `draw` as the answer.** Decide a motion in this order:
+
+   1. **Real-world object with characteristic motion** → design bespoke physics (bell rocks, flame flickers, heart beats). The bulk of the catalog.
+   2. **Real-world object with no inherent motion** → find its characteristic small life-cue (buildings: window lights flicker on; lamps: bulb glow; furniture: settle compression as if used; bath: water shimmer; tag: dangle sway).
+   3. **No real-world referent at all** (typography, geometric primitives, brand marks, alignment indicators, UI device depictions, emoji) → assign to one of the **abstract archetypes** in the catalog below.
+
+   The engine still routes unsigned icons through `draw` as a runtime safety net while coverage builds out, but `draw` is never the *design answer* for any icon — only a placeholder until its signature lands. The dev warning is an authoring TODO, not an acknowledgment of intentional skip.
 2. **Cohesion — every non-shell path shares kinetic life with the host.** A modifier or attached element sitting statically over a moving host reads as clip art floating over an animation. The cohesion mechanism depends on the host's transform shape:
    - **In-plane host transforms** (rotation, uniform `scale`, translation) — the non-shell path directly inherits the host transform via per-value `inherit: true`. Slash rocks with the bell, slash scales with the heart.
    - **Axis-asymmetric host transforms** (`scaleY`-only blink, `scaleX`-only sway) — direct inheritance distorts the marker (a 45° slash inheriting `scaleY` only flattens horizontally). The non-shell path instead synthesizes an in-plane companion (uniform `scale` dip, `opacity` dip) pinned to the host's `times` so it shares a kinetic peak with the host without orientation distortion. Going fully rigid is also wrong — see the three-criteria check in step 4.
@@ -63,6 +71,25 @@ Authoritative definition. (`docs/signatures.md` section 3 has the long-form pros
   **Composite badges that look like state markers but belong in Tier 2** because they have their own physical/semantic motion: `*-cog` (gear rotates), `*-pen` / `*-edit` (writes), `*-lock` / `*-unlock` (clicks open/closed), `*-clock` (ticks), `*-search` (magnifier swings), `*-sync` (paired arrows rotate), `*-share` (graph). When in doubt: does the marker have a single canonical real-world motion? If yes, Tier 2.
 
 Tier only determines what *additional* motion the path gets. Both tiers share kinetic life with the host (principle 2).
+
+### Abstract archetype catalog (icons without a real-world referent)
+
+The two tiers handle anything depicting a real physical object. For icons whose subject has no real-world physical motion at all — typography, geometric primitives, brand marks, alignment indicators, UI device depictions, emoji — assign to one of the eight archetypes below. **Don't fall back to `draw`; pick the matching archetype and build a signature.**
+
+These are the *only* sanctioned non-physics motions in the library. Every archetype still obeys principles 2 and 3 (host coupling for any composite that has one; contraction-only scale to stay inside the viewBox).
+
+| # | Archetype | When | Mechanics |
+|---|---|---|---|
+| 1 | **Typewriter stamp** | Typography (letters, math symbols, alignment-of-text indicators — `a-arrow-*`, `ampersand`, `asterisk`, `bold`, `italic`, `heading-1..6`, `pilcrow-*`, `case-*`, `text-align-*`, `subscript`, `superscript`, `strikethrough`, `type`) | `scale: [1, 1.04, 0.98, 1]` over a short duration + 1-unit `y` bob (the type-hammer strikes). Directional variants (`a-arrow-up`, `text-align-left`, `pilcrow-right`) orient the bob to match. Reads as "a type hammer struck the page." |
+| 2 | **Vertex sequence pulse** | Geometric primitives with no real referent (`square`, `circle`, `triangle`, `hexagon`, `pentagon`, `octagon`, `diamond`, `astroid`, `cone`, `cube`, `cylinder`, `parallelogram`, `dot`, `slash`, `spline`, `shapes`, `line-squiggle`) | Each vertex pulses (small `scale` dip + `opacity` glow) in clockwise order, staggered by `1/N` of the cycle. Triangle = 3 pulses, square = 4, octagon = 8. Circle/dot have no vertices — they get a uniform breath. Different per shape because the shapes themselves differ in vertex count. |
+| 3 | **Literal-depiction motion** | Brand marks that double as an object (`apple` → fruit) | Animate the underlying object (apple = fruit bob: `y: [0, -0.5, 0]` + tiny scale breath). Never animate the brand-as-brand. |
+| 4 | **Alignment action** | Layout/alignment indicators (`align-*`, `columns-*`, `rows-*`, `grid-*`, `panel-*`, `dock`, `layout-*`, `sidebar`) | The bars/cells perform the alignment they depict. `align-left`'s bars slide leftward into their aligned position; `columns-3` cells flash in left-to-right sequence; `grid-2x2` cells sequence by row-then-column; `panel-left` slides open and back. The motion IS the alignment action. |
+| 5 | **Device interaction** | UI device depictions (`monitor`, `tv`, `smartphone`, `laptop`, `tablet`, `computer`, `keyboard`, `mouse`, `server`, `database`, `hard-drive`, `app-window`) | Each device performs its signature gesture: laptop lid opens 10°; smartphone screen wakes (opacity flash on display rect); TV scanline sweep; keyboard one-key dip; mouse click; server LED flicker; hard-drive head-seek jitter; database rings rotate; app-window content does a physical resize. |
+| 6 | **Window-lights + settle** | Buildings & furniture & static objects (`building`, `house`, `castle`, `church`, `factory`, `lamp-*`, `armchair`, `bed-*`, `sofa`, `refrigerator`, `bath`, `tent`, etc.) | Buildings/houses/castles/churches/factories: window-rect opacity flicker on (lights coming on inside). Lamps: bulb opacity glow. Furniture: `scaleY: 0.97` settle compression as if used. Bath: opacity shimmer in basin. Tent: flap rotate sway. |
+| 7 | **Polished shine sweep** | Awards, badges, alerts, status markers (`badge-*`, `award`, `crown`, `gem`, `medal`, `ribbon`, `shield`, `tag`, `bookmark-*`, `ban`, `circle-alert`, `triangle-alert`, `square-alert`) | Linear-gradient highlight sweeps across the metal/surface (translateX 0 → 24 via a `<linearGradient>` mask or a moving overlay). Gem reuses `starTwinkle`. Tag dangles around its hole. Bookmark stick-and-release (`y: [0, 1, 0]`). Alerts pulse with their marker (exclamation flash + attention `scaleY` contraction). |
+| 8 | **Expression intensification** | Emoji faces (`smile`, `angry`, `laugh`, `frown`, `meh`, `annoyed`, `smile-plus`) | Eyes/mouth deform to exaggerate the emotion. Angry: brows furrow harder + eyes narrow. Laugh: mouth widens + cheek dots bounce. Smile: arc deepens slightly. Meh: stays nearly still (its character IS the non-motion — a tiny opacity flicker is enough). Frown: arc deepens downward. |
+
+**Implementation note.** Each archetype should ship as a single reusable motion factory: `makeTypewriterStamp({ direction? })`, `makeVertexSequencePulse({ vertices })`, `makeAlignmentAction({ axis, anchor })`, etc. Building the archetype once unlocks ~30-80 icons at a time instead of one family at a time.
 
 ### Read the bell family first — it is the canonical template
 
@@ -138,7 +165,7 @@ Pick the next target using this order:
 2. Otherwise, the highest-priority **partial** family from section 7's order.
 3. Otherwise, the highest-priority **pending** family from section 7's order.
 4. If all section-7 families are done, fall back to the **one-off decorative** icons listed in section 7's "Decorative / one-off" block (sparkle*, zap, atom, compass, gauge, wind, leaf, waves, …). Pick them one at a time.
-5. **Skip** the explicit "Skip / defer" list (pure-text icons, abstract geometry, brand logos). Don't author signatures for those.
+5. **Icons with no real-world referent** (typography, geometric primitives, brand marks, alignment indicators, UI device depictions, emoji) route through the **abstract archetype catalog** in step 1. Identify the icon's bucket and use the matching archetype motion. **Never skip an icon; never let it fall back to `draw` as the design answer.**
 
 Section 7's priority order (high to low):
 
@@ -183,7 +210,7 @@ For every pending icon in the family, follow section 4 of the doc:
    - **Axis-asymmetric host** → synthesize an in-plane companion (uniform `scale` dip like `[1, 0.85, 1]`, or `opacity` dip) and pin it to the host's `times`. Example: `eyeModifierReveal` defines its own `scale: [1, 0.85, 1]` over `EYE_BLINK_KEYFRAMES.times` because the eye's `scaleY`-only blink would flatten a diagonal slash if inherited directly.
 6. **Tier 2 with bespoke physics** — write a new motion under `src/modes/motions/`, named `<icon>-<role>.ts`. Design it from "how does this real-world thing actually behave?". If it sits inside or attached to a transforming host, also share the host's kinetic life via principle 2 (direct inherit or synthesized companion as appropriate).
 7. **Write the signature** as a thin `compose()` call (`src/modes/signatures/<icon>.ts`).
-8. **Don't force motion on icons where `draw` is the right answer** — if a variant has no clear physical or semantic motion, skip its signature and let it fall back to draw.
+8. **Every icon gets a signature.** If a variant's referent has no clear physical motion, identify its bucket in step 1's abstract archetype catalog and apply the matching archetype. `draw` is never the design answer — the engine's runtime fallback exists only as a safety net while signature coverage builds out.
 9. **Run the drawn-in anti-pattern check before coding and again before handoff.** List the primary visible action for every anatomical role. If that list is mostly "pathLength reveals" / "opacity fades in" / "draws on", stop. Redesign around a real object behavior and reserve `pathLength` for small supporting events with physical meaning.
 
 After each phase of work, **self-review before moving on** (project memory `feedback_phase_review.md`): fix issues and re-review before the next phase.

@@ -13,7 +13,12 @@ const target = process.env.BUILD ?? "main";
 const shared = {
   format: ["esm", "cjs"] as const,
   dts: true,
-  sourcemap: true,
+  // Sourcemaps are off for the published tarball — they roughly doubled
+  // the unpacked size (~6 MB of maps for ~5 MB of generated code) and
+  // consumers shipping minified bundles never read them. Set
+  // SOURCEMAP=true on the command line to opt back in for local
+  // debugging or release inspection.
+  sourcemap: process.env.SOURCEMAP === "true",
   splitting: false,
   external: ["react", "react-dom", "motion", "motion/react"],
 };

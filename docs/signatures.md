@@ -281,21 +281,15 @@ as `pathLength: [0, 1]` in a variant) permanently writes
 `pathLength="1"` + `stroke-dasharray="1 1"` to the DOM. On
 open-but-closing paths (gear, cloud, heart) that leftover dash pattern
 produces a visible seam where the start and end meet. The default
-`draw` mode now uses `ctx.pathLength` to set a real `stroke-dasharray`
-and animate `stroke-dashoffset` directly, then clears both back to `0`
-via `transitionEnd` so the resting DOM is byte-identical to Lucide's
-static SVG.
+`draw` mode and every bespoke signature motion now use `ctx.pathLength`
+to set a real `stroke-dasharray` and animate `stroke-dashoffset`
+directly, then clear both back to `0` via `transitionEnd` so the
+resting DOM is byte-identical to Lucide's static SVG.
 
 **Authoring rule:** when a NEW motion needs a stroke-on reveal, mirror
-the dasharray approach in `src/modes/draw.ts` instead of Motion's
-`pathLength` value. The existing bespoke modifier-reveal motions in
-`src/modes/motions/` still use `pathLength: [0, 1]` today — they're
-short open strokes where the seam isn't visible, and they're scheduled
-for a migration pass (see `project_pathlength_motion_migration` in
-memory). Until that migration lands, keep using Motion's `pathLength`
-when extending an existing modifier-reveal family for coupling
-consistency with neighbors; but any standalone new draw-in should use
-the dasharray pattern.
+the dasharray approach in `src/modes/draw.ts` (or any existing
+modifier-reveal, e.g. `bell-modifier-reveal.ts`). Never reach for
+Motion's `pathLength` value — that's the leftover-dash trap.
 
 ## 3. The two-tier rule
 

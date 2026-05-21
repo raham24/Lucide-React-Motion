@@ -44,7 +44,11 @@ export const sunRayPulse: Motion = {
   factory: (ctx) => ({
     rest: { scale: 1, opacity: 1 },
     active: {
-      scale: [0.94, 1, 0.94],
+      // Pulse contracts FROM rest, then returns — keyframes form a closed
+      // cycle so the animation lands back at the rest glyph without an
+      // engine-level snap. (Earlier authoring `[0.94, 1, 0.94]` snapped
+      // smaller at the start and left the ray contracted at the end.)
+      scale: [1, 0.94, 1],
       opacity: [1, 0.45, 1],
       transition: {
         duration: ctx.duration,

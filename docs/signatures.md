@@ -27,7 +27,7 @@ the shell rocks from its top mount, the clapper swings as a free
 pendulum inside, sound waves radiate outward from the mount. Each
 motion is physics-aware and characteristic to what the icon depicts.
 
-Three principles govern every motion in this library — read these
+Four principles govern every motion in this library — read these
 before authoring or reviewing a signature, and re-read them when a
 motion you wrote doesn't feel right:
 
@@ -110,14 +110,37 @@ while they rock), and it can never clip regardless of strokeWidth or
 path position.
 
 For motions that need to read as outward expansion (sun rays
-radiating, sound waves emitting), the effect comes from the active
-cycle *starting contracted* and *growing back* to the rest size, not
-from exceeding rest. The eye reads "growth back to full" as outward
-radiation. Precedent: `sunRayPulse` uses `scale: [0.94, 1, 0.94]` —
-rays start 6% contracted at the cycle boundaries and reach Lucide's
-full default length at the cycle peak. The previous `[1, 1.06, 1]`
-was rejected as a viewBox violation; see project memory
+radiating, sound waves emitting), the effect comes from contracting
+the active cycle *inward from rest*, not from exceeding rest. The
+eye reads "return to rest from contracted" as outward radiation.
+Precedent: `sunRayPulse` uses `scale: [1, 0.94, 1]` — rays start at
+their Lucide-default length, contract 6% mid-cycle, and return to
+full at the end. The previous `[1, 1.06, 1]` was rejected as a
+viewBox violation; see project memory
 `feedback_scaled_stroke_viewbox.md`.
+
+**4. Every `active` keyframe array starts AND ends at the rest
+value.** When the active animation completes, the icon stays at the
+final keyframe — there is no engine-level snap-back. If the cycle
+doesn't return to rest, the icon visibly drifts away from its
+Lucide-original glyph after a play, violating the byte-identical-to-
+Lucide guarantee.
+
+Author each keyframe array as a closed loop: `scale: [1, 0.94, 1]`,
+`y: [0, -3, 3, 0]`, `opacity: [1, 0.3, 1]`. For loop-shaped motions
+(rain/snow falling, drops fading) wrap the visible cycle in
+opacity-covered teleport beats so the bookend frames land at rest
+position invisibly — see `cloud-rain-drops.ts` for the
+`y: [0, -3, -1.5, 1.5, 3, 0]` + `opacity: [1, 0, 1, 1, 0, 1]`
+pattern. Rotations are the only exception: `rotate: [0, -360]` is
+fine because Motion snaps to keyframe[0] on re-trigger, making
+`-360 ≡ 0` indistinguishable from rest.
+
+The `rest-cycle.test.ts` invariant test catches violations
+automatically — it imports every motion in `src/modes/motions/`,
+invokes the factory, and asserts each animated property in `active`
+lands back at its `rest` value (literally for most, mod-360 for
+rotations). Run `pnpm test` before committing a new motion.
 
 Icons without a registered signature fall back to `mode="draw"` (the
 default stroke-on) and emit a one-time dev warning. The fallback is a

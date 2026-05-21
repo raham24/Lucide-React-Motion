@@ -50,26 +50,33 @@ export const cloudSnowDots: Motion = {
   factory: (ctx) => ({
     rest: { x: 0, y: 0, opacity: 1, scale: 1 },
     active: {
-      // Smaller Y range than rain — snow falls slower. Range chosen
-      // so the bottom-row hail pieces (y=22) don't clip the viewBox
-      // even at the cycle peak; opacity is already fading to 0 by
-      // then so any residual edge contact is imperceptible.
-      y: [-2, -0.75, 0.75, 2],
-      // Side drift with an asymmetric profile so the flake leans
-      // one way more than the other rather than swinging like a
-      // metronome.
-      x: [0, 0.8, -0.4, 0],
-      opacity: [0, 1, 1, 0],
+      // Closed-cycle fall: snow fades out at its rest position, "respawns"
+      // above the cloud while invisible, falls through visible with a
+      // side drift, fades out at the bottom, and returns to rest under
+      // cover of opacity 0. Smaller Y range than rain — snow falls
+      // slower; range keeps bottom-row hail (y=22) inside the viewBox.
+      y: [0, -2, -0.75, 0.75, 2, 0],
+      // Side drift with an asymmetric profile so the flake leans one way
+      // more than the other rather than swinging like a metronome.
+      // Bookend zeros cover the invisible teleport beats.
+      x: [0, 0, 0.8, -0.4, 0, 0],
+      opacity: [1, 0, 1, 1, 0, 1],
       scale: CLOUD_BODY_KEYFRAMES.scale,
       transition: {
         duration: ctx.duration,
         delay: ctx.delay + ctx.index * ctx.stagger,
         repeat: ctx.repeat,
-        y: { inherit: true, ease: "linear", times: [0, 0.15, 0.85, 1] },
-        // X flutter runs on its own slower curve so the side drift
-        // doesn't lock-step with the descent.
-        x: { inherit: true, ease: "easeInOut", times: [0, 0.3, 0.7, 1] },
-        opacity: { inherit: true, ease: "easeInOut", times: [0, 0.15, 0.85, 1] },
+        y: { inherit: true, ease: "linear", times: [0, 0.1, 0.25, 0.7, 0.85, 1] },
+        x: {
+          inherit: true,
+          ease: "easeInOut",
+          times: [0, 0.1, 0.35, 0.65, 0.9, 1],
+        },
+        opacity: {
+          inherit: true,
+          ease: "easeInOut",
+          times: [0, 0.1, 0.25, 0.7, 0.85, 1],
+        },
         scale: {
           inherit: true,
           ease: ctx.easing,

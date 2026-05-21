@@ -41,7 +41,10 @@ export const snowflakeTwinkle: Motion = {
   factory: (ctx) => ({
     rest: { scale: 1, opacity: 1 },
     active: {
-      scale: [0.98, 1, 0.96, 1, 0.98],
+      // Two-beat twinkle that opens and closes at rest scale (1).
+      // Earlier authoring `[0.98, 1, 0.96, 1, 0.98]` left the flake
+      // visibly shrunk after the play.
+      scale: [1, 0.96, 1, 0.98, 1],
       opacity: [1, 0.3, 1, 0.55, 1],
       transition: {
         duration: ctx.duration,

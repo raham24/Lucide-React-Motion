@@ -485,19 +485,7 @@ export function DrawIcon(props: DrawIconProps) {
     // can deliver rest-complete AFTER active-start has set state to
     // "drawing", which would clobber it back to "resting" mid-draw. The
     // rest-start handler above already lands the state correctly.
-    if (def !== "active") return;
-    setMotionState("resting");
-    // Snap every animated property back to its rest value as soon as the
-    // active animation finishes. Most motions already land at rest via
-    // their final keyframe value, but a few (cloud-rain-drops,
-    // cloud-snow-dots, sun-ray-pulse, snowflake-twinkle,
-    // mail-modifier-pulse, rotate-key-turn) leave residual offsets or
-    // opacity that drift the icon away from its Lucide-original glyph.
-    // This guarantees byte-identical-to-Lucide rest state regardless of
-    // how the motion was authored. `repeat: Infinity` never completes so
-    // loaders are unaffected; `trigger="click"` etc. simply reset on the
-    // next interaction as expected.
-    controls.start("rest", { duration: 0 });
+    if (def === "active") setMotionState("resting");
   };
 
   // Imperative handle for trigger="manual".

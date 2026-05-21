@@ -27,10 +27,15 @@ export const mailModifierPulse: Motion = {
         transformOrigin: "center",
       },
       active: {
-        scale: isWarning ? [1, 0.82, 1, 0.9] : [1, 0.9, 1, 0.96],
+        // Press-rebound pulse: rest → press in → rebound out → settle back
+        // at rest. Earlier authoring `[1, 0.82, 1, 0.9]` and friends left
+        // the marker visibly shrunk and dimmed after the play (especially
+        // the warning variant at 18% opacity). The 4th keyframe is now the
+        // explicit return to rest so each play forms a closed cycle.
+        scale: isWarning ? [1, 0.82, 1, 1] : [1, 0.9, 1, 1],
         opacity: isWarning
-          ? [1, 0.18, 1, 0.38]
-          : [1, MAIL_FLAP_KEYFRAMES.opacity[1], 1, 0.82],
+          ? [1, 0.18, 1, 1]
+          : [1, MAIL_FLAP_KEYFRAMES.opacity[1], 1, 1],
         transformBox: "fill-box",
         transformOrigin: "center",
         transition: {

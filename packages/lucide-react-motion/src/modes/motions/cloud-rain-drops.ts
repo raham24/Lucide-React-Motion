@@ -59,18 +59,28 @@ export const cloudRainDrops: Motion = {
   factory: (ctx) => ({
     rest: { y: 0, opacity: 1, scale: 1 },
     active: {
-      y: [-3, -1.5, 1.5, 3],
-      opacity: [0, 1, 1, 0],
+      // Closed-cycle fall: drop fades out at its rest position, "respawns"
+      // above the cloud while invisible, falls through visible, fades out
+      // at the bottom, and returns to rest under cover of opacity 0. Every
+      // teleport (rest→top, bottom→rest) happens while the drop is
+      // invisible so the only visible motion is the falling segment, and
+      // each play lands cleanly back at the rest glyph.
+      y: [0, -3, -1.5, 1.5, 3, 0],
+      opacity: [1, 0, 1, 1, 0, 1],
       scale: CLOUD_BODY_KEYFRAMES.scale,
       transition: {
         duration: ctx.duration,
         delay: ctx.delay + ctx.index * ctx.stagger,
         repeat: ctx.repeat,
-        // Linear Y translation reads as gravity-driven falling at a
-        // constant rate. The opacity envelope fades the drop in as it
-        // leaves the cloud and out before it clips the viewBox floor.
-        y: { inherit: true, ease: "linear", times: [0, 0.15, 0.85, 1] },
-        opacity: { inherit: true, ease: "easeInOut", times: [0, 0.15, 0.85, 1] },
+        // Linear Y read as gravity through the visible fall window (10% →
+        // 85%). The brief fade-out at the start (0 → 10%) and fade-in at
+        // the end (85% → 100%) cover the off-screen reposition beats.
+        y: { inherit: true, ease: "linear", times: [0, 0.1, 0.25, 0.7, 0.85, 1] },
+        opacity: {
+          inherit: true,
+          ease: "easeInOut",
+          times: [0, 0.1, 0.25, 0.7, 0.85, 1],
+        },
         scale: {
           inherit: true,
           ease: ctx.easing,

@@ -1,14 +1,15 @@
 import { compose } from "../compose";
+import { searchModifierReveal } from "../motions/search-modifier-reveal";
 import { searchScan } from "../motions/search-scan";
 
 /**
- * search-check — magnifier wobbles around its loupe centre via
- * `searchScan`. All paths (loupe circle, handle, in-loupe content)
- * share the rotation directly so the marker, code brackets, or
- * empty loupe all tilt cohesively with the inspection gesture.
+ * search-check — loupe + handle wobble via `searchScan`; the check
+ * tick is an External State Marker that draws in onto the loupe via
+ * `searchModifierReveal` and then rides the wobble through inherited
+ * rotation.
  */
 export default compose({
-  motions: [searchScan],
+  motions: [searchScan, searchModifierReveal],
   defaults: { duration: 1.2, easing: "easeInOut", stagger: 0 },
   transformOrigin: "11px 11px",
 });

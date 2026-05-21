@@ -24,16 +24,25 @@ export const wifiModifierReveal: Motion = {
     const isOffSlash = String(ctx.pathAttrs.d) === OFF_SLASH_D;
     const delay = isOffSlash ? ctx.delay : ctx.delay + ctx.index * ctx.stagger;
 
+    const L = ctx.pathLength;
     return {
-      rest: { pathLength: 1, opacity: 1 },
+      rest: {
+        strokeDasharray: 0,
+        strokeDashoffset: 0,
+        opacity: 1,
+      },
       active: {
-        pathLength: [0, 0, 1, 1, 1],
+        strokeDasharray: L,
+        // Mirror the original [0, 0, 1, 1, 1] reveal: hidden, hidden,
+        // drawn, drawn, drawn.
+        strokeDashoffset: [L, L, 0, 0, 0],
         opacity: BADGE_OPACITY,
         transition: {
           duration: ctx.duration,
           delay,
           repeat: ctx.repeat,
-          pathLength: {
+          strokeDasharray: { duration: 0 },
+          strokeDashoffset: {
             inherit: true,
             ease: "easeOut",
             times: BADGE_TIMES,
@@ -44,6 +53,7 @@ export const wifiModifierReveal: Motion = {
             times: BADGE_TIMES,
           },
         },
+        transitionEnd: { strokeDasharray: 0, strokeDashoffset: 0 },
       },
     };
   },

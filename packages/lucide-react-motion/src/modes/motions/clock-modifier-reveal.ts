@@ -21,16 +21,23 @@ import { CLOCK_FACE_KEYFRAMES } from "./clock-face";
 export const clockModifierReveal: Motion = {
   matches: matchAnyPath,
   factory: (ctx) => ({
-    rest: { pathLength: 1, opacity: 1, scale: 1 },
+    rest: {
+      strokeDasharray: 0,
+      strokeDashoffset: 0,
+      opacity: 1,
+      scale: 1,
+    },
     active: {
-      pathLength: [0, 0, 1],
+      strokeDasharray: ctx.pathLength,
+      strokeDashoffset: [ctx.pathLength, ctx.pathLength, 0],
       opacity: [0, 0, 1],
       scale: CLOCK_FACE_KEYFRAMES.scale,
       transition: {
         duration: ctx.duration,
         delay: ctx.delay + ctx.index * ctx.stagger,
         repeat: ctx.repeat,
-        pathLength: { inherit: true, ease: "easeOut", times: [0, 0.25, 0.65] },
+        strokeDasharray: { duration: 0 },
+        strokeDashoffset: { inherit: true, ease: "easeOut", times: [0, 0.25, 0.65] },
         opacity: { inherit: true, ease: "easeOut", times: [0, 0.25, 0.65] },
         scale: {
           inherit: true,
@@ -38,6 +45,7 @@ export const clockModifierReveal: Motion = {
           times: CLOCK_FACE_KEYFRAMES.times,
         },
       },
+      transitionEnd: { strokeDasharray: 0, strokeDashoffset: 0 },
     },
   }),
 };

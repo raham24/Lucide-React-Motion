@@ -24,17 +24,24 @@ import { VOLUME_SPEAKER_KEYFRAMES } from "./volume-speaker";
 export const volumeModifierReveal: Motion = {
   matches: matchAnyPath,
   factory: (ctx) => ({
-    rest: { pathLength: 1, opacity: 1, scale: 1 },
+    rest: {
+      strokeDasharray: 0,
+      strokeDashoffset: 0,
+      opacity: 1,
+      scale: 1,
+    },
     active: {
-      pathLength: [0, 0, 1],
+      strokeDasharray: ctx.pathLength,
+      strokeDashoffset: [ctx.pathLength, ctx.pathLength, 0],
       opacity: [0, 0, 1],
       scale: VOLUME_SPEAKER_KEYFRAMES.scale,
       transition: {
         duration: ctx.duration,
         delay: ctx.delay + ctx.index * ctx.stagger,
         repeat: ctx.repeat,
+        strokeDasharray: { duration: 0 },
         // Reveal completes at the speaker's second thump apex.
-        pathLength: { inherit: true, ease: "easeOut", times: [0, 0.25, 0.66] },
+        strokeDashoffset: { inherit: true, ease: "easeOut", times: [0, 0.25, 0.66] },
         opacity: { inherit: true, ease: "easeOut", times: [0, 0.25, 0.66] },
         // Scale piggybacks on the speaker's two-thump bassline.
         scale: {
@@ -43,6 +50,7 @@ export const volumeModifierReveal: Motion = {
           times: VOLUME_SPEAKER_KEYFRAMES.times,
         },
       },
+      transitionEnd: { strokeDasharray: 0, strokeDashoffset: 0 },
     },
   }),
 };

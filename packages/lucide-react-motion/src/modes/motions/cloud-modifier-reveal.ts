@@ -22,16 +22,23 @@ import { CLOUD_BODY_KEYFRAMES } from "./cloud-body";
 export const cloudModifierReveal: Motion = {
   matches: matchAnyPath,
   factory: (ctx) => ({
-    rest: { pathLength: 1, opacity: 1, scale: 1 },
+    rest: {
+      strokeDasharray: 0,
+      strokeDashoffset: 0,
+      opacity: 1,
+      scale: 1,
+    },
     active: {
-      pathLength: [0, 0, 1],
+      strokeDasharray: ctx.pathLength,
+      strokeDashoffset: [ctx.pathLength, ctx.pathLength, 0],
       opacity: [0, 0, 1],
       scale: CLOUD_BODY_KEYFRAMES.scale,
       transition: {
         duration: ctx.duration,
         delay: ctx.delay + ctx.index * ctx.stagger,
         repeat: ctx.repeat,
-        pathLength: { inherit: true, ease: "easeOut", times: [0, 0.2, 0.6] },
+        strokeDasharray: { duration: 0 },
+        strokeDashoffset: { inherit: true, ease: "easeOut", times: [0, 0.2, 0.6] },
         opacity: { inherit: true, ease: "easeOut", times: [0, 0.2, 0.6] },
         scale: {
           inherit: true,
@@ -39,6 +46,7 @@ export const cloudModifierReveal: Motion = {
           times: CLOUD_BODY_KEYFRAMES.times,
         },
       },
+      transitionEnd: { strokeDasharray: 0, strokeDashoffset: 0 },
     },
   }),
 };

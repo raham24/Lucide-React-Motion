@@ -27,9 +27,15 @@ const PULSE_LINE_D = "M3.22 13H9.5l.5-1 2 4.5 2-7 1.5 3.5h5.27";
 export const heartPulseLine: Motion = {
   matches: matchPathD(PULSE_LINE_D),
   factory: (ctx) => ({
-    rest: { pathLength: 1, opacity: 1, scale: 1 },
+    rest: {
+      strokeDasharray: 0,
+      strokeDashoffset: 0,
+      opacity: 1,
+      scale: 1,
+    },
     active: {
-      pathLength: [0, 0, 1],
+      strokeDasharray: ctx.pathLength,
+      strokeDashoffset: [ctx.pathLength, ctx.pathLength, 0],
       opacity: [0, 1, 1],
       scale: HEART_BEAT_KEYFRAMES.scale,
       transition: {
@@ -37,12 +43,13 @@ export const heartPulseLine: Motion = {
         delay: ctx.delay + ctx.index * ctx.stagger,
         repeat: ctx.repeat,
         // EKG trace draws at constant paper-tape speed regardless of
-        // the icon's easing — pathLength + opacity stay linear.
+        // the icon's easing — strokeDashoffset + opacity stay linear.
         // `inherit: true` shallow-merges with the parent transition so
         // duration/delay/repeat propagate down; without it motion-dom
         // replaces the whole transition with this object and falls back
         // to its default 300ms timing.
-        pathLength: { inherit: true, ease: "linear", times: [0, 0.08, 1] },
+        strokeDasharray: { duration: 0 },
+        strokeDashoffset: { inherit: true, ease: "linear", times: [0, 0.08, 1] },
         opacity: { inherit: true, ease: "linear", times: [0, 0.08, 1] },
         // Scale follows the host heart's lub-dub so the line beats too.
         scale: {
@@ -51,6 +58,7 @@ export const heartPulseLine: Motion = {
           times: HEART_BEAT_KEYFRAMES.times,
         },
       },
+      transitionEnd: { strokeDasharray: 0, strokeDashoffset: 0 },
     },
   }),
 };

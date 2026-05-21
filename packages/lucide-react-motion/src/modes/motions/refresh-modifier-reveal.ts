@@ -37,13 +37,18 @@ import { REFRESH_ARC_KEYFRAMES } from "./refresh-arc-cycle";
 export const refreshModifierReveal: Motion = {
   matches: matchAnyPath,
   factory: (ctx) => ({
-    rest: { pathLength: 1, opacity: 1, scale: 1 },
+    rest: {
+      strokeDasharray: 0,
+      strokeDashoffset: 0,
+      opacity: 1,
+      scale: 1,
+    },
     active: {
       // Slash holds invisible during the pinch-in, then strikes
-      // through mid-spin. Pathlength=0 at the start is hidden by
-      // opacity=0 at the same time, so the snap from rest=1 to
-      // active[0]=0 is invisible.
-      pathLength: [0, 0, 1],
+      // through mid-spin. Dashoffset starts at full length so the
+      // path is invisible until the strike begins.
+      strokeDasharray: ctx.pathLength,
+      strokeDashoffset: [ctx.pathLength, ctx.pathLength, 0],
       opacity: [0, 0, 1],
       // Pinch in lockstep with the wheel. Uniform scale preserves
       // the 45° diagonal — no rotation, no distortion.
@@ -52,11 +57,12 @@ export const refreshModifierReveal: Motion = {
         duration: ctx.duration,
         delay: ctx.delay + ctx.index * ctx.stagger,
         repeat: ctx.repeat,
+        strokeDasharray: { duration: 0 },
         // Strike completes at t=0.5 — the wheel has spun a full
         // 180° (the visual midpoint of the rotation). The slash
         // lands at the apex of the action, reading as "blocked
         // at peak effort."
-        pathLength: { inherit: true, ease: "easeOut", times: [0, 0.15, 0.5] },
+        strokeDashoffset: { inherit: true, ease: "easeOut", times: [0, 0.15, 0.5] },
         opacity: { inherit: true, ease: "easeOut", times: [0, 0.15, 0.5] },
         // Scale piggybacks on the host's pinch — slash contracts
         // and expands with the wheel, sharing the kinetic peak.
@@ -66,6 +72,7 @@ export const refreshModifierReveal: Motion = {
           times: REFRESH_ARC_KEYFRAMES.times,
         },
       },
+      transitionEnd: { strokeDasharray: 0, strokeDashoffset: 0 },
     },
   }),
 };

@@ -9,9 +9,11 @@ import { matchAnyPath, type Motion } from "../compose";
  * "✓ confirmed it"). At the end of the animation the modifier stays
  * visible, matching the icon's resting state.
  *
- * Uses `pathLength` + `opacity` so no transform origin is needed — works
- * cleanly under the bell's `12px 4px` mount pivot without scaling from
- * the wrong point.
+ * Uses `strokeDashoffset` + `opacity` so no transform origin is needed —
+ * works cleanly under the bell's `12px 4px` mount pivot without scaling
+ * from the wrong point. Animates against a measured `ctx.pathLength` and
+ * clears the dash attrs via `transitionEnd` so the resting DOM is
+ * byte-identical to Lucide's static SVG (see `src/modes/draw.ts`).
  *
  * Wildcard match: place this last in the compose `motions` list so the
  * shell and clapper get matched first; whatever's left is the modifier.
@@ -19,9 +21,14 @@ import { matchAnyPath, type Motion } from "../compose";
 export const modifierReveal: Motion = {
   matches: matchAnyPath,
   factory: (ctx) => ({
-    rest: { pathLength: 1, opacity: 1 },
+    rest: {
+      strokeDasharray: 0,
+      strokeDashoffset: 0,
+      opacity: 1,
+    },
     active: {
-      pathLength: [0, 0, 1],
+      strokeDasharray: ctx.pathLength,
+      strokeDashoffset: [ctx.pathLength, ctx.pathLength, 0],
       opacity: [0, 0, 1],
       transition: {
         duration: ctx.duration,
@@ -29,7 +36,10 @@ export const modifierReveal: Motion = {
         times: [0, 0.2, 0.55],
         ease: "easeOut",
         repeat: ctx.repeat,
+        // Snap the dash size; the offset is what animates.
+        strokeDasharray: { duration: 0 },
       },
+      transitionEnd: { strokeDasharray: 0, strokeDashoffset: 0 },
     },
   }),
 };

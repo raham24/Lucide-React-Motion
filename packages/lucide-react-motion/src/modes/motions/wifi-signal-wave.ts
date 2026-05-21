@@ -14,7 +14,6 @@ export const WIFI_SIGNAL_KEYFRAMES = {
   fullSignalPeak: 0.72,
   scale: [0.52, 0.52, 1, 0.94, 1],
   opacity: [0, 0, 1, 0.7, 1],
-  pathLength: [0, 0, 1, 1, 1],
   times: [0, 0.16, 0.38, 0.78, 1],
 };
 
@@ -68,32 +67,30 @@ export const wifiSignalWave: Motion = {
     const scaleStart = startScale(level);
     const times = levelTimes(level);
 
+    const L = ctx.pathLength;
     return {
-      rest: { pathLength: 1, scale: 1, opacity: 1 },
+      rest: {
+        strokeDasharray: 0,
+        strokeDashoffset: 0,
+        scale: 1,
+        opacity: 1,
+      },
       active: {
-        pathLength: WIFI_SIGNAL_KEYFRAMES.pathLength,
+        strokeDasharray: L,
+        // Mirror the original [0, 0, 1, 1, 1] reveal.
+        strokeDashoffset: [L, L, 0, 0, 0],
         scale: [scaleStart, scaleStart, 1, 0.94, 1],
         opacity: WIFI_SIGNAL_KEYFRAMES.opacity,
         transition: {
           duration: ctx.duration,
           delay: ctx.delay,
           repeat: ctx.repeat,
-          pathLength: {
-            inherit: true,
-            ease: "easeOut",
-            times,
-          },
-          scale: {
-            inherit: true,
-            ease: "easeOut",
-            times,
-          },
-          opacity: {
-            inherit: true,
-            ease: "easeOut",
-            times,
-          },
+          strokeDasharray: { duration: 0 },
+          strokeDashoffset: { inherit: true, ease: "easeOut", times },
+          scale: { inherit: true, ease: "easeOut", times },
+          opacity: { inherit: true, ease: "easeOut", times },
         },
+        transitionEnd: { strokeDasharray: 0, strokeDashoffset: 0 },
       },
     };
   },

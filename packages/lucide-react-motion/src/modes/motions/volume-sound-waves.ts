@@ -28,29 +28,40 @@ export const volumeSoundWaves: Motion = {
   matches: matchPathDOneOf(...WAVE_PATHS),
   factory: (ctx) => {
     const isInner = String(ctx.pathAttrs.d) === INNER_ARC;
+    const L = ctx.pathLength;
     // Inner reaches full size at t=0.42 (after speaker's first thump);
     // outer holds back further then reaches full at t=0.66.
     const scale = isInner
       ? [0.5, 0.5, 1, 0.96, 1]
       : [0.35, 0.35, 0.55, 1, 1];
-    const pathLength = isInner
-      ? [0, 0, 1, 1, 1]
-      : [0, 0, 0.3, 1, 1];
+    // dashoffset = (1 - reveal_fraction) * length, so a reveal of
+    // [0, 0, 1, 1, 1] is offset [L, L, 0, 0, 0]; a reveal of
+    // [0, 0, 0.3, 1, 1] is offset [L, L, L*0.7, 0, 0].
+    const strokeDashoffset = isInner
+      ? [L, L, 0, 0, 0]
+      : [L, L, L * 0.7, 0, 0];
     const opacity = isInner
       ? [0, 0, 1, 1, 1]
       : [0, 0, 0.4, 1, 1];
 
     return {
-      rest: { pathLength: 1, scale: 1, opacity: 1 },
+      rest: {
+        strokeDasharray: 0,
+        strokeDashoffset: 0,
+        scale: 1,
+        opacity: 1,
+      },
       active: {
-        pathLength,
+        strokeDasharray: L,
+        strokeDashoffset,
         scale,
         opacity,
         transition: {
           duration: ctx.duration,
           delay: ctx.delay + ctx.index * ctx.stagger,
           repeat: ctx.repeat,
-          pathLength: {
+          strokeDasharray: { duration: 0 },
+          strokeDashoffset: {
             inherit: true,
             ease: "easeOut",
             times: VOLUME_SPEAKER_KEYFRAMES.times,
@@ -66,6 +77,7 @@ export const volumeSoundWaves: Motion = {
             times: VOLUME_SPEAKER_KEYFRAMES.times,
           },
         },
+        transitionEnd: { strokeDasharray: 0, strokeDashoffset: 0 },
       },
     };
   },

@@ -12,52 +12,41 @@ const WIFI_PEN_D =
 
 export const wifiPenWrite: Motion = {
   matches: matchPathD(WIFI_PEN_D),
-  factory: (ctx) => ({
-    rest: {
-      pathLength: 1,
-      opacity: 1,
-      x: 0,
-      y: 0,
-      rotate: 0,
-      transformOrigin: "18px 18px",
-    },
-    active: {
-      pathLength: [0, 0, 1, 1, 1],
-      opacity: [0, 0, 1, 0.78, 1],
-      x: [0.8, 0.8, 0, -0.18, 0],
-      y: [-0.8, -0.8, 0, 0.18, 0],
-      rotate: [-7, -7, 1.5, -2, 0],
-      transformOrigin: "18px 18px",
-      transition: {
-        duration: ctx.duration,
-        delay: ctx.delay,
-        repeat: ctx.repeat,
-        pathLength: {
-          inherit: true,
-          ease: "easeOut",
-          times: [0, 0.26, WIFI_SIGNAL_KEYFRAMES.fullSignalPeak, 0.86, 1],
-        },
-        opacity: {
-          inherit: true,
-          ease: "easeOut",
-          times: [0, 0.26, WIFI_SIGNAL_KEYFRAMES.fullSignalPeak, 0.86, 1],
-        },
-        x: {
-          inherit: true,
-          ease: "easeInOut",
-          times: [0, 0.26, WIFI_SIGNAL_KEYFRAMES.fullSignalPeak, 0.86, 1],
-        },
-        y: {
-          inherit: true,
-          ease: "easeInOut",
-          times: [0, 0.26, WIFI_SIGNAL_KEYFRAMES.fullSignalPeak, 0.86, 1],
-        },
-        rotate: {
-          inherit: true,
-          ease: "easeInOut",
-          times: [0, 0.26, WIFI_SIGNAL_KEYFRAMES.fullSignalPeak, 0.86, 1],
-        },
+  factory: (ctx) => {
+    const L = ctx.pathLength;
+    const times = [0, 0.26, WIFI_SIGNAL_KEYFRAMES.fullSignalPeak, 0.86, 1];
+    return {
+      rest: {
+        strokeDasharray: 0,
+        strokeDashoffset: 0,
+        opacity: 1,
+        x: 0,
+        y: 0,
+        rotate: 0,
+        transformOrigin: "18px 18px",
       },
-    },
-  }),
+      active: {
+        strokeDasharray: L,
+        // Mirror the original [0, 0, 1, 1, 1] reveal.
+        strokeDashoffset: [L, L, 0, 0, 0],
+        opacity: [0, 0, 1, 0.78, 1],
+        x: [0.8, 0.8, 0, -0.18, 0],
+        y: [-0.8, -0.8, 0, 0.18, 0],
+        rotate: [-7, -7, 1.5, -2, 0],
+        transformOrigin: "18px 18px",
+        transition: {
+          duration: ctx.duration,
+          delay: ctx.delay,
+          repeat: ctx.repeat,
+          strokeDasharray: { duration: 0 },
+          strokeDashoffset: { inherit: true, ease: "easeOut", times },
+          opacity: { inherit: true, ease: "easeOut", times },
+          x: { inherit: true, ease: "easeInOut", times },
+          y: { inherit: true, ease: "easeInOut", times },
+          rotate: { inherit: true, ease: "easeInOut", times },
+        },
+        transitionEnd: { strokeDasharray: 0, strokeDashoffset: 0 },
+      },
+    };
+  },
 };

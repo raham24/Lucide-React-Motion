@@ -26,9 +26,16 @@ import { STAR_TWINKLE_KEYFRAMES } from "./star-twinkle";
 export const starModifierReveal: Motion = {
   matches: matchAnyPath,
   factory: (ctx) => ({
-    rest: { pathLength: 1, opacity: 1, scale: 1, rotate: 0 },
+    rest: {
+      strokeDasharray: 0,
+      strokeDashoffset: 0,
+      opacity: 1,
+      scale: 1,
+      rotate: 0,
+    },
     active: {
-      pathLength: [0, 0, 1],
+      strokeDasharray: ctx.pathLength,
+      strokeDashoffset: [ctx.pathLength, ctx.pathLength, 0],
       opacity: [0, 0, 1],
       scale: STAR_TWINKLE_KEYFRAMES.scale,
       rotate: STAR_TWINKLE_KEYFRAMES.rotate,
@@ -36,7 +43,8 @@ export const starModifierReveal: Motion = {
         duration: ctx.duration,
         delay: ctx.delay + ctx.index * ctx.stagger,
         repeat: ctx.repeat,
-        pathLength: { inherit: true, ease: "easeOut", times: [0, 0.2, 0.6] },
+        strokeDasharray: { duration: 0 },
+        strokeDashoffset: { inherit: true, ease: "easeOut", times: [0, 0.2, 0.6] },
         opacity: { inherit: true, ease: "easeOut", times: [0, 0.2, 0.6] },
         scale: {
           inherit: true,
@@ -49,6 +57,7 @@ export const starModifierReveal: Motion = {
           times: STAR_TWINKLE_KEYFRAMES.times,
         },
       },
+      transitionEnd: { strokeDasharray: 0, strokeDashoffset: 0 },
     },
   }),
 };

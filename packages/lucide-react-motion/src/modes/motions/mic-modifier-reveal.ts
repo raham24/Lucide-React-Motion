@@ -17,17 +17,24 @@ import { MIC_BODY_KEYFRAMES } from "./mic-body";
 export const micModifierReveal: Motion = {
   matches: matchAnyPath,
   factory: (ctx) => ({
-    rest: { pathLength: 1, opacity: 1, scale: 1 },
+    rest: {
+      strokeDasharray: 0,
+      strokeDashoffset: 0,
+      opacity: 1,
+      scale: 1,
+    },
     active: {
-      pathLength: [0, 0, 1],
+      strokeDasharray: ctx.pathLength,
+      strokeDashoffset: [ctx.pathLength, ctx.pathLength, 0],
       opacity: [0, 0, 1],
       scale: MIC_BODY_KEYFRAMES.scale,
       transition: {
         duration: ctx.duration,
         delay: ctx.delay + ctx.index * ctx.stagger,
         repeat: ctx.repeat,
+        strokeDasharray: { duration: 0 },
         // Reveal completes at the body's second-pulse apex.
-        pathLength: { inherit: true, ease: "easeOut", times: [0, 0.25, 0.7] },
+        strokeDashoffset: { inherit: true, ease: "easeOut", times: [0, 0.25, 0.7] },
         opacity: { inherit: true, ease: "easeOut", times: [0, 0.25, 0.7] },
         // Scale piggybacks on the host mic body's pulse.
         scale: {
@@ -36,6 +43,7 @@ export const micModifierReveal: Motion = {
           times: MIC_BODY_KEYFRAMES.times,
         },
       },
+      transitionEnd: { strokeDasharray: 0, strokeDashoffset: 0 },
     },
   }),
 };

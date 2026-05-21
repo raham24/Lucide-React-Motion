@@ -23,17 +23,24 @@ import { HEART_BEAT_KEYFRAMES } from "./heart-beat";
 export const heartModifierReveal: Motion = {
   matches: matchAnyPath,
   factory: (ctx) => ({
-    rest: { pathLength: 1, opacity: 1, scale: 1 },
+    rest: {
+      strokeDasharray: 0,
+      strokeDashoffset: 0,
+      opacity: 1,
+      scale: 1,
+    },
     active: {
-      pathLength: [0, 0, 1],
+      strokeDasharray: ctx.pathLength,
+      strokeDashoffset: [ctx.pathLength, ctx.pathLength, 0],
       opacity: [0, 0, 1],
       scale: HEART_BEAT_KEYFRAMES.scale,
       transition: {
         duration: ctx.duration,
         delay: ctx.delay + ctx.index * ctx.stagger,
         repeat: ctx.repeat,
-        // Reveal runs on its own delayed-draw schedule.
-        pathLength: { inherit: true, ease: "easeOut", times: [0, 0.2, 0.55] },
+        // Snap the dash size; reveal runs on its own delayed-draw schedule.
+        strokeDasharray: { duration: 0 },
+        strokeDashoffset: { inherit: true, ease: "easeOut", times: [0, 0.2, 0.55] },
         opacity: { inherit: true, ease: "easeOut", times: [0, 0.2, 0.55] },
         // Scale piggybacks on the host heart's lub-dub.
         scale: {
@@ -42,6 +49,7 @@ export const heartModifierReveal: Motion = {
           times: HEART_BEAT_KEYFRAMES.times,
         },
       },
+      transitionEnd: { strokeDasharray: 0, strokeDashoffset: 0 },
     },
   }),
 };

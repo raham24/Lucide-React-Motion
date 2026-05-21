@@ -47,18 +47,25 @@ import { EYE_BLINK_KEYFRAMES } from "./eye-blink";
 export const eyeModifierReveal: Motion = {
   matches: matchAnyPath,
   factory: (ctx) => ({
-    rest: { pathLength: 1, opacity: 1, scale: 1 },
+    rest: {
+      strokeDasharray: 0,
+      strokeDashoffset: 0,
+      opacity: 1,
+      scale: 1,
+    },
     active: {
-      pathLength: [0, 0, 1],
+      strokeDasharray: ctx.pathLength,
+      strokeDashoffset: [ctx.pathLength, ctx.pathLength, 0],
       opacity: [0, 0, 1],
       scale: [1, 0.85, 1],
       transition: {
         duration: ctx.duration,
         delay: ctx.delay + ctx.index * ctx.stagger,
         repeat: ctx.repeat,
+        strokeDasharray: { duration: 0 },
         // Strike completes AT the blink apex (50% of cycle): brief
         // anticipation hold, then a decisive easeOut draw-in.
-        pathLength: { inherit: true, ease: "easeOut", times: [0, 0.15, 0.5] },
+        strokeDashoffset: { inherit: true, ease: "easeOut", times: [0, 0.15, 0.5] },
         opacity: { inherit: true, ease: "easeOut", times: [0, 0.15, 0.5] },
         // Uniform scale dip shares the blink's times so the slash
         // proportionally contracts at the same moment the eye reaches
@@ -70,6 +77,7 @@ export const eyeModifierReveal: Motion = {
           times: EYE_BLINK_KEYFRAMES.times,
         },
       },
+      transitionEnd: { strokeDasharray: 0, strokeDashoffset: 0 },
     },
   }),
 };

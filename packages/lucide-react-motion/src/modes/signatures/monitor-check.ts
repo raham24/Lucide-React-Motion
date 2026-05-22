@@ -11,5 +11,5 @@ import { monitorModifierReveal } from "../motions/monitor-modifier-reveal";
 export default compose({
   motions: [monitorChassis, monitorModifierReveal],
   defaults: { duration: 0.65, easing: "easeInOut", stagger: 0 },
-  transformOrigin: "12px 10px",
+  transformOrigin: "12px 17px",
 });

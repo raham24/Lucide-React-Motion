@@ -16,27 +16,39 @@ import { matchPathDOneOf, type Motion } from "../compose";
  *   corner (`monitor-cog`, `monitor-dot`, `monitor-smartphone`) and
  *   splits it into two fragments in `monitor-off`.
  * - **Stand stem** — short vertical (`M12 17v4` as a path, or as a
- *   `<line>` in the base `monitor`). Rigid stand, doesn't transform.
+ *   `<line>` in the base `monitor`). Rigid stand, doesn't swivel.
  * - **Stand base** — short horizontal (`M8 21h8` as a path, or as a
- *   `<line>` in the base `monitor`). Rigid stand, doesn't transform.
+ *   `<line>` in the base `monitor`). Rigid stand, doesn't swivel.
  *
  * **Real-life referent (abstract archetype — device interaction).**
- * Monitors don't have ambient motion; they wake. Per the skill's
- * "Device interaction" archetype, the canonical gesture is the
- * display flashing on. Implemented as a brief opacity dim → recover
- * + a contraction beat on the screen (`scale: [1, 0.96, 1]`), pivoted
- * at the screen centre (12, 10) via the signature's `transformOrigin`.
- * Reads as "display wakes from sleep." Contraction-only per principle
- * 3 — the screen rect already touches the viewBox edge at y=3, any
- * scale > 1 would clip.
+ * A desktop monitor's signature physical gesture is the swivel on
+ * its stand: the screen pivots side-to-side at the stand-top joint
+ * while the stand stays planted. Implemented as a damped left-right
+ * rotation around `(12, 17)` (the joint), paired with an opacity
+ * dip phase-locked to the swivel apexes so the display reads as
+ * "screen turning to face you while flickering slightly," not just
+ * "icon wiggling." Stand stays anchored (no rotation — rotating it
+ * around its own top would translate the base visibly).
  *
- * The stand shares kinetic life via opacity dip on the same `times`
- * but skips the scale (scaling the stand around the screen centre
- * would translate it visibly and break the rigid attachment).
+ * Sub-icons inherit BOTH the rotate and the opacity via the family
+ * modifier-reveal (principle 2 — cohesion). In-plane uniform
+ * rotation around a fixed pivot is safe to direct-inherit; for the
+ * composite second-device variants (`monitor-smartphone`,
+ * `monitor-speaker`) the secondary device's centre is offset from
+ * the pivot, so direct inheritance translates it by ~0.5 viewBox
+ * units at peak swivel. Acceptable trade — the alternative (leave
+ * those secondaries static during the screen's swivel) reads as
+ * the in-screen payloads sliding off a moving display, which is
+ * worse.
+ *
+ * Pivot at `(12, 17)`: top of the stand, which is also where a
+ * real monitor's tilt/swivel joint sits. Top-of-screen corners at
+ * ±6° rotation move to y ≈ 2.03 — comfortably inside the 24×24
+ * viewBox after accounting for stroke radius 1.
  *
  * Exports `MONITOR_SCREEN_KEYFRAMES` so the family modifier-reveal
- * can inherit the screen's wake `opacity` and phase-lock with the
- * display turning on.
+ * can inherit both the rotate and opacity curves and stay phase-
+ * locked with the screen swivel.
  *
  * Closed cycle: every keyframe array starts AND ends at the rest
  * value (principle 4).
@@ -82,7 +94,6 @@ const isStandardStandLine = (ctx: {
   const x2 = String(ctx.pathAttrs.x2);
   const y1 = String(ctx.pathAttrs.y1);
   const y2 = String(ctx.pathAttrs.y2);
-  // Vertical stem (12,17)→(12,21) OR horizontal base (8,21)→(16,21).
   return (
     (x1 === "12" && x2 === "12" && y1 === "17" && y2 === "21") ||
     (x1 === "8" && x2 === "16" && y1 === "21" && y2 === "21")
@@ -90,9 +101,20 @@ const isStandardStandLine = (ctx: {
 };
 
 export const MONITOR_SCREEN_KEYFRAMES = {
-  scale: [1, 0.96, 1],
-  opacity: [1, 0.45, 1],
-  times: [0, 0.3, 1],
+  // Damped left-right swivel around the stand-top joint (12, 17). Peak
+  // angle ±6° keeps the top-screen corners safely inside the 24×24
+  // viewBox: y ≈ 2.03 at peak, leaving ~1 unit of margin for the
+  // stroke radius. Settles back to 0 through a smaller return swing
+  // so the motion reads as damped (signature characteristic of bell
+  // shell rocking, applied here to a horizontal pivot axis).
+  rotate: [0, -6, 4, -2, 0],
+  // Opacity dip phase-locked to the swivel apexes. Screen flickers
+  // slightly as it angles away from the viewer, brightens as it
+  // returns to centre. Sub-icons share this curve via the modifier-
+  // reveal so payloads dim WITH the screen rather than sitting
+  // statically bright while the display swivels.
+  opacity: [1, 0.72, 1, 0.88, 1],
+  times: [0, 0.25, 0.5, 0.75, 1],
 };
 
 export const monitorChassis: Motion = {
@@ -105,9 +127,9 @@ export const monitorChassis: Motion = {
     const isScreen = isStandardScreenRect(ctx) || matchScreenPath(ctx);
     if (isScreen) {
       return {
-        rest: { scale: 1, opacity: 1 },
+        rest: { rotate: 0, opacity: 1 },
         active: {
-          scale: MONITOR_SCREEN_KEYFRAMES.scale,
+          rotate: MONITOR_SCREEN_KEYFRAMES.rotate,
           opacity: MONITOR_SCREEN_KEYFRAMES.opacity,
           transition: {
             duration: ctx.duration,
@@ -119,9 +141,10 @@ export const monitorChassis: Motion = {
         },
       };
     }
-    // Stand stem/base — opacity dip in lockstep, no scale (scaling the
-    // stand around the screen centre would translate it visibly and
-    // break the rigid attachment to the chassis).
+    // Stand stem/base — opacity dip in lockstep with the screen, but
+    // no rotation (rotating the stand around (12, 17) would translate
+    // the base visibly off the icon's centreline and break the rigid
+    // attachment to the ground).
     return {
       rest: { opacity: 1 },
       active: {

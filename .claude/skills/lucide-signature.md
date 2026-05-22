@@ -220,9 +220,8 @@ After Round 1 (host primitives), Round 2 is the standalone primitive **subjects*
 | `pen`/`edit` | `pen-write.ts` + `pen-line-stroke.ts` + `pen-eraser-tip.ts` (`wifi-pen-write.ts` keeps its bespoke wifi-tight variant) | authored | `pen`, `pencil`, `pen-line`, `pencil-line`, `folder-pen`, `file-pen`, ... |
 | `code` (chevron pair) | `code-symbol.ts` + `code-xml-slash.ts` | authored | `code`, `code-xml`, `folder-code`, `message-circle-code`, `message-square-code`, `search-code`, `file-code`, `square-code`, ... |
 | `arrow` directions | `arrow-glide.ts` | authored (standalone arrow + move families) | `arrow-up`, `arrow-down`, `arrow-left`, `arrow-right`, `arrow-up-right`, `arrow-up-left`, `arrow-down-right`, `arrow-down-left`, `move-up`, `move-down`, `move-left`, `move-right` (composite `*-arrow-{up,down,left,right}` corner badges stay Tier 1 state markers) |
-| `search` (loupe + circle) | `search-loupe.ts` (existing `searchScan` is loupe-only; pending External-State-Marker conversion in other signed composites) | partially authored | `search`, `file-search`, `mail-search`, `calendar-search`, `database-search` |
+| `search` (loupe + circle) | `search-loupe.ts` | authored | `search`, `search-{check,x,slash,code,alert}`, `scan-search`, `mail-search`, `folder-search`, `folder-search-2` (composites `file-search`, `calendar-search`, `database-search`, etc. pick it up automatically when their families ship — add a row to `SEARCH_LOUPE_CENTERS` + matchers + regression test) |
 | `image` | `image-frame.ts` | pending | `image`, `file-image`, `book-image` |
-| `arrow` directions | `arrow-glide.ts` | pending | `arrow-up/down/left/right`, `file-arrow-up`, `calendar-arrow-up`, ... |
 | `share`/`graph` | `share-graph.ts` | pending | `share`, `file-share`, `share-2` |
 
 #### Round-2 subject playbook (cog is the canonical precedent — copy its shape)

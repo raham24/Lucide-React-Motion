@@ -24,6 +24,7 @@ import { matchAnyPath, type Motion } from "../compose";
  * Closed cycle per principle 4 — x and y both start AND end at 0.
  */
 const ARROW_DIRECTIONS: Record<string, [number, number]> = {
+  // Cardinal + diagonal — original signed set
   "arrow-up": [0, -1],
   "arrow-down": [0, 1],
   "arrow-left": [-1, 0],
@@ -32,6 +33,32 @@ const ARROW_DIRECTIONS: Record<string, [number, number]> = {
   "arrow-up-left": [-0.7, -0.7],
   "arrow-down-right": [0.7, 0.7],
   "arrow-down-left": [-0.7, 0.7],
+  // Big arrows — same direction, slightly stronger nudge to match
+  // their visual weight
+  "arrow-big-up": [0, -1.5],
+  "arrow-big-down": [0, 1.5],
+  "arrow-big-left": [-1.5, 0],
+  "arrow-big-right": [1.5, 0],
+  "arrow-big-up-dash": [0, -1.5],
+  "arrow-big-down-dash": [0, 1.5],
+  "arrow-big-left-dash": [-1.5, 0],
+  "arrow-big-right-dash": [1.5, 0],
+  // From-line / to-line variants — arrow nudges in direction; the
+  // reference line stays anchored via `arrowStaticRef` (placed
+  // FIRST in the compose list so it claims the line before this
+  // motion's matchAnyPath would).
+  "arrow-up-from-line": [0, -1],
+  "arrow-down-from-line": [0, 1],
+  "arrow-left-from-line": [-1, 0],
+  "arrow-right-from-line": [1, 0],
+  "arrow-up-to-line": [0, -1],
+  "arrow-down-to-line": [0, 1],
+  "arrow-left-to-line": [-1, 0],
+  "arrow-right-to-line": [1, 0],
+  // From-dot / to-dot — same pattern, dot stays anchored
+  "arrow-up-from-dot": [0, -1],
+  "arrow-down-to-dot": [0, 1],
+  // Move family — already-signed cardinal directions
   "move-up": [0, -1],
   "move-down": [0, 1],
   "move-left": [-1, 0],

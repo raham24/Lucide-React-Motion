@@ -212,17 +212,38 @@ The container hosts below cover 200+ composite icons between them. Each is one m
 
 After Round 1 (host primitives), Round 2 is the standalone primitive **subjects** that show up *inside* the hosts — author each once, and every composite that includes it (`file-code`, `mail-search`, `calendar-cog`, `badge-clock`, ...) gets the motion for free:
 
-| Subject | Motion | Hosts examples |
-|---|---|---|
-| `code` (chevron pair) | `code-symbol.ts` | `code`, `file-code`, `message-square-code`, `book-key` |
-| `search` (loupe + circle) | `search-loupe.ts` | `search`, `file-search`, `mail-search`, `calendar-search`, `database-search` |
-| `cog` (gear teeth) | `cog-gear.ts` | `settings`, `cog`, `file-cog`, `calendar-cog`, `badge-cog`, `cloud-cog` |
-| `lock`/`unlock` | `lock-shackle.ts` | `lock`, `file-lock`, `badge-lock`, `book-lock` |
-| `pen`/`edit` | `pen-write.ts` | `pen`, `pencil`, `file-pen`, `badge-edit`, `book-pen` |
-| `clock` (face + hands) | already authored as `clock-face` + `clock-hands` | `clock`, `file-clock`, `calendar-clock`, `badge-clock` |
-| `image` | `image-frame.ts` | `image`, `file-image`, `book-image` |
-| `arrow` directions | `arrow-glide.ts` | `arrow-up/down/left/right`, `file-arrow-up`, `calendar-arrow-up`, ... |
-| `share`/`graph` | `share-graph.ts` | `share`, `file-share`, `share-2` |
+| Subject | Motion | Status | Hosts examples |
+|---|---|---|---|
+| `cog` (gear teeth) | `cog-gear.ts` | **authored — canonical Round-2 precedent** | `cog`, `settings`, `cloud-cog`, `wifi-cog`, `monitor-cog`, `file-cog`, `calendar-cog`, `badge-cog`, ... |
+| `clock` (face + hands) | already authored as `clock-face` + `clock-hands` | authored | `clock`, `file-clock`, `calendar-clock`, `badge-clock` |
+| `search` (loupe + circle) | `search-loupe.ts` (existing `searchScan` is loupe-only; pending External-State-Marker conversion in other signed composites) | partially authored | `search`, `file-search`, `mail-search`, `calendar-search`, `database-search` |
+| `lock`/`unlock` | `lock-shackle.ts` | pending | `lock`, `file-lock`, `badge-lock`, `book-lock` |
+| `pen`/`edit` | `pen-write.ts` (existing `wifi-pen-write.ts` is wifi-only) | pending (standalone) | `pen`, `pencil`, `file-pen`, `badge-edit`, `book-pen` |
+| `code` (chevron pair) | `code-symbol.ts` | pending | `code`, `file-code`, `message-square-code`, `book-key` |
+| `image` | `image-frame.ts` | pending | `image`, `file-image`, `book-image` |
+| `arrow` directions | `arrow-glide.ts` | pending | `arrow-up/down/left/right`, `file-arrow-up`, `calendar-arrow-up`, ... |
+| `share`/`graph` | `share-graph.ts` | pending | `share`, `file-share`, `share-2` |
+
+#### Round-2 subject playbook (cog is the canonical precedent — copy its shape)
+
+Read `motions/cog-gear.ts`, `signatures/cog.ts`, the cog-bearing composite signatures (`cloud-cog.ts`, `wifi-cog.ts`, `monitor-cog.ts`), and `motions/cog-subject.test.ts` before authoring any new Round-2 subject. The cog file establishes the patterns every other subject mirrors:
+
+1. **One subject = one motion file.** All cog elements (standalone teeth + composite teeth + hub circles + merged hub-tooth strokes) live in `cog-gear.ts`. Don't fork per composite.
+2. **Specific d-list + geometric matchers.** `COG_TOOTH_DS` is a `Set<string>` of every tooth `d` Lucide uses across composites; `COG_HUB_CIRCLES` is a `Set<"cx,cy,r">` for the hubs. Each new cog-bearing composite extends both sets — never write a new motion.
+3. **Per-iconName pivot lookup when the subject's centre varies by composite.** `COG_CENTERS: Record<string, [number, number]>` maps each iconName to its cog centre in user units. The factory reads it and sets `transformOrigin: "${cx}px ${cy}px"` inside both `rest` and `active` variants. Works because the engine uses `transformBox: "view-box"` (see `engine.tsx`), so per-variant `transformOrigin` overrides the signature-level pivot for those specific elements and resolves in user units cleanly — no fillBox bbox math needed.
+4. **Place subject motions FIRST in compose order.** `compose` is first-match-wins. Putting the subject ahead of the family modifier-reveal means the specific d-match claims the cog elements before the wildcard would draw them on as a state marker.
+5. **Subject-consistency regression test.** `cog-subject.test.ts` instantiates every cog-bearing signature, runs a representative tooth + hub through it, and asserts the resolved variant has `rotate` ending at 360 and NO `strokeDasharray`. New cog-bearing signatures add a row to the test's `cogVariants` array. Future regressions (someone re-adds the family wildcard ahead of `cogGear`) fail the test immediately.
+
+When authoring a new Round-2 subject, mirror these five rules. The subject's bespoke physics differ — lock shackles click open and settle; pens write along their nib path; image frames blink corners; arrows glide in their named direction — but the file structure, per-iconName lookup pattern, compose-order rule, and regression test all follow cog's template.
+
+#### When you're authoring a family that contains a Round-2 subject
+
+This is the consistency rule that prevents subject regressions:
+
+- **Before composing the family modifier-reveal**, scan the variants for any Round-2 subject suffix: `-cog`, `-lock` / `-unlock`, `-pen` / `-edit`, `-code`, `-search`, `-image`, `-arrow-{up,down,left,right}`, `-share`. If the subject's motion is authored (Status column above), import it and place it FIRST in that composite's compose list.
+- **Extend the subject's matcher data in the same commit.** For cog: add a `COG_CENTERS` row for the new composite's iconName + the eight tooth d-strings from `src/generated/<iconName>.tsx` + the `<circle r=3>` hub geometry. For other subjects, follow whatever centre/d-list/geometry the motion uses.
+- **Add a row to the subject's regression test.** Mirror the existing `cogVariants` shape: iconName, signature import, representative subject nodes. This catches future composites that forget to compose the subject motion.
+- **Subject motions are NEVER routed through the family modifier-reveal.** State-marker suffixes (-check, -x, -plus, -minus, -off, -alert, -warning, -question-mark, -percent, -info, -dot, -arrow-*) ARE routed through it. The list of suffixes that aren't state markers but Tier-2 subjects is exactly the Round-2 subject table above. When in doubt, check the table.
 
 Round 3 is the remaining **rich-physics families** that don't decompose cleanly (their parts couple in icon-specific ways): `heart-*`, `clock-*`, `sun-*`/`moon-*`, `cloud-*`, `flame-*`, `loader-*`/`refresh-*`/`rotate-*`, `wifi-*`/`signal-*`/`volume-*`, `battery-*`, `mail-*`/`send`, `mic-*`, `arrow-*`/`chevron-*`/`move-*`, media controls. Most of these are partially or fully authored already.
 

@@ -63,6 +63,11 @@ const ARROW_DIRECTIONS: Record<string, [number, number]> = {
   "move-down": [0, 1],
   "move-left": [-1, 0],
   "move-right": [1, 0],
+  // Move diagonals — corner L-bracket + diagonal stroke
+  "move-up-right": [0.7, -0.7],
+  "move-up-left": [-0.7, -0.7],
+  "move-down-right": [0.7, 0.7],
+  "move-down-left": [-0.7, 0.7],
 };
 
 export const ARROW_GLIDE_KEYFRAMES: {

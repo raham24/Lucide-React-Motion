@@ -68,6 +68,23 @@ const ARROW_DIRECTIONS: Record<string, [number, number]> = {
   "move-up-left": [-0.7, -0.7],
   "move-down-right": [0.7, 0.7],
   "move-down-left": [-0.7, 0.7],
+  // Sort arrows — the arrow shaft + head on the LEFT side glides
+  // in the indicated direction; the letter / number / divider
+  // content on the RIGHT side stays anchored via `arrowSortContent`
+  // (placed FIRST in the compose list so it claims the content
+  // paths before this motion's matchAnyPath would translate them).
+  "arrow-down-0-1": [0, 1.2],
+  "arrow-down-1-0": [0, 1.2],
+  "arrow-down-a-z": [0, 1.2],
+  "arrow-down-z-a": [0, 1.2],
+  "arrow-down-narrow-wide": [0, 1.2],
+  "arrow-down-wide-narrow": [0, 1.2],
+  "arrow-up-0-1": [0, -1.2],
+  "arrow-up-1-0": [0, -1.2],
+  "arrow-up-a-z": [0, -1.2],
+  "arrow-up-z-a": [0, -1.2],
+  "arrow-up-narrow-wide": [0, -1.2],
+  "arrow-up-wide-narrow": [0, -1.2],
 };
 
 export const ARROW_GLIDE_KEYFRAMES: {

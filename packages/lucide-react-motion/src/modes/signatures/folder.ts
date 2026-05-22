@@ -13,4 +13,5 @@ import { folderBody } from "../motions/folder-body";
 export default compose({
   motions: [folderBody],
   defaults: { duration: 0.6, easing: "easeInOut", stagger: 0 },
+  transformOrigin: "4px 20px",
 });

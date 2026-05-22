@@ -8,25 +8,37 @@ import { matchPathDOneOf, type Motion } from "../compose";
  * folder in `folder-open` / `folder-open-dot` is two more d's. All
  * routed through the same motion.
  *
- * **Real-life referent — folder being picked up / selected.** A
- * folder in a UI context highlights or lifts when interacted with.
- * The signature gesture is a brief upward bob (`y: -1`) paired with
- * an opacity dim (`[1, 0.78, 1]`) — reads as the folder being
- * picked up and set back, like selecting it in a file manager.
+ * **Real-life referent — folder tipping open / being inspected.**
+ * A real folder hinges from its spine at the bottom-left when you
+ * pick it up to peek inside. The signature gesture is a damped
+ * left-right tilt (`rotate: [0, -3, 2, -1, 0]`) around the bottom-
+ * left corner `(4px, 20px)` — the folder's "spine." The top-left
+ * tab is the furthest point from the pivot so it moves the most,
+ * which reads as the tab bending back as if the folder is being
+ * opened to inspect its contents. Paired with an opacity dip phase-
+ * locked to the tilt apexes so the surface shimmers as it tips.
  *
- * ViewBox safety. The folder's top edge sits at y = 3; a 1-unit
- * lift puts it at y = 2 (outer edge at y = 1 with stroke radius 1).
- * Safe inside the 24×24 viewBox.
+ * Pivot at `(4, 20)`: bottom-left corner of the standard folder
+ * body. For composites with different bottom-left coordinates (the
+ * `-output`, `-input`, `-symlink`, `-pen` variants whose bodies
+ * start at x = 2 instead of 4) the pivot is ~2 units off but the
+ * gesture still reads cohesively — the whole body just tilts.
  *
- * Sub-icons inherit BOTH `y` and `opacity` via the family
+ * ViewBox safety. At ±3° the top-right corner at (22, 6) (relative
+ * `(18, -14)` from the pivot) moves to roughly (22.71, 5.08); with
+ * stroke radius 1 the outer edge sits at x ≈ 23.71 — inside the
+ * 24×24 viewBox. The top-left tab at (4, 3) (relative `(0, -17)`)
+ * moves to roughly (3.11, 3.04); outer edge at x ≈ 2.11, inside.
+ *
+ * Sub-icons inherit BOTH `rotate` and `opacity` via the family
  * modifier-reveal so payloads (kanban bars, code chevrons, plus,
- * arrows, etc.) lift and dim WITH the folder (principle 2 —
- * cohesion; mail and monitor are the existing precedents).
+ * arrows, etc.) tilt and dim WITH the folder (principle 2 —
+ * cohesion; monitor and mail are the existing precedents).
  *
  * Exports `FOLDER_BODY_KEYFRAMES` so the family modifier-reveal can
  * inherit both curves directly.
  *
- * Closed cycle: y and opacity both start AND end at rest.
+ * Closed cycle: rotate and opacity both start AND end at rest.
  */
 const FOLDER_BODY_PATHS = [
   // Standard closed folder — most variants
@@ -57,17 +69,20 @@ const FOLDER_BODY_PATHS = [
 const matchBody = matchPathDOneOf(...FOLDER_BODY_PATHS);
 
 export const FOLDER_BODY_KEYFRAMES = {
-  y: [0, -1, 0],
-  opacity: [1, 0.78, 1],
-  times: [0, 0.4, 1],
+  // Damped tilt around the bottom-left spine. Top-left tab moves
+  // the most (furthest from pivot) so the gesture reads as the tab
+  // bending back as the folder opens.
+  rotate: [0, -3, 2, -1, 0],
+  opacity: [1, 0.78, 1, 0.9, 1],
+  times: [0, 0.25, 0.5, 0.75, 1],
 };
 
 export const folderBody: Motion = {
   matches: matchBody,
   factory: (ctx) => ({
-    rest: { y: 0, opacity: 1 },
+    rest: { rotate: 0, opacity: 1 },
     active: {
-      y: FOLDER_BODY_KEYFRAMES.y,
+      rotate: FOLDER_BODY_KEYFRAMES.rotate,
       opacity: FOLDER_BODY_KEYFRAMES.opacity,
       transition: {
         duration: ctx.duration,

@@ -60,6 +60,7 @@ const SEARCH_LOUPE_CENTERS: Record<string, [number, number]> = {
   "mail-search": [18, 18],
   "folder-search": [17, 17],
   "folder-search-2": [11.5, 12.5],
+  "calendar-search": [18, 18],
 };
 
 /**
@@ -80,6 +81,8 @@ const LOUPE_HANDLE_DS = new Set<string>([
   "m21 21-1.9-1.9",
   // folder-search-2
   "M13.3 14.3 15 16",
+  // calendar-search
+  "m22 22-1.875-1.875",
 ]);
 
 /**

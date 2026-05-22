@@ -43,6 +43,7 @@ const COG_CENTERS: Record<string, [number, number]> = {
   "cloud-cog": [12, 17],
   "wifi-cog": [18, 18],
   "monitor-cog": [18, 6],
+  "calendar-cog": [18, 18],
 };
 
 /**

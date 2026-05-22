@@ -1,16 +1,15 @@
 import { compose } from "../compose";
 import { chartAxes } from "../motions/chart-axes";
-import { chartBarsVertical } from "../motions/chart-bars-vertical";
-import { chartRectBars } from "../motions/chart-rect-bars";
+import { chartStackedBars } from "../motions/chart-stacked-bars";
 
 /**
- * `chart-bar-stacked` — two thick rounded horizontal bars (rects)
- * with two short vertical stack-divider strokes + L-axes. Rects
- * contract uniformly toward the y-axis baseline; dividers contract
- * via `chartBarsVertical`'s `scaleY`. Wave staggered through both.
+ * `chart-bar-stacked` — two stacked horizontal bars + L-axes. The
+ * bars wave in one-by-one via `chartStackedBars`, which groups each
+ * rect with its inner divider so they ride together. Pivot at the
+ * bars' shared left edge (`"7px 12px"`).
  */
 export default compose({
-  motions: [chartBarsVertical, chartRectBars, chartAxes],
-  defaults: { duration: 1.1, easing: "easeInOut", stagger: 0.08 },
-  transformOrigin: "5px 12px",
+  motions: [chartStackedBars, chartAxes],
+  defaults: { duration: 1.0, easing: "easeInOut", stagger: 0.18 },
+  transformOrigin: "7px 12px",
 });

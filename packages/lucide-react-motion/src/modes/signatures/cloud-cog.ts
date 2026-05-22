@@ -1,17 +1,21 @@
 import { compose } from "../compose";
 import { cloudBody } from "../motions/cloud-body";
-import { cloudModifierReveal } from "../motions/cloud-modifier-reveal";
+import { cogGear } from "../motions/cog-gear";
 
 /**
- * Cloud-cog — cloud body breathes while the eight separate gear
- * paths below the cloud each draw in via {@link cloudModifierReveal}
- * with a per-path stagger cascade. The gear's anatomy (a central
- * circle plus radial nubs) makes the cascade read as the gear
- * "assembling itself" rather than spinning, which would require a
- * compound transform we can't achieve from disjoint paths with one
- * signature transform-origin.
+ * `cloud-cog` — cloud body breathes while the gear badge below it
+ * rotates one full revolution via `cogGear` around the cog's centre
+ * at (12, 17). `cogGear` matches both the six discrete tooth strokes
+ * and the two merged hub-arc + tooth strokes Lucide uses for this
+ * cog (the cloud's lower arc cuts through where a separate hub
+ * circle would sit).
+ *
+ * `cogGear` is placed BEFORE `cloudBody` so it claims the cog
+ * elements first; the cloud body still matches its own paths
+ * separately and is unaffected. No `cloudModifierReveal` needed —
+ * every non-cog path is the cloud body itself.
  */
 export default compose({
-  motions: [cloudBody, cloudModifierReveal],
-  defaults: { duration: 1.4, easing: "easeInOut", stagger: 0.04 },
+  motions: [cogGear, cloudBody],
+  defaults: { duration: 1.4, easing: "easeInOut", stagger: 0 },
 });

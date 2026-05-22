@@ -216,9 +216,9 @@ After Round 1 (host primitives), Round 2 is the standalone primitive **subjects*
 |---|---|---|---|
 | `cog` (gear teeth) | `cog-gear.ts` | **authored — canonical Round-2 precedent** | `cog`, `settings`, `cloud-cog`, `wifi-cog`, `monitor-cog`, `file-cog`, `calendar-cog`, `badge-cog`, ... |
 | `clock` (face + hands) | already authored as `clock-face` + `clock-hands` | authored | `clock`, `file-clock`, `calendar-clock`, `badge-clock` |
+| `lock`/`unlock` | `lock-shackle.ts` + `lock-body.ts` + `lock-keyhole.ts` | authored | `lock`, `lock-open`, `lock-keyhole`, `lock-keyhole-open`, `folder-lock`, `message-square-lock`, `file-lock`, `book-lock`, ... |
+| `pen`/`edit` | `pen-write.ts` + `pen-line-stroke.ts` + `pen-eraser-tip.ts` (`wifi-pen-write.ts` keeps its bespoke wifi-tight variant) | authored | `pen`, `pencil`, `pen-line`, `pencil-line`, `folder-pen`, `file-pen`, ... |
 | `search` (loupe + circle) | `search-loupe.ts` (existing `searchScan` is loupe-only; pending External-State-Marker conversion in other signed composites) | partially authored | `search`, `file-search`, `mail-search`, `calendar-search`, `database-search` |
-| `lock`/`unlock` | `lock-shackle.ts` | pending | `lock`, `file-lock`, `badge-lock`, `book-lock` |
-| `pen`/`edit` | `pen-write.ts` (existing `wifi-pen-write.ts` is wifi-only) | pending (standalone) | `pen`, `pencil`, `file-pen`, `badge-edit`, `book-pen` |
 | `code` (chevron pair) | `code-symbol.ts` | pending | `code`, `file-code`, `message-square-code`, `book-key` |
 | `image` | `image-frame.ts` | pending | `image`, `file-image`, `book-image` |
 | `arrow` directions | `arrow-glide.ts` | pending | `arrow-up/down/left/right`, `file-arrow-up`, `calendar-arrow-up`, ... |

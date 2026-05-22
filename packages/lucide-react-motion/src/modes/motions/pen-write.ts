@@ -50,6 +50,12 @@ const PEN_BODY_DS = [
   "M14.364 13.634a2 2 0 0 0-.506.854l-.837 2.87a.5.5 0 0 0 .62.62l2.87-.837a2 2 0 0 0 .854-.506l4.013-4.009a1 1 0 0 0-3.004-3.004z",
   // folder-pen
   "M11.378 13.626a1 1 0 1 0-3.004-3.004l-5.01 5.012a2 2 0 0 0-.506.854l-.837 2.87a.5.5 0 0 0 .62.62l2.87-.837a2 2 0 0 0 .854-.506z",
+  // pen-off / pencil-off — broken-pen fragments. Same wobble gesture
+  // applies (each fragment rotates around its own bbox centre via
+  // the fill-box transformOrigin), reading as the broken pen still
+  // trying to write.
+  "m10 10-6.157 6.162a2 2 0 0 0-.5.833l-1.322 4.36a.5.5 0 0 0 .622.624l4.358-1.323a2 2 0 0 0 .83-.5L14 13.982",
+  "m12.829 7.172 4.359-4.346a1 1 0 1 1 3.986 3.986l-4.353 4.353",
 ];
 
 export const penWrite: Motion = {

@@ -1,14 +1,13 @@
 import { compose } from "../compose";
-import { searchScan } from "../motions/search-scan";
+import { searchLoupe } from "../motions/search-loupe";
 
 /**
  * search — magnifier wobbles around its loupe centre via
- * `searchScan`. All paths (loupe circle, handle, in-loupe content)
- * share the rotation directly so the marker, code brackets, or
- * empty loupe all tilt cohesively with the inspection gesture.
+ * `searchLoupe` (per-iconName centre lookup → (11, 11) for base
+ * search). Canonical Round-2 search-subject template.
  */
 export default compose({
-  motions: [searchScan],
+  motions: [searchLoupe],
   defaults: { duration: 1.2, easing: "easeInOut", stagger: 0 },
   transformOrigin: "11px 11px",
 });

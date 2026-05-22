@@ -1,16 +1,15 @@
 import { compose } from "../compose";
 import { scanCornersFrame } from "../motions/scan-corners-frame";
-import { scanSearchLoupe } from "../motions/scan-search-loupe";
+import { searchLoupe } from "../motions/search-loupe";
 
 /**
- * `scan-search` — viewfinder brackets lock on while the magnifier
- * wobbles, inspecting the subject. Same rhythm as the canonical
- * `searchScan` primitive (`rotate: [0, -10, 8, -5, 2, 0]`) but
- * pivoted at the scan-search loupe's own centre (12, 12) instead
- * of the base search loupe's (11, 11).
+ * `scan-search` — viewfinder brackets lock on via `scanCornersFrame`
+ * while the magnifier wobbles via `searchLoupe` (per-iconName centre
+ * lookup → (12, 12) for scan-search). Same canonical wobble rhythm
+ * as every other search-bearing icon.
  */
 export default compose({
-  motions: [scanCornersFrame, scanSearchLoupe],
+  motions: [searchLoupe, scanCornersFrame],
   defaults: { duration: 1.2, easing: "easeInOut", stagger: 0 },
   transformOrigin: "12px 12px",
 });

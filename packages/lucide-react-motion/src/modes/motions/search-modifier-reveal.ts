@@ -1,5 +1,5 @@
 import { matchAnyPath, type Motion } from "../compose";
-import { SEARCH_SCAN_KEYFRAMES } from "./search-scan";
+import { SEARCH_LOUPE_KEYFRAMES } from "./search-loupe";
 
 /**
  * Search-family wildcard reveal — a delayed stroke draw-in plus the
@@ -41,7 +41,7 @@ export const searchModifierReveal: Motion = {
       strokeDasharray: ctx.pathLength,
       strokeDashoffset: [ctx.pathLength, ctx.pathLength, 0],
       opacity: [0, 0, 1],
-      rotate: SEARCH_SCAN_KEYFRAMES.rotate,
+      rotate: SEARCH_LOUPE_KEYFRAMES.rotate,
       transition: {
         duration: ctx.duration,
         delay: ctx.delay + ctx.index * ctx.stagger,
@@ -52,7 +52,7 @@ export const searchModifierReveal: Motion = {
         rotate: {
           inherit: true,
           ease: "easeInOut",
-          times: SEARCH_SCAN_KEYFRAMES.times,
+          times: SEARCH_LOUPE_KEYFRAMES.times,
         },
       },
       transitionEnd: {

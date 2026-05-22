@@ -1,0 +1,74 @@
+import { matchAnyPath, type Motion } from "../compose";
+
+/**
+ * Directional arrow glide — every cardinal and diagonal arrow icon
+ * translates briefly in its named direction and snaps back. Canonical
+ * "go this way" gesture.
+ *
+ * Anchorless translate (just `x` / `y`) → no pivot dependency, so the
+ * same motion works for any arrow icon regardless of its
+ * `transformOrigin`. The factory reads `ctx.iconName` and looks up
+ * the direction in `ARROW_DIRECTIONS`; both paths of a given arrow
+ * icon (shaft + head) translate together as a rigid unit.
+ *
+ * Used today by the standalone cardinal and diagonal arrows in the
+ * `arrow-*` family plus the `move-*` family. Composite state-marker
+ * arrows (`file-arrow-up`, `clock-arrow-down`, `circle-arrow-up`,
+ * etc.) stay Tier 1 — they draw in via their host family's modifier-
+ * reveal rather than gliding, since those tiny corner badges are
+ * abstract state indicators, not standalone arrows.
+ *
+ * Diagonal arrows use 0.7 user units per axis (≈ cos/sin 45°) so the
+ * total translation magnitude matches the cardinal 1.0.
+ *
+ * Closed cycle per principle 4 — x and y both start AND end at 0.
+ */
+const ARROW_DIRECTIONS: Record<string, [number, number]> = {
+  "arrow-up": [0, -1],
+  "arrow-down": [0, 1],
+  "arrow-left": [-1, 0],
+  "arrow-right": [1, 0],
+  "arrow-up-right": [0.7, -0.7],
+  "arrow-up-left": [-0.7, -0.7],
+  "arrow-down-right": [0.7, 0.7],
+  "arrow-down-left": [-0.7, 0.7],
+  "move-up": [0, -1],
+  "move-down": [0, 1],
+  "move-left": [-1, 0],
+  "move-right": [1, 0],
+};
+
+export const ARROW_GLIDE_KEYFRAMES: {
+  times: number[];
+} = {
+  times: [0, 0.4, 1],
+};
+
+export const arrowGlide: Motion = {
+  matches: matchAnyPath,
+  factory: (ctx) => {
+    const [dx, dy] = ARROW_DIRECTIONS[ctx.iconName] ?? [0, 0];
+    return {
+      rest: { x: 0, y: 0 },
+      active: {
+        x: [0, dx, 0],
+        y: [0, dy, 0],
+        transition: {
+          duration: ctx.duration,
+          delay: ctx.delay,
+          repeat: ctx.repeat,
+          x: {
+            inherit: true,
+            ease: "easeOut",
+            times: ARROW_GLIDE_KEYFRAMES.times,
+          },
+          y: {
+            inherit: true,
+            ease: "easeOut",
+            times: ARROW_GLIDE_KEYFRAMES.times,
+          },
+        },
+      },
+    };
+  },
+};

@@ -219,6 +219,7 @@ After Round 1 (host primitives), Round 2 is the standalone primitive **subjects*
 | `lock`/`unlock` | `lock-shackle.ts` + `lock-body.ts` + `lock-keyhole.ts` | authored | `lock`, `lock-open`, `lock-keyhole`, `lock-keyhole-open`, `folder-lock`, `message-square-lock`, `file-lock`, `book-lock`, ... |
 | `pen`/`edit` | `pen-write.ts` + `pen-line-stroke.ts` + `pen-eraser-tip.ts` (`wifi-pen-write.ts` keeps its bespoke wifi-tight variant) | authored | `pen`, `pencil`, `pen-line`, `pencil-line`, `folder-pen`, `file-pen`, ... |
 | `code` (chevron pair) | `code-symbol.ts` + `code-xml-slash.ts` | authored | `code`, `code-xml`, `folder-code`, `message-circle-code`, `message-square-code`, `search-code`, `file-code`, `square-code`, ... |
+| `arrow` directions | `arrow-glide.ts` | authored (standalone arrow + move families) | `arrow-up`, `arrow-down`, `arrow-left`, `arrow-right`, `arrow-up-right`, `arrow-up-left`, `arrow-down-right`, `arrow-down-left`, `move-up`, `move-down`, `move-left`, `move-right` (composite `*-arrow-{up,down,left,right}` corner badges stay Tier 1 state markers) |
 | `search` (loupe + circle) | `search-loupe.ts` (existing `searchScan` is loupe-only; pending External-State-Marker conversion in other signed composites) | partially authored | `search`, `file-search`, `mail-search`, `calendar-search`, `database-search` |
 | `image` | `image-frame.ts` | pending | `image`, `file-image`, `book-image` |
 | `arrow` directions | `arrow-glide.ts` | pending | `arrow-up/down/left/right`, `file-arrow-up`, `calendar-arrow-up`, ... |

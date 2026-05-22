@@ -46,64 +46,89 @@ export const folderModifierReveal: Motion = {
   matches: matchAnyPath,
   factory: (ctx) => {
     const isShape = ctx.pathTag === "circle" || ctx.pathTag === "rect";
+    // Sub-icons share the body's 3D tilt + scaleY + opacity via the
+    // signature's global `transformOrigin` (12, 20) — the bottom-
+    // centre pivot of the folder — so the whole icon hinges as one
+    // 3D scene. Reveal mechanism (dasharray vs scale-from-fill-box)
+    // is per element type as usual.
     if (isShape) {
       return {
         rest: {
           scale: 1,
           opacity: 1,
-          rotate: 0,
+          rotateX: 0,
+          scaleY: 1,
           transformBox: "fill-box",
           transformOrigin: "center",
+          transformPerspective: 600,
         },
         active: {
           scale: [0, 0, 1],
-          opacity: [0, 0, 0.78, 1, 0.9, 1],
-          rotate: FOLDER_BODY_KEYFRAMES.rotate,
+          opacity: [0, 0, 0.7, 1],
+          // 3D tilt + scaleY backup are NOT applied per-shape — they
+          // need to share the icon-level pivot to stay coherent. The
+          // shape just emerges via scale + opacity; the signature's
+          // global transformOrigin handles the bend across the whole
+          // icon when the body's transform cascades visually.
+          //
+          // (transformBox: "fill-box" overrides the global pivot for
+          // the reveal scale only; rotateX/scaleY on shapes would
+          // pivot at the shape's own centre and look detached from
+          // the body's hinge. Skip them for shape payloads — they
+          // still appear at the right scaled position because the
+          // body's transform reshapes the viewBox area they sit in.)
           transformBox: "fill-box",
           transformOrigin: "center",
           transition: {
             duration: ctx.duration,
             delay: ctx.delay + ctx.index * ctx.stagger,
             repeat: ctx.repeat,
-            scale: { inherit: true, ease: "easeOut", times: [0, 0.1, 0.25] },
+            scale: { inherit: true, ease: "easeOut", times: [0, 0.2, 0.4] },
             opacity: {
               inherit: true,
               ease: "easeOut",
-              times: [0, 0.1, 0.25, 0.5, 0.75, 1],
-            },
-            rotate: {
-              inherit: true,
-              ease: "easeInOut",
-              times: FOLDER_BODY_KEYFRAMES.times,
+              times: [0, 0.2, 0.4, 1],
             },
           },
         },
       };
     }
+    // Path / line markers: share the body's 3D tilt + scaleY +
+    // opacity directly. They pivot at the signature's icon-level
+    // (12, 20) so the whole icon bends as one.
     return {
       rest: {
         strokeDasharray: 0,
         strokeDashoffset: 0,
         opacity: 1,
-        rotate: 0,
+        rotateX: 0,
+        scaleY: 1,
+        transformPerspective: 600,
       },
       active: {
         strokeDasharray: ctx.pathLength,
         strokeDashoffset: [ctx.pathLength, ctx.pathLength, 0],
-        opacity: [0, 0, 0.78, 1, 0.9, 1],
-        rotate: FOLDER_BODY_KEYFRAMES.rotate,
+        opacity: [0, 0, 0.7, 1],
+        rotateX: FOLDER_BODY_KEYFRAMES.rotateX,
+        scaleY: FOLDER_BODY_KEYFRAMES.scaleY,
+        transformPerspective: 600,
         transition: {
           duration: ctx.duration,
           delay: ctx.delay + ctx.index * ctx.stagger,
           repeat: ctx.repeat,
           strokeDasharray: { duration: 0 },
-          strokeDashoffset: { inherit: true, ease: "easeOut", times: [0, 0.1, 0.25] },
+          strokeDashoffset: { inherit: true, ease: "easeOut", times: [0, 0.2, 0.4] },
           opacity: {
             inherit: true,
             ease: "easeOut",
-            times: [0, 0.1, 0.25, 0.5, 0.75, 1],
+            times: [0, 0.2, 0.4, 1],
           },
-          rotate: {
+          rotateX: {
+            inherit: true,
+            ease: "easeInOut",
+            times: FOLDER_BODY_KEYFRAMES.times,
+          },
+          scaleY: {
             inherit: true,
             ease: "easeInOut",
             times: FOLDER_BODY_KEYFRAMES.times,

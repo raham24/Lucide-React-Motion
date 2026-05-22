@@ -11,5 +11,5 @@ import { folderModifierReveal } from "../motions/folder-modifier-reveal";
 export default compose({
   motions: [folderBody, folderModifierReveal],
   defaults: { duration: 0.6, easing: "easeInOut", stagger: 0 },
-  transformOrigin: "4px 20px",
+  transformOrigin: "12px 20px",
 });

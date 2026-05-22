@@ -8,27 +8,28 @@ import { matchPathDOneOf, type Motion } from "../compose";
  * folder in `folder-open` / `folder-open-dot` is two more d's. All
  * routed through the same motion.
  *
- * **Real-life referent — folder tipping open / being inspected.**
- * A real folder hinges from its spine at the bottom-left when you
- * pick it up to peek inside. The signature gesture is a damped
- * left-right tilt (`rotate: [0, -3, 2, -1, 0]`) around the bottom-
- * left corner `(4px, 20px)` — the folder's "spine." The top-left
- * tab is the furthest point from the pivot so it moves the most,
- * which reads as the tab bending back as if the folder is being
- * opened to inspect its contents. Paired with an opacity dip phase-
- * locked to the tilt apexes so the surface shimmers as it tips.
+ * **Real-life referent — folder hinging open at its bottom edge.**
+ * The signature gesture is a 3D `rotateX` tilt around the folder's
+ * bottom edge — the folder hinges away from the viewer like a flap
+ * lifting backward. With `transformPerspective: 600` the top tab,
+ * the farthest point from the pivot, foreshortens dramatically and
+ * visually retreats INTO the screen rather than just swinging in
+ * the picture plane. Reads as the tab actually bending back.
  *
- * Pivot at `(4, 20)`: bottom-left corner of the standard folder
- * body. For composites with different bottom-left coordinates (the
- * `-output`, `-input`, `-symlink`, `-pen` variants whose bodies
- * start at x = 2 instead of 4) the pivot is ~2 units off but the
- * gesture still reads cohesively — the whole body just tilts.
+ * A `scaleY` contraction backs up the 3D effect for browsers that
+ * don't fully honor SVG 3D transforms — top vertices compress
+ * downward toward the bottom pivot, preserving the bend illusion
+ * even without perspective.
  *
- * ViewBox safety. At ±3° the top-right corner at (22, 6) (relative
- * `(18, -14)` from the pivot) moves to roughly (22.71, 5.08); with
- * stroke radius 1 the outer edge sits at x ≈ 23.71 — inside the
- * 24×24 viewBox. The top-left tab at (4, 3) (relative `(0, -17)`)
- * moves to roughly (3.11, 3.04); outer edge at x ≈ 2.11, inside.
+ * Pivot at `(12px, 20px)`: bottom-center of the standard folder
+ * body. All paths in the icon share this pivot via the signature's
+ * `transformOrigin`, so the body, payload glyphs, and markers all
+ * tilt together as one 3D scene.
+ *
+ * ViewBox safety. The 3D foreshortening keeps everything inside
+ * the viewBox at any peak angle — perspective always shrinks
+ * apparent dimensions. The `scaleY` 0.92 contraction also stays
+ * inside the rest box (contraction-only per principle 3).
  *
  * Sub-icons inherit BOTH `rotate` and `opacity` via the family
  * modifier-reveal so payloads (kanban bars, code chevrons, plus,
@@ -69,21 +70,33 @@ const FOLDER_BODY_PATHS = [
 const matchBody = matchPathDOneOf(...FOLDER_BODY_PATHS);
 
 export const FOLDER_BODY_KEYFRAMES = {
-  // Damped tilt around the bottom-left spine. Top-left tab moves
-  // the most (furthest from pivot) so the gesture reads as the tab
-  // bending back as the folder opens.
-  rotate: [0, -3, 2, -1, 0],
-  opacity: [1, 0.78, 1, 0.9, 1],
-  times: [0, 0.25, 0.5, 0.75, 1],
+  // 3D tilt around the bottom edge: the folder hinges away from the
+  // viewer so the top tab — the farthest point from the pivot —
+  // recedes into the screen with perspective foreshortening. Reads
+  // as the tab bending backward, not just shaking. Single beat to
+  // peak then return, like opening to peek.
+  rotateX: [0, -35, 0],
+  // Slight scaleY backup so the bend still reads even in browsers
+  // that don't honor SVG 3D transforms — top vertices visually
+  // compress downward toward the pivot.
+  scaleY: [1, 0.92, 1],
+  // Opacity dim phase-locked so the surface reads as catching less
+  // light when angled away.
+  opacity: [1, 0.7, 1],
+  times: [0, 0.4, 1],
 };
 
 export const folderBody: Motion = {
   matches: matchBody,
   factory: (ctx) => ({
-    rest: { rotate: 0, opacity: 1 },
+    rest: { rotateX: 0, scaleY: 1, opacity: 1, transformPerspective: 600 },
     active: {
-      rotate: FOLDER_BODY_KEYFRAMES.rotate,
+      rotateX: FOLDER_BODY_KEYFRAMES.rotateX,
+      scaleY: FOLDER_BODY_KEYFRAMES.scaleY,
       opacity: FOLDER_BODY_KEYFRAMES.opacity,
+      // Perspective constant — small value (relative to icon size)
+      // produces visible foreshortening on a 24px-tall folder.
+      transformPerspective: 600,
       transition: {
         duration: ctx.duration,
         delay: ctx.delay,

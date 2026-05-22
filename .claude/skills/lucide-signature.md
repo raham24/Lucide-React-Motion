@@ -221,8 +221,8 @@ After Round 1 (host primitives), Round 2 is the standalone primitive **subjects*
 | `code` (chevron pair) | `code-symbol.ts` + `code-xml-slash.ts` | authored | `code`, `code-xml`, `folder-code`, `message-circle-code`, `message-square-code`, `search-code`, `file-code`, `square-code`, ... |
 | `arrow` directions | `arrow-glide.ts` | authored (standalone arrow + move families) | `arrow-up`, `arrow-down`, `arrow-left`, `arrow-right`, `arrow-up-right`, `arrow-up-left`, `arrow-down-right`, `arrow-down-left`, `move-up`, `move-down`, `move-left`, `move-right` (composite `*-arrow-{up,down,left,right}` corner badges stay Tier 1 state markers) |
 | `search` (loupe + circle) | `search-loupe.ts` | authored | `search`, `search-{check,x,slash,code,alert}`, `scan-search`, `mail-search`, `folder-search`, `folder-search-2` (composites `file-search`, `calendar-search`, `database-search`, etc. pick it up automatically when their families ship — add a row to `SEARCH_LOUPE_CENTERS` + matchers + regression test) |
-| `image` | `image-frame.ts` | pending | `image`, `file-image`, `book-image` |
-| `share`/`graph` | `share-graph.ts` | pending | `share`, `file-share`, `share-2` |
+| `image` | `image-sun.ts` + `image-mountain.ts` + `image-frame.ts` | authored (standalone) | `image` (composites `file-image`, `book-image`, `folder-image` get the motion for free when their families ship — extend the sun cx/cy lookup + mountain d-list + frame path-d set) |
+| `share`/`graph` | `share-export.ts` (upload box+arrow) + `share-graph.ts` (3-node broadcast) + `share-external-link.ts` (up-right link, generic). Note: `message-square-share` keeps its bespoke `messageSquareShareArrow` for tighter bubble inheritance — same precedent as `wifi-pen` keeping `wifiPenWrite`. | authored | `share`, `share-2`, `message-square-share` |
 
 #### Round-2 subject playbook (cog is the canonical precedent — copy its shape)
 

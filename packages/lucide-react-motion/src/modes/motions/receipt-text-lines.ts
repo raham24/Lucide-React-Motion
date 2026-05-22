@@ -18,8 +18,8 @@ import { RECEIPT_BODY_KEYFRAMES } from "./receipt-body";
  * staggered window. Bookend at rest pattern matches
  * `message-square-text-lines`.
  *
- * Lines also inherit `rotate` from `RECEIPT_BODY_KEYFRAMES` so
- * they sway with the receipt.
+ * Lines also inherit `scaleY` from `RECEIPT_BODY_KEYFRAMES` so
+ * they retract with the receipt's paper-feed gesture.
  *
  * Place this BETWEEN `receiptBody` and `receiptModifierReveal` in
  * `receipt-text`'s compose list so it claims the three line paths
@@ -68,18 +68,18 @@ export const receiptTextLines: Motion = {
         times: [0, 1],
       };
     return {
-      rest: { y: 0, opacity: 1, rotate: 0 },
+      rest: { y: 0, opacity: 1, scaleY: 1 },
       active: {
         y: kf.y,
         opacity: kf.opacity,
-        rotate: RECEIPT_BODY_KEYFRAMES.rotate,
+        scaleY: RECEIPT_BODY_KEYFRAMES.scaleY,
         transition: {
           duration: ctx.duration,
           delay: ctx.delay,
           repeat: ctx.repeat,
           y: { inherit: true, ease: "easeOut", times: kf.times },
           opacity: { inherit: true, ease: "easeOut", times: kf.times },
-          rotate: {
+          scaleY: {
             inherit: true,
             ease: "easeInOut",
             times: RECEIPT_BODY_KEYFRAMES.times,

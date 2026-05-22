@@ -5,9 +5,8 @@ import { MESSAGE_SQUARE_BODY_KEYFRAMES } from "./message-square-body";
  * Dashed-outline draw-in for `message-square-dashed`. Lucide draws
  * the bubble as ten short segments scattered around the perimeter;
  * each segment draws itself in stroke-by-stroke, STRICTLY one after
- * another in a clockwise sweep starting from the tail, so the
- * dashed outline visibly assembles segment-by-segment around the
- * bubble. Reads as the bubble being sketched out a piece at a time.
+ * another in a clockwise sweep starting from the tail. Reads as
+ * the dashed outline being traced around the bubble piece by piece.
  *
  * Sweep order (clockwise from the tail tip):
  *
@@ -23,25 +22,22 @@ import { MESSAGE_SQUARE_BODY_KEYFRAMES } from "./message-square-body";
  *   9. bottom edge — left (`M8 19h2`)
  *
  * Each segment owns a non-overlapping `0.07`-wide slice of the
- * cycle. Segment `i` draws over `[i * 0.07, (i+1) * 0.07]`; all ten
- * finish by `t = 0.7`, leaving the last 30% of the cycle for the
- * bubble to nod with the freshly assembled outline.
+ * cycle. Segment `i` waits invisible until `t = i * 0.07`, then
+ * draws in over `[i * 0.07, (i+1) * 0.07]`, then holds drawn. All
+ * ten finish by `t = 0.7`, leaving the last 30% of the cycle for
+ * the bubble to nod with the assembled outline.
  *
  * Each segment uses `strokeDasharray` + `strokeDashoffset` against
  * the measured `ctx.pathLength` (cleared on `transitionEnd` so rest
  * stays byte-identical to Lucide), with opacity flipping from 0 to
- * 1 in sync with the stroke draw.
+ * 1 in sync with the stroke draw — same pattern as the family
+ * wildcard, just with per-segment `times`.
  *
  * Stagger is baked into per-value `times` arrays so the rotate
- * inherit stays synchronised across all segments (motion-react's
- * per-value `delay` would shift the start of each, breaking the
- * shared nod).
- *
- * Closed cycle: first frame is `dashoffset = 0` (rest, drawn) so
- * the cycle is closed; the second frame teleports to
- * `dashoffset = pathLength` (invisible) within 1ms; then waits
- * until the segment's slice and draws in. Bookend pattern matches
- * the family wildcard.
+ * inherit stays synchronised across all segments. The first time
+ * value is clamped to `0` (not `start`) so the initial invisible
+ * hold renders without producing a non-monotonic `times` array
+ * when `start = 0` for the tail.
  *
  * Place this BEFORE `messageSquareBody` in
  * `message-square-dashed`'s compose list so it claims the ten
@@ -68,13 +64,14 @@ const matchDashedSegment = matchPathDOneOf(
 export const messageSquareDashedAssembly: Motion = {
   matches: matchDashedSegment,
   factory: (ctx) => {
-    // Use the clockwise sweep index, not ctx.index (which is Lucide's
-    // path order — spatially scrambled). Fallback to 0 for the
-    // rest-cycle test which calls with a synthetic d.
+    // Clockwise sweep index (not ctx.index — Lucide's path order is
+    // spatially scrambled). Fallback to 0 for the rest-cycle test
+    // which calls with a synthetic d.
     const seq = SWEEP_INDEX[String(ctx.pathAttrs.d)] ?? 0;
     // 10 segments × 0.07-wide slices = 0.7 of the cycle for the
     // sweep; the remaining 0.3 lets the bubble nod with the fully
-    // assembled outline.
+    // assembled outline. `start === 0` for the tail (seq 0) — its
+    // draw kicks off immediately.
     const start = seq * 0.07;
     const end = start + 0.07;
     return {
@@ -86,12 +83,11 @@ export const messageSquareDashedAssembly: Motion = {
       },
       active: {
         strokeDasharray: ctx.pathLength,
-        // Bookend at rest: first frame drawn (offset 0), second frame
-        // teleports to invisible (offset = length), then draws in
-        // through the segment's window. Drawn-and-held for the rest
-        // of the cycle.
-        strokeDashoffset: [0, ctx.pathLength, ctx.pathLength, 0, 0],
-        opacity: [1, 0, 0, 1, 1],
+        // Three keyframes: invisible hold (length), wait, draw to 0
+        // by `end`, hold drawn. Same shape as file-modifier-reveal,
+        // just with per-segment `times`.
+        strokeDashoffset: [ctx.pathLength, ctx.pathLength, 0, 0],
+        opacity: [0, 0, 1, 1],
         rotate: MESSAGE_SQUARE_BODY_KEYFRAMES.rotate,
         transition: {
           duration: ctx.duration,
@@ -101,12 +97,12 @@ export const messageSquareDashedAssembly: Motion = {
           strokeDashoffset: {
             inherit: true,
             ease: "easeOut",
-            times: [0, 0.001, start, end, 1],
+            times: [0, start, end, 1],
           },
           opacity: {
             inherit: true,
             ease: "easeOut",
-            times: [0, 0.001, start, end, 1],
+            times: [0, start, end, 1],
           },
           rotate: {
             inherit: true,

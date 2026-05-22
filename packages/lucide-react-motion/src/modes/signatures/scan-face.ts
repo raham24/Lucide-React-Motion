@@ -1,15 +1,18 @@
 import { compose } from "../compose";
 import { scanCornersFrame } from "../motions/scan-corners-frame";
-import { scanCornersModifierReveal } from "../motions/scan-corners-modifier-reveal";
+import {
+  scanFaceCheekDots,
+  scanFaceSmile,
+} from "../motions/scan-face-features";
 
 /**
- * `scan-face` — the viewfinder brackets lock on (`scanCornersFrame`)
- * while the interior payload reveals at the lock-on apex via
- * `scanCornersModifierReveal`, inheriting both the scale and the
- * opacity so the payload pinches and dims with the brackets.
+ * `scan-face` — viewfinder brackets lock on while the face winks
+ * acknowledgement. The two cheek dots dim sharply at the lock-on
+ * midpoint (eyes briefly closing) and the smile holds calm. Reads
+ * as "face detected, scan complete."
  */
 export default compose({
-  motions: [scanCornersFrame, scanCornersModifierReveal],
-  defaults: { duration: 0.7, easing: "easeInOut", stagger: 0 },
+  motions: [scanCornersFrame, scanFaceCheekDots, scanFaceSmile],
+  defaults: { duration: 1.1, easing: "easeInOut", stagger: 0 },
   transformOrigin: "12px 12px",
 });

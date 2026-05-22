@@ -1,15 +1,15 @@
 import { compose } from "../compose";
+import { fullscreenInnerRect } from "../motions/fullscreen-inner-rect";
 import { scanCornersFrame } from "../motions/scan-corners-frame";
-import { scanCornersModifierReveal } from "../motions/scan-corners-modifier-reveal";
 
 /**
- * `fullscreen` — the viewfinder brackets lock on (`scanCornersFrame`)
- * while the interior payload reveals at the lock-on apex via
- * `scanCornersModifierReveal`, inheriting both the scale and the
- * opacity so the payload pinches and dims with the brackets.
+ * `fullscreen` — viewfinder brackets pinch onto the inner content
+ * rect. Both contract uniformly around (12, 12) in lockstep; the
+ * rect inherits `SCAN_CORNERS_KEYFRAMES` directly so the frame-in-
+ * frame reads as one cohesive "framing the content" gesture.
  */
 export default compose({
-  motions: [scanCornersFrame, scanCornersModifierReveal],
-  defaults: { duration: 0.7, easing: "easeInOut", stagger: 0 },
+  motions: [scanCornersFrame, fullscreenInnerRect],
+  defaults: { duration: 1.1, easing: "easeInOut", stagger: 0 },
   transformOrigin: "12px 12px",
 });

@@ -5,18 +5,29 @@ import { matchPathDOneOf, type Motion } from "../compose";
  * zig-zag, `chart-spline`'s curve, `chart-area`'s closed mountain
  * polygon, and `chart-no-axes-combined`'s scalloped top line.
  *
- * Tier 2 data motion — the line/curve rests at its plotted shape and
- * dims briefly to signal a data refresh, then brightens back. A tiny
- * uniform scale dip (`[1, 0.94, 1]`) provides continuous kinetic life
- * so the line shares motion with the axes' opacity breath instead of
- * sitting visually static on a pulsing frame.
+ * Tier 2 data motion — the line/curve plots in left-to-right as a
+ * real draw-in (the canonical chart action is "data renders along
+ * its axis"). Implemented as a `strokeDashoffset` sweep over the
+ * measured `ctx.pathLength`, mirroring the badge-modifier-reveal
+ * pattern: `strokeDasharray` is snapped to the path length so the
+ * offset animation reads as a clean reveal, then both attrs are
+ * cleared via `transitionEnd` so the resting DOM stays byte-identical
+ * to Lucide's static SVG.
  *
- * Uniform `scale` (not `scaleY`) so the line contracts toward the
- * signature's transformOrigin (the chart baseline) without distorting
- * the line's intrinsic shape — chart-line's zig-zag stays a zig-zag,
- * chart-spline's curve stays curved.
+ * The plot completes at `t = 0.7` and holds drawn for the remaining
+ * 30% of the cycle — the axes' opacity breath continues underneath so
+ * the icon stays alive after the line lands. Opacity fades in early
+ * (`[0, 0, 1]` over `[0, 0.05, 0.25]`) so the stroke isn't invisibly
+ * snapped at frame 0.
  *
- * Closed cycle per principle 4; no `transitionEnd` cleanup needed.
+ * `chart-area`'s polygon is closed (`...z`); `strokeDashoffset`
+ * sweep on a closed path traces along the outline from the start
+ * point and reads as the area outline drawing in. The fill is
+ * `none` on Lucide icons, so there's no body to dim — just the
+ * outline reveal.
+ *
+ * Works for both `<path>` (all four entries) because `getTotalLength()`
+ * is defined on all SVGGeometryElements.
  */
 const LINE_STROKE_PATHS = [
   // chart-line — zig-zag connecting four points
@@ -32,24 +43,36 @@ const LINE_STROKE_PATHS = [
 export const chartLineStroke: Motion = {
   matches: matchPathDOneOf(...LINE_STROKE_PATHS),
   factory: (ctx) => ({
-    rest: { scale: 1, opacity: 1 },
+    rest: {
+      strokeDasharray: 0,
+      strokeDashoffset: 0,
+      opacity: 1,
+    },
     active: {
-      scale: [1, 0.94, 1, 1],
-      opacity: [1, 0.5, 1, 1],
+      strokeDasharray: ctx.pathLength,
+      strokeDashoffset: [ctx.pathLength, 0, 0],
+      opacity: [0, 1, 1],
       transition: {
         duration: ctx.duration,
         delay: ctx.delay,
         repeat: ctx.repeat,
-        scale: {
+        // Snap the dash size so the draw-in reads as a clean offset sweep.
+        strokeDasharray: { duration: 0 },
+        // Plot completes at t = 0.7, then holds drawn through the axes breath.
+        strokeDashoffset: {
           inherit: true,
-          ease: "easeInOut",
-          times: [0, 0.32, 0.65, 1],
+          ease: "easeOut",
+          times: [0, 0.7, 1],
         },
         opacity: {
           inherit: true,
-          ease: "easeInOut",
-          times: [0, 0.32, 0.65, 1],
+          ease: "easeOut",
+          times: [0, 0.2, 1],
         },
+      },
+      transitionEnd: {
+        strokeDasharray: 0,
+        strokeDashoffset: 0,
       },
     },
   }),

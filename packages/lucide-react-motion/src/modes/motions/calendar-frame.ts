@@ -41,6 +41,14 @@ const LEFT_PIN_D = "M8 2v4";
 const RIGHT_PIN_D = "M16 2v4";
 const DIVIDER_D = "M3 10h18";
 
+// `calendar-off` cuts the divider into two stubs and adds a second
+// partial body where the slash crosses through. These behave like
+// the regular divider/body (bob with the host settle), so they
+// route through the same y branches below.
+const DIVIDER_OFF_LEFT_D = "M3 10h7";
+const DIVIDER_OFF_RIGHT_D = "M21 10h-5.5";
+const BODY_OFF_RIGHT_D = "M21 15.5V6a2 2 0 0 0-2-2H9.5";
+
 // Every body-path shape that pairs with the pin idiom. Partial bodies
 // each used by one composite where Lucide cuts the rect for an inset
 // badge. The canonical body is the standard `<rect>` (handled below
@@ -54,7 +62,8 @@ const CALENDAR_BODY_PATHS = [
   "M3 20a2 2 0 0 0 2 2h10a2.4 2.4 0 0 0 1.706-.706l3.588-3.588A2.4 2.4 0 0 0 21 16V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2z", // calendar-fold
   "M12.127 22H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v5.125", // calendar-heart
   "M21 15V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h8.5", // calendar-minus
-  "M4.2 4.2A2 2 0 0 0 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 1.82-1.18", // calendar-off (visible part)
+  "M4.2 4.2A2 2 0 0 0 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 1.82-1.18", // calendar-off (left body fragment)
+  BODY_OFF_RIGHT_D, // calendar-off (right body fragment)
   "M21 12.598V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h8.5", // calendar-plus
   "M21 11.75V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h7.25", // calendar-search
   "M21 8.5V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h4.3", // calendar-sync
@@ -105,7 +114,9 @@ function isPin(ctx: ModeContext): boolean {
 }
 
 function isDivider(ctx: ModeContext): boolean {
-  return ctx.pathTag === "path" && String(ctx.pathAttrs.d) === DIVIDER_D;
+  if (ctx.pathTag !== "path") return false;
+  const d = String(ctx.pathAttrs.d);
+  return d === DIVIDER_D || d === DIVIDER_OFF_LEFT_D || d === DIVIDER_OFF_RIGHT_D;
 }
 
 /**

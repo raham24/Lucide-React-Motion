@@ -28,8 +28,11 @@ import { matchAnyPath, type Motion } from "../compose";
  * BEFORE this in compose order.
  */
 const STAMP_STAGGER: Record<string, number> = {
+  // ampersands is the only "stamp glyph-by-glyph" case that maps
+  // cleanly to per-path stagger (one ampersand per path). Multi-path-
+  // per-glyph icons (a-large-small) use bespoke per-glyph grouping
+  // motions instead — see `a-large-small-stamp.ts`.
   ampersands: 0.18,
-  "a-large-small": 0.14,
 };
 
 export const TYPEWRITER_STAMP_KEYFRAMES: {

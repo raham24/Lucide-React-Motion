@@ -12,24 +12,24 @@ import { matchAnyPath, type Motion } from "../compose";
  * `scale` (principle 3) — drops cleanly into any signature
  * regardless of `transformOrigin`.
  *
- * Directional variants (a-arrow-up bobs up, a-arrow-down bobs
- * down) get their `y` direction from `STAMP_Y_DIRECTION` keyed by
- * `ctx.iconName`. The default direction is down (+1) — the
- * type-hammer strike.
+ * Per-iconName stagger via `STAMP_STAGGER` lets multi-glyph icons
+ * (`ampersands`, `a-large-small`) cascade their elements one by one
+ * instead of all stamping in unison.
  *
  * Coverage: typography icons that route through the abstract
- * "Typewriter stamp" archetype per the skill — `a-arrow-up`,
- * `a-arrow-down`, `a-large-small`, `ampersand`, `ampersands`,
- * `asterisk`, `baseline`, `bold`, `case-lower`, `case-sensitive`,
- * `case-upper`, `heading`, `heading-1..6`, `italic`, `pilcrow`,
- * `pilcrow-left`, `pilcrow-right`, `strikethrough`, `subscript`,
- * `superscript`, `text-cursor`, `text-cursor-input`, `type`,
- * `type-outline`. (text-align-* icons route through the alignment
- * archetype, not this one.)
+ * "Typewriter stamp" archetype per the skill — `ampersand`,
+ * `ampersands`, `asterisk`, `baseline`, `bold`, `case-{lower,
+ * sensitive,upper}`, `heading`, `heading-{1..6}`, `italic`,
+ * `pilcrow`, `strikethrough`, `subscript`, `superscript`,
+ * `text-cursor`, `text-cursor-input`, `type`, `type-outline`, plus
+ * the letter portion of composite typography icons (`a-arrow-up`,
+ * `a-arrow-down`, `a-large-small`, `pilcrow-left`, `pilcrow-right`)
+ * where the arrow / second-glyph portion has its own motion placed
+ * BEFORE this in compose order.
  */
-const STAMP_Y_DIRECTION: Record<string, number> = {
-  "a-arrow-up": -1,
-  "a-arrow-down": 1,
+const STAMP_STAGGER: Record<string, number> = {
+  ampersands: 0.18,
+  "a-large-small": 0.14,
 };
 
 export const TYPEWRITER_STAMP_KEYFRAMES: {
@@ -45,16 +45,16 @@ export const TYPEWRITER_STAMP_KEYFRAMES: {
 export const typewriterStamp: Motion = {
   matches: matchAnyPath,
   factory: (ctx) => {
-    const dy = STAMP_Y_DIRECTION[ctx.iconName] ?? 1;
+    const perIcon = STAMP_STAGGER[ctx.iconName] ?? ctx.stagger;
     return {
       rest: { y: 0, scale: 1, opacity: 1 },
       active: {
-        y: [0, dy, 0],
+        y: [0, 1, 0],
         scale: TYPEWRITER_STAMP_KEYFRAMES.scale,
         opacity: TYPEWRITER_STAMP_KEYFRAMES.opacity,
         transition: {
           duration: ctx.duration,
-          delay: ctx.delay,
+          delay: ctx.delay + ctx.index * perIcon,
           repeat: ctx.repeat,
           y: {
             inherit: true,

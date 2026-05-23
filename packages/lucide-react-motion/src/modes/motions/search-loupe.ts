@@ -62,6 +62,8 @@ const SEARCH_LOUPE_CENTERS: Record<string, [number, number]> = {
   "folder-search-2": [11.5, 12.5],
   "calendar-search": [18, 18],
   "book-search": [17, 18],
+  "file-search": [11.5, 14.5],
+  "file-search-corner": [16, 17],
 };
 
 /**
@@ -86,6 +88,10 @@ const LOUPE_HANDLE_DS = new Set<string>([
   "m22 22-1.875-1.875",
   // book-search
   "m21 22-1.879-1.878",
+  // file-search
+  "M13.3 16.3 15 18",
+  // file-search-corner
+  "m21 22-2.88-2.88",
 ]);
 
 /**
@@ -99,6 +105,8 @@ const LOUPE_CIRCLE_KEYS = new Set<string>([
   "17,17,3", // folder-search
   "11.5,12.5,2.5", // folder-search-2
   "17,18,3", // book-search
+  "11.5,14.5,2.5", // file-search
+  "16,17,3", // file-search-corner
 ]);
 
 function matchesLoupe(ctx: ModeContext): boolean {

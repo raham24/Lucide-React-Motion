@@ -44,6 +44,7 @@ const COG_CENTERS: Record<string, [number, number]> = {
   "wifi-cog": [18, 18],
   "monitor-cog": [18, 6],
   "calendar-cog": [18, 18],
+  "file-cog": [7, 18],
 };
 
 /**
@@ -99,6 +100,16 @@ const COG_TOOTH_DS = new Set<string>([
   "m19.53 9.696-.382-.924",
   "m20.772 4.852.924-.383",
   "m20.772 7.148.924.383",
+
+  // Composite cog at (7, 18) — file-cog.
+  "m3.305 19.53.923-.382",
+  "m4.228 16.852-.924-.383",
+  "m5.852 15.228-.383-.923",
+  "m5.852 20.772-.383.924",
+  "m8.148 15.228.383-.923",
+  "m8.53 21.696-.382-.924",
+  "m9.773 16.852.922-.383",
+  "m9.773 19.148.922.383",
 ]);
 
 /**
@@ -117,6 +128,7 @@ const COG_HUB_CIRCLES = new Set<string>([
   // Composite hubs
   "18,18,3",
   "18,6,3",
+  "7,18,3", // file-cog
 ]);
 
 function matchesCogPath(ctx: ModeContext): boolean {

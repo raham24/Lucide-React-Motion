@@ -1,17 +1,14 @@
-import { matchPathD, type Motion } from "../compose";
+import { matchPathDOneOf, type Motion } from "../compose";
 
 /**
  * Book body — the host motion for every icon built around the
- * Lucide closed-book shape (17 hosts: `book`, `book-marked`,
- * `book-check`, `book-heart`, `book-key`, ..., plus markers like
- * `book-a`, `book-text`). The book is depicted as a single
- * closed-cover outline with the binding spine on the left and a
- * small step at the bottom-left indicating the back cover.
- *
- * The shape is one path — no separate pages, no separate covers —
- * so the motion is deliberately small: a subtle scale-and-y settle
- * reads as the book being placed onto a surface. No seam-attachment
- * issues (single anatomy), so a centre-pivoted scale is safe.
+ * Lucide closed-book shape (book and all -plus / -minus / -check / -x
+ * / -alert / -text / -image / -search / -lock / -key / -open / etc.
+ * variants). The closed-book is depicted as a single closed-cover
+ * outline with the binding spine on the left and a small step at
+ * the bottom-left indicating the back cover. Variants that inset a
+ * badge (book-key, book-lock, book-up-2, book-search) reshape the
+ * body into two fragments — every shape goes in the matcher.
  *
  * **Real-life physics**: a book landing on a shelf or desk. The
  * cover compresses ~1.5% as the spine takes the impact, while the
@@ -19,15 +16,30 @@ import { matchPathD, type Motion } from "../compose";
  * rest on a shared `times` schedule.
  *
  * Out of scope: `book-open` / `book-open-text` / `book-open-check`
- * (separate two-page anatomy with a spine line, deserve their own
- * motion), `bookmark*` (different shape entirely), `book-copy` and
- * `book-dashed` (currently use different path data).
+ * (separate two-page anatomy with a spine line — see
+ * `book-open-cover.ts`), `bookmark*` (different shape entirely),
+ * `book-copy` / `book-dashed` (different anatomies; signed via the
+ * family wildcard).
  *
- * Exports `BOOK_BODY_KEYFRAMES` so a future `bookModifierReveal`
- * can phase-lock its draw-in with the body's settle.
+ * Exports `BOOK_BODY_KEYFRAMES` so `bookModifierReveal` can phase-
+ * lock its draw-in with the body's settle.
  */
-const BOOK_SPINE_D =
-  "M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20";
+const BOOK_BODY_PATHS = [
+  // Canonical closed-book spine — shared by ~17 variants.
+  "M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20",
+  // book-key — corner cut for the inset key badge (two fragments)
+  "M13 2H6.5A2.5 2.5 0 0 0 4 4.5v15",
+  "M20 15.2V21a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20",
+  // book-lock — corner cut for the lock badge (two fragments)
+  "M20 15v6a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20",
+  "M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H10",
+  // book-up-2 — split body for the up-arrows badge
+  "M18 2h1a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20",
+  "M4 19.5v-15A2.5 2.5 0 0 1 6.5 2",
+  // book-search — reshaped for the search loupe at (17, 18)
+  "M11 22H5.5a1 1 0 0 1 0-5h4.501",
+  "M3 19.5v-15A2.5 2.5 0 0 1 5.5 2H18a1 1 0 0 1 1 1v8",
+];
 
 export const BOOK_BODY_KEYFRAMES = {
   // Cover compresses subtly as the book lands — closed cycle.
@@ -39,7 +51,7 @@ export const BOOK_BODY_KEYFRAMES = {
 };
 
 export const bookBody: Motion = {
-  matches: matchPathD(BOOK_SPINE_D),
+  matches: matchPathDOneOf(...BOOK_BODY_PATHS),
   factory: (ctx) => ({
     rest: { scale: 1, y: 0 },
     active: {

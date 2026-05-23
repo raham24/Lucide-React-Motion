@@ -12,5 +12,5 @@ import { alignReferenceLine } from "../motions/align-reference-line";
  */
 export default compose({
   motions: [alignReferenceLine, alignBox],
-  defaults: { duration: 0.7, easing: "easeOut", stagger: 0 },
+  defaults: { duration: 0.95, easing: "easeInOut", stagger: 0 },
 });

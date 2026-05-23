@@ -15,8 +15,13 @@ import type { Motion } from "../compose";
  *
  * Box slot:
  *
- * - First box (smaller axis position) → slot 0 (`t ∈ [0, 0.3]`)
- * - Second box (larger axis position) → slot 1 (`t ∈ [0.3, 0.6]`)
+ * - First box (smaller axis position) → slot 0 (`t ∈ [0, 0.5]`)
+ * - Second box (larger axis position) → slot 1 (`t ∈ [0.4, 0.9]`)
+ *
+ * Slots intentionally overlap so the second box starts emerging
+ * while the first is still settling — handoff feels continuous
+ * rather than discrete. `easeInOut` on every value so each box
+ * eases both into and out of motion (no snap).
  *
  * Boxes are detected as `<rect>` elements OR `<path>` elements
  * with an arc (`a`/`A`) command — in Lucide's align icons the
@@ -78,8 +83,11 @@ export const alignBox: Motion = {
     const c = firstCoord(ctx);
     const val = axis === "x" ? c.x : c.y;
     const slot = val < 12 ? 0 : 1;
-    const start = slot * 0.3;
-    const end = start + 0.3;
+    // Slot 0: [0, 0.5]; slot 1: [0.4, 0.9]. Slight overlap so the
+    // second box begins emerging while the first is still settling
+    // — keeps the cascade continuous rather than discrete.
+    const start = slot === 0 ? 0 : 0.4;
+    const end = slot === 0 ? 0.5 : 0.9;
     return {
       rest: {
         scale: 1,
@@ -98,12 +106,12 @@ export const alignBox: Motion = {
           repeat: ctx.repeat,
           scale: {
             inherit: true,
-            ease: "easeOut",
+            ease: "easeInOut",
             times: [0, start, end, 1],
           },
           opacity: {
             inherit: true,
-            ease: "easeOut",
+            ease: "easeInOut",
             times: [0, start, end, 1],
           },
         },

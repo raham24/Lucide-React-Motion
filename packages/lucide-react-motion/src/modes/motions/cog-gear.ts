@@ -110,6 +110,13 @@ const COG_TOOTH_DS = new Set<string>([
   "m8.53 21.696-.382-.924",
   "m9.773 16.852.922-.383",
   "m9.773 19.148.922.383",
+
+  // calendar-cog (cog at (18, 18) — most teeth match wifi-cog above,
+  // but Lucide ships two unique tooth d's for this composite that
+  // aren't in the wifi-cog set). Without these, those two teeth
+  // stayed still while the other six rotated with the gear.
+  "m15.228 19.148-.923.383",
+  "m16.47 14.305.382.923",
 ]);
 
 /**

@@ -2,14 +2,16 @@ import { matchPathD, type Motion } from "../compose";
 
 /**
  * `award`'s ribbon flag — the V-shaped tail that hangs below the
- * medal circle. Sways side-to-side from where it attaches to the
- * underside of the medal at (12, 13), reading as a banner / pendant
- * catching a breeze.
+ * medal circle. Sways side-to-side as if catching a breeze.
  *
- * Per-variant `transformOrigin: "12px 13px"` (resolved against
- * view-box `transformBox`) so the rotation pivots at the
- * attachment point, not the icon centre — the top of the ribbon
- * stays anchored to the medal while the tail swings.
+ * Implemented as a horizontal `x` translate `[0, -1.6, 1, -0.4, 0]`
+ * — anchorless so there's no transformOrigin / pivot dependency
+ * with the engine's view-box transformBox setup. The ribbon's top
+ * does shift slightly relative to the medal underside (it doesn't
+ * stay perfectly pinned the way a true rotation around the
+ * attachment point would), but the back-and-forth motion reads as
+ * a clear sway rather than a rotation that might fight the
+ * engine's per-element transform plumbing.
  *
  * Place this BEFORE `polishedShineSweep` in `award`'s compose list
  * so the ribbon path is claimed by the sway; the medal circle
@@ -21,10 +23,9 @@ const AWARD_RIBBON_D =
 export const awardRibbonSway: Motion = {
   matches: matchPathD(AWARD_RIBBON_D),
   factory: (ctx) => ({
-    rest: { rotate: 0, transformOrigin: "12px 13px" },
+    rest: { x: 0 },
     active: {
-      rotate: [0, -8, 5, -2, 0],
-      transformOrigin: "12px 13px",
+      x: [0, -1.6, 1, -0.4, 0],
       transition: {
         duration: ctx.duration,
         delay: ctx.delay,

@@ -1,7 +1,11 @@
 import { compose } from "../compose";
-import { polishedShineSweep } from "../motions/polished-shine-sweep";
+import { alertExclamationFlash, alertSignPulse } from "../motions/alert-sign";
 
+/**
+ * `circle-alert` — the exclamation mark flashes for attention while the
+ * ring holds steady with a small uniform flinch. See `alert-sign`.
+ */
 export default compose({
-  motions: [polishedShineSweep],
-  defaults: { duration: 0.7, easing: "easeInOut", stagger: 0.06 },
+  motions: [alertExclamationFlash, alertSignPulse],
+  defaults: { duration: 0.9, easing: "easeInOut", stagger: 0 },
 });

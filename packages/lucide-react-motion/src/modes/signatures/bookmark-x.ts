@@ -1,7 +1,13 @@
 import { compose } from "../compose";
-import { polishedShineSweep } from "../motions/polished-shine-sweep";
+import { bookmarkModifierReveal } from "../motions/bookmark-modifier-reveal";
+import { bookmarkStick } from "../motions/bookmark-stick";
 
+/**
+ * `bookmark-x` — body sticks in via `bookmarkStick`; the × strokes draw
+ * on via `bookmarkModifierReveal` (placed LAST) and ride the bookmark's
+ * bob.
+ */
 export default compose({
-  motions: [polishedShineSweep],
-  defaults: { duration: 0.7, easing: "easeInOut", stagger: 0.05 },
+  motions: [bookmarkStick, bookmarkModifierReveal],
+  defaults: { duration: 0.7, easing: "easeOut", stagger: 0 },
 });

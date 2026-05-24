@@ -1,7 +1,11 @@
 import { compose } from "../compose";
-import { polishedShineSweep } from "../motions/polished-shine-sweep";
+import { crownLift } from "../motions/crown-lift";
 
+/**
+ * `crown` — the jewelled band lifts as if raised in coronation, then
+ * settles; the base line stays planted. See `crownLift`.
+ */
 export default compose({
-  motions: [polishedShineSweep],
-  defaults: { duration: 0.7, easing: "easeInOut", stagger: 0 },
+  motions: [crownLift],
+  defaults: { duration: 0.9, easing: "easeInOut", stagger: 0 },
 });

@@ -1,7 +1,11 @@
 import { compose } from "../compose";
-import { polishedShineSweep } from "../motions/polished-shine-sweep";
+import { bookmarkStick } from "../motions/bookmark-stick";
 
+/**
+ * `bookmark` — sticks into the page (a downward push) and settles. See
+ * `bookmarkStick`.
+ */
 export default compose({
-  motions: [polishedShineSweep],
-  defaults: { duration: 0.7, easing: "easeInOut", stagger: 0 },
+  motions: [bookmarkStick],
+  defaults: { duration: 0.7, easing: "easeOut", stagger: 0 },
 });

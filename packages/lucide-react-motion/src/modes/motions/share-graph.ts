@@ -19,7 +19,7 @@ import type { ModeContext } from "../types";
  * Per-element `transformOrigin` set to the circle's `(cx, cy)` so
  * each node pulses in place via view-box `transformBox` override.
  */
-const SHARE_LINE_DS = [
+const SHARE_LINE_DS: string[] = [
   // share-2 connection lines (drawn as `<line>` but the engine
   // exposes them as path-tag elements with their own d on some
   // renderers — match both forms via the explicit endpoints in d).

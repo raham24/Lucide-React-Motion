@@ -1,3 +1,4 @@
+import type { Variants } from "motion/react";
 import { matchAnyPath, type Motion } from "../compose";
 import type { ModeContext } from "../types";
 
@@ -19,7 +20,7 @@ const NIB_DIAMOND_D =
 
 const COMMON_TIMES = [0, 0.4, 1];
 
-function makeAnchorVariants(ctx: ModeContext) {
+function makeAnchorVariants(ctx: ModeContext): Variants {
   return {
     rest: { scale: 1, opacity: 1, transformOrigin: "11px 11px" },
     active: {
@@ -37,7 +38,7 @@ function makeAnchorVariants(ctx: ModeContext) {
   };
 }
 
-function makeNibVariants(ctx: ModeContext) {
+function makeNibVariants(ctx: ModeContext): Variants {
   return {
     rest: {
       rotate: 0,
@@ -69,7 +70,7 @@ function makeNibVariants(ctx: ModeContext) {
   };
 }
 
-function makeBodyVariants(ctx: ModeContext) {
+function makeBodyVariants(ctx: ModeContext): Variants {
   return {
     rest: { opacity: 1 },
     active: {

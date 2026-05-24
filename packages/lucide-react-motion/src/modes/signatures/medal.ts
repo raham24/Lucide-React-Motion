@@ -1,14 +1,14 @@
 import { compose } from "../compose";
-import { medalRibbonSway } from "../motions/medal-ribbon-sway";
-import { polishedShineSweep } from "../motions/polished-shine-sweep";
+import { medalSway } from "../motions/medal-sway";
 
 /**
- * `medal` — the neck ribbon sways via `medalRibbonSway` (placed FIRST
- * so it claims the four strap paths); the medallion disc + "1" numeral
- * fall through to `polishedShineSweep` and catch light in place — the
- * same composition shape as `award`.
+ * `medal` — sways as a rigid body pivoted at the medallion centre so
+ * the disc stays put (rotation-invariant) while the neck ribbon swings
+ * and the join between them stays intact. Disc + "1" glint. See
+ * `medalSway`.
  */
 export default compose({
-  motions: [medalRibbonSway, polishedShineSweep],
+  motions: [medalSway],
   defaults: { duration: 1.1, easing: "easeInOut", stagger: 0 },
+  transformOrigin: "12px 17px",
 });

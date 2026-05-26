@@ -2,6 +2,10 @@
 
 ## 0.3.0
 
+### Breaking Changes
+
+- **Removed the generic modes `pulse`, `spin`, `shake`, and `bounce`.** `mode` now accepts only `"draw"`, `"signature"`, or a custom `ModeFactory`. Generic whole-icon presets read as filler next to the bespoke signatures and diluted the library's identity. **Migration:** swap `mode="pulse" | "spin" | "shake" | "bounce"` for `mode="signature"` (per-icon bespoke animation, falls back to `draw`), or pass your own `ModeFactory` to reproduce the old preset. (Pre-1.0, so shipped in a minor bump per semver's 0.x rule.)
+
 ### Minor Changes
 
 - Add bespoke signatures for `message-circle-dashed` (perimeter assembly), `message-circle-more` (typing dots), `message-circle-reply` (reply arrow), and `cloud-sync` (paired sync arrows). Each manifest entry now carries a `hasSignature: boolean` field so consumers can distinguish icons with a real signature from those that fall back to `draw`.

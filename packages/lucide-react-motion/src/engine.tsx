@@ -21,6 +21,7 @@ import {
   useState,
   type CSSProperties,
   type ElementType,
+  type KeyboardEvent,
   type MouseEvent,
   type ReactNode,
   type Ref,
@@ -29,7 +30,7 @@ import {
 } from "react";
 import {
   motion,
-  useAnimation,
+  useAnimationControls,
   useInView,
   useReducedMotion,
   type Easing,
@@ -43,7 +44,7 @@ import {
   type ModeFactory,
   type ModeName,
 } from "./modes";
-type LegacyAnimationControls = ReturnType<typeof useAnimation>;
+type AnimationControls = ReturnType<typeof useAnimationControls>;
 
 // ---------------------------------------------------------------------------
 // Public types
@@ -312,7 +313,7 @@ function resolveProps(
 // Trigger plumbing
 // ---------------------------------------------------------------------------
 
-function applyLeave(controls: LegacyAnimationControls, mode: OnLeave): void {
+function applyLeave(controls: AnimationControls, mode: OnLeave): void {
   if (mode === "redraw") {
     controls.start("active");
   } else if (mode === "complete") {
@@ -326,7 +327,7 @@ function applyLeave(controls: LegacyAnimationControls, mode: OnLeave): void {
 interface TriggerEffectsArgs {
   trigger: Trigger;
   onLeave: OnLeave;
-  controls: LegacyAnimationControls;
+  controls: AnimationControls;
   svgRef: RefObject<SVGSVGElement | null>;
   isReduced: boolean;
 }
@@ -344,7 +345,7 @@ function InViewSubscriber({
   isReduced,
 }: {
   svgRef: RefObject<SVGSVGElement | null>;
-  controls: LegacyAnimationControls;
+  controls: AnimationControls;
   isReduced: boolean;
 }): null {
   const inView = useInView(svgRef);
@@ -367,8 +368,16 @@ function useTriggerEffects({
   svgRef,
   isReduced,
 }: TriggerEffectsArgs): void {
-  // mount: fire once on first paint.
+  // mount: fire exactly once, on first paint, and only if the trigger is
+  // "mount" at that moment. The ref guards against the effect re-running when
+  // `trigger` / `isReduced` / `controls` change later — a runtime trigger swap
+  // or an OS reduced-motion toggle would otherwise replay the draw. "mount"
+  // means first paint, so a later switch *into* "mount" intentionally does not
+  // fire. (Also collapses React StrictMode's double-invoke to a single play.)
+  const mountFired = useRef(false);
   useEffect(() => {
+    if (mountFired.current) return;
+    mountFired.current = true;
     if (isReduced) return;
     if (trigger === "mount") controls.start("active");
   }, [trigger, controls, isReduced]);
@@ -402,7 +411,7 @@ type MotionProps = Pick<
 function getMotionProps(
   trigger: Trigger,
   onLeave: OnLeave,
-  controls: LegacyAnimationControls,
+  controls: AnimationControls,
   isReduced: boolean
 ): MotionProps {
   if (isReduced) {
@@ -466,7 +475,7 @@ export function DrawIcon(props: DrawIconProps) {
     r.reducedMotion === "always" ||
     (r.reducedMotion !== "never" && !!systemReduced);
 
-  const controls = useAnimation();
+  const controls = useAnimationControls();
   const svgRef = useRef<SVGSVGElement | null>(null);
 
   // Broadcast lifecycle phase as `data-motion-state` so consumers can sync
@@ -493,9 +502,15 @@ export function DrawIcon(props: DrawIconProps) {
     ref,
     () => ({
       play: () => {
+        // Under reduced motion the svg's `animate` is the static "rest"
+        // label, not `controls`, so `controls` is bound to no component.
+        // Calling start() then would trip motion's "no component is using
+        // these animation controls" warning and do nothing — so no-op.
+        if (isReduced) return;
         controls.start("active");
       },
       reset: () => {
+        if (isReduced) return;
         controls.start("rest");
       },
       // Getter so `node` reads `svgRef.current` lazily on access. The
@@ -509,7 +524,7 @@ export function DrawIcon(props: DrawIconProps) {
         return svgRef.current;
       },
     }),
-    [controls]
+    [controls, isReduced]
   );
 
   useTriggerEffects({
@@ -527,13 +542,15 @@ export function DrawIcon(props: DrawIconProps) {
     isReduced
   );
 
+  // Reset to rest synchronously so the active keyframe array re-fires from
+  // its first frame on every activation (click or keyboard).
+  const replayClick = () => {
+    controls.start("rest", { duration: 0 });
+    controls.start("active");
+  };
+
   const handleClick = (e: MouseEvent<SVGSVGElement>) => {
-    if (!isReduced && r.trigger === "click") {
-      // Reset to rest synchronously so the active keyframe array re-fires
-      // from its first frame on every click.
-      controls.start("rest", { duration: 0 });
-      controls.start("active");
-    }
+    if (!isReduced && r.trigger === "click") replayClick();
     onClick?.(e);
   };
 
@@ -570,6 +587,35 @@ export function DrawIcon(props: DrawIconProps) {
   delete cleanedPassthrough.onAnimationComplete;
   delete cleanedPassthrough["data-motion-state"];
 
+  // Keyboard a11y for standalone click-triggered icons. With `trigger="click"`
+  // the icon is interactive, but an <svg> is neither focusable nor keyboard-
+  // operable by default. Unless the consumer supplied their own role/tabIndex/
+  // onKeyDown (e.g. they wrap the icon in a real <button>), make it behave like
+  // a button: focusable, and activatable with Enter/Space. Decorative triggers
+  // (hover/mount/in-view/parent-hover/manual) get none of this.
+  const consumerOnKeyDown = cleanedPassthrough.onKeyDown as
+    | ((e: KeyboardEvent<SVGSVGElement>) => void)
+    | undefined;
+  const a11yProps: {
+    role?: string;
+    tabIndex?: number;
+    onKeyDown?: (e: KeyboardEvent<SVGSVGElement>) => void;
+  } = {};
+  if (r.trigger === "click") {
+    a11yProps.role = (cleanedPassthrough.role as string | undefined) ?? "button";
+    a11yProps.tabIndex =
+      (cleanedPassthrough.tabIndex as number | undefined) ?? 0;
+    a11yProps.onKeyDown = (e: KeyboardEvent<SVGSVGElement>) => {
+      if ((e.key === "Enter" || e.key === " ") && !isReduced) {
+        // Space scrolls the page by default; Enter is inert on <svg>. Either
+        // way we own the activation, so suppress the default.
+        e.preventDefault();
+        replayClick();
+      }
+      consumerOnKeyDown?.(e);
+    };
+  }
+
   return (
     <>
       {r.trigger === "in-view" && (
@@ -584,6 +630,7 @@ export function DrawIcon(props: DrawIconProps) {
         {...SVG_BASE}
         {...motionProps}
         {...cleanedPassthrough}
+        {...a11yProps}
         ref={svgRef}
         width={r.size}
         height={r.size}
@@ -662,6 +709,12 @@ function AnimatedNode({
   // actually plays.
   const [pathLength, setPathLength] = useState(0);
 
+  // `attrs` is in the deps so a path that changes shape re-measures. For
+  // generated icons `attrs` is a module-level constant, so this runs once;
+  // it only re-fires for the `<DrawIcon nodes={dynamic} />` escape hatch when
+  // a consumer swaps node geometry, where re-measuring is the correct
+  // behavior. `getTotalLength` is absent in non-DOM/SSR environments (and in
+  // jsdom) — the typeof guard makes that a no-op, leaving pathLength at 0.
   useLayoutEffect(() => {
     const el = ref.current;
     if (!el || typeof el.getTotalLength !== "function") return;
@@ -677,22 +730,44 @@ function AnimatedNode({
   const MotionTag =
     (motion as unknown as Record<string, ElementType>)[tag] ?? motion.path;
 
-  const v: Variants =
-    typeof variantsOverride === "function"
-      ? variantsOverride(index)
-      : (variantsOverride ??
-        modeFactory({
-          iconName,
-          index,
-          pathTag: tag,
-          pathAttrs: attrs,
-          duration: timing.duration,
-          delay: timing.delay,
-          stagger: timing.stagger,
-          easing: timing.easing,
-          repeat: timing.repeat,
-          pathLength,
-        }));
+  // Memoize the variants so the parent's `setMotionState` re-render (on every
+  // animation start/complete) doesn't rebuild a fresh variants object and hand
+  // motion a new reference mid-animation. Inputs are stable in the common case:
+  // `modeFactory` is a module-level reference for `draw`/`signature`, `attrs`
+  // is the generated icon's static node array, and the timing values are
+  // primitives. (An inline `mode`/`variants` function re-derives, as expected.)
+  const v = useMemo<Variants>(
+    () =>
+      typeof variantsOverride === "function"
+        ? variantsOverride(index)
+        : (variantsOverride ??
+          modeFactory({
+            iconName,
+            index,
+            pathTag: tag,
+            pathAttrs: attrs,
+            duration: timing.duration,
+            delay: timing.delay,
+            stagger: timing.stagger,
+            easing: timing.easing,
+            repeat: timing.repeat,
+            pathLength,
+          })),
+    [
+      variantsOverride,
+      modeFactory,
+      iconName,
+      index,
+      tag,
+      attrs,
+      timing.duration,
+      timing.delay,
+      timing.stagger,
+      timing.easing,
+      timing.repeat,
+      pathLength,
+    ]
+  );
 
   return (
     <MotionTag

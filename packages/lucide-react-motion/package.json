@@ -59,6 +59,7 @@
     "@types/node": "catalog:",
     "@types/react": "catalog:",
     "lucide-static": "^1.16.0",
+    "lucide-static-legacy": "npm:lucide-static@0.129.0",
     "motion": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:",

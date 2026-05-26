@@ -101,6 +101,26 @@ const iconNodes = JSON.parse(
 const tagsPath = require_.resolve("lucide-static/tags.json");
 const iconTags = JSON.parse(readFileSync(tagsPath, "utf8")) as TagsFile;
 
+// Brand icons restored from the deprecated pre-v0.130 Lucide set (github,
+// linkedin, slack, ...). Source of truth is `scripts/brand-icons.json`;
+// nodes and tags are merged into the upstream maps so the rest of the
+// pipeline (manifest, codegen, signatures) treats them identically.
+const brandIconsPath = join(__dirname, "brand-icons.json");
+type BrandIconEntry = { nodes: IconNode[]; tags: string[] };
+const brandIcons = JSON.parse(
+  readFileSync(brandIconsPath, "utf8")
+) as Record<string, BrandIconEntry>;
+for (const [name, entry] of Object.entries(brandIcons)) {
+  if (name in iconNodes) {
+    throw new Error(
+      `brand-icons.json: "${name}" collides with an upstream lucide-static icon. ` +
+        `Rename the entry or drop it.`
+    );
+  }
+  iconNodes[name] = entry.nodes;
+  iconTags[name] = entry.tags;
+}
+
 const signatureNames = loadSignatureNames();
 
 // Overwrite in place rather than `rmSync`-ing the output directory: a wipe
@@ -152,6 +172,7 @@ export const manifest: ManifestEntry[] = ${JSON.stringify(manifest, null, 2)};
 `;
 writeFileSync(join(outDir, "manifest.ts"), manifestModule);
 
+const brandCount = Object.keys(brandIcons).length;
 console.log(
-  `generated ${manifest.length} icons (${signatureNames.size} with signatures) -> src/generated/`
+  `generated ${manifest.length} icons (${signatureNames.size} with signatures, ${brandCount} brand) -> src/generated/`
 );

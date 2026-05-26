@@ -82,11 +82,12 @@ This is a pnpm + Turborepo monorepo.
 packages/
   lucide-react-motion/   The published library (tsup, dual ESM/CJS, RSC-safe)
     src/
-      engine.tsx           Core <DrawIcon /> + provider + trigger plumbing
-      generated/           1,700+ icon components (codegen output, gitignored)
-      manifest.ts          Generated icon catalog: { name, component, tags: readonly string[] }
-    scripts/generate.ts    Codegen from lucide-static
-    tsup.config.ts         Two-pass build: main bundle + /manifest subpath
+      engine.tsx              Core <DrawIcon /> + provider + trigger plumbing
+      generated/              1,700+ icon components (codegen output, gitignored)
+      manifest.ts             Generated icon catalog: { name, component, tags: readonly string[] }
+    scripts/generate.ts       Codegen from lucide-static + scripts/brand-icons.json
+    scripts/brand-icons.json  Restored deprecated Lucide brand logos (github, linkedin, ...)
+    tsup.config.ts            Two-pass build: main bundle + /manifest subpath
 apps/
   site/                  Docs, gallery, playground (Next.js + Fumadocs)
 ```
@@ -208,6 +209,18 @@ The generator (`packages/lucide-react-motion/scripts/generate.ts`) writes:
 - a `manifest.ts` cataloging every icon (name, component, tags)
 - the barrel `index.ts` re-exports
 
+### Restored Lucide brand logos
+
+`packages/lucide-react-motion/scripts/brand-icons.json` carries 16 brand logos (github, gitlab, linkedin, twitter, facebook, instagram, youtube, twitch, slack, figma, dribbble, codepen, codesandbox, framer, trello, chrome) that were deprecated and removed from Lucide in v0.130. The generator merges this file into the upstream icon-nodes map, so brand entries get the same per-icon component / manifest entry / barrel export as anything from `lucide-static`. A name collision with upstream throws at generation time.
+
+To add or remove a logo, edit `brand-icons.json` and rerun:
+
+```bash
+pnpm --filter lucide-react-motion generate
+```
+
+Schema matches `lucide-static/icon-nodes.json` — each entry is `{ nodes: [[tag, attrs], ...], tags: [...] }`. The icons themselves were harvested once from `lucide-static@0.129.0` (the last release that shipped them); `brand-icons.json` is the tracked source of truth, so the legacy package is only needed if you want to harvest more.
+
 ### Editing the engine
 
 `packages/lucide-react-motion/src/engine.tsx` is hand-written. It owns:
@@ -260,6 +273,7 @@ Issues and PRs welcome at [github.com/Aadil1505/Lucide-React-Motion](https://git
 
 - [**Aadil Alli**](https://github.com/Aadil1505) — author, maintainer
 - [**Mani Tofigh**](https://github.com/manitofigh) — contributor
+- [**Raham Butt**](https://github.com/raham24) — contributor
 
 PRs welcome — see [Contributing](#contributing).
 

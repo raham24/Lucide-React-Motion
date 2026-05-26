@@ -8,11 +8,15 @@ import iconNodes from "lucide-static/icon-nodes.json";
 import type { DrawIconProps, IconNode } from "lucide-react-motion";
 import { IconHero } from "@/components/icon-detail/icon-hero";
 import { TimingPresets } from "@/components/icon-detail/timing-presets";
+import { brandNodes, isUpstreamLucide } from "@/lib/brand-icons";
 import { getAllSlugs, getIcon } from "@/lib/icon-data";
 
 type IconComponent = ComponentType<Omit<DrawIconProps, "nodes">>;
 const IconMap = Icons as unknown as Record<string, IconComponent | undefined>;
-const nodesByName = iconNodes as unknown as Record<string, IconNode[] | undefined>;
+const nodesByName = { ...iconNodes, ...brandNodes } as unknown as Record<
+  string,
+  IconNode[] | undefined
+>;
 
 export function generateStaticParams() {
   return getAllSlugs().map((name) => ({ name }));
@@ -78,24 +82,26 @@ export default async function IconPage(props: PageProps<"/icons/[name]">) {
               <code>{icon.component}Icon</code>
             </p>
           </div>
-          <div className="flex gap-2">
-            <a
-              href={`https://lucide.dev/icons/${icon.name}`}
-              target="_blank"
-              rel="noreferrer"
-              className="border border-border px-3 py-1.5 text-xs uppercase tracking-[0.12em] transition-colors hover:bg-foreground hover:text-background hover:border-foreground"
-            >
-              View on Lucide ↗
-            </a>
-            <a
-              href={`https://github.com/lucide-icons/lucide/blob/main/icons/${icon.name}.svg`}
-              target="_blank"
-              rel="noreferrer"
-              className="border border-border px-3 py-1.5 text-xs uppercase tracking-[0.12em] transition-colors hover:bg-foreground hover:text-background hover:border-foreground"
-            >
-              Source ↗
-            </a>
-          </div>
+          {isUpstreamLucide(icon.name) && (
+            <div className="flex gap-2">
+              <a
+                href={`https://lucide.dev/icons/${icon.name}`}
+                target="_blank"
+                rel="noreferrer"
+                className="border border-border px-3 py-1.5 text-xs uppercase tracking-[0.12em] transition-colors hover:bg-foreground hover:text-background hover:border-foreground"
+              >
+                View on Lucide ↗
+              </a>
+              <a
+                href={`https://github.com/lucide-icons/lucide/blob/main/icons/${icon.name}.svg`}
+                target="_blank"
+                rel="noreferrer"
+                className="border border-border px-3 py-1.5 text-xs uppercase tracking-[0.12em] transition-colors hover:bg-foreground hover:text-background hover:border-foreground"
+              >
+                Source ↗
+              </a>
+            </div>
+          )}
         </header>
 
         {/* Hero */}

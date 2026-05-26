@@ -12,8 +12,9 @@ import { matchAnyPath, type Motion } from "../compose";
  * Uses `strokeDashoffset` + `opacity` so no transform origin is needed —
  * works cleanly under the bell's `12px 4px` mount pivot without scaling
  * from the wrong point. Animates against a measured `ctx.pathLength` and
- * clears the dash attrs via `transitionEnd` so the resting DOM is
- * byte-identical to Lucide's static SVG (see `src/modes/draw.ts`).
+ * clears the dash attrs via `transitionEnd` so the resting stroke is
+ * solid and seam-free, matching Lucide's static SVG visually (see
+ * `src/modes/draw.ts`).
  *
  * Wildcard match: place this last in the compose `motions` list so the
  * shell and clapper get matched first; whatever's left is the modifier.

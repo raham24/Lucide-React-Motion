@@ -17,8 +17,8 @@ import { FILE_ENVELOPE_KEYFRAMES } from "./file-envelope";
  *
  * The reveal animates `strokeDashoffset` against the measured
  * `ctx.pathLength` and clears the dash attrs on `transitionEnd` so
- * the resting DOM stays byte-identical to Lucide's static SVG (see
- * `src/modes/draw.ts` for the canonical pattern).
+ * the resting stroke stays solid and seam-free, matching Lucide's
+ * static SVG visually (see `src/modes/draw.ts` for the canonical pattern).
  *
  * The reveal completes AT the body's settle peak (t = 0.4, the moment
  * the page lands) — the marker stamps the page in step with the

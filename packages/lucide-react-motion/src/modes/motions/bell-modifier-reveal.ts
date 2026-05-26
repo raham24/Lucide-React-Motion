@@ -14,9 +14,9 @@ import { BELL_SHELL_KEYFRAMES } from "./bell-shell";
  * The reveal animates `strokeDashoffset` against a measured
  * `ctx.pathLength` instead of Motion's `pathLength` shortcut (which
  * leaves `pathLength="1"` + `stroke-dasharray="1 1"` on the DOM at
- * rest, breaking byte-identical-to-Lucide rendering). `transitionEnd`
- * resets both dash attrs to 0 after the play so the rest state stays
- * dash-free. See `src/modes/draw.ts` for the canonical pattern.
+ * rest, re-introducing the closed-path seam). `transitionEnd` resets
+ * both dash attrs to 0 after the play so the resting stroke stays
+ * solid and seam-free. See `src/modes/draw.ts` for the canonical pattern.
  *
  * Rotate uses `inherit: true` so the host transition's duration / delay
  * / repeat propagate down. Without that, motion-dom replaces the

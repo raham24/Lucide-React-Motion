@@ -16,8 +16,8 @@ import type { Motion } from "../compose";
  * glide (peak at `t = 0.4`) lands as the lines are wrapping up.
  *
  * `strokeDasharray` + `strokeDashoffset` against `ctx.pathLength`,
- * cleared on `transitionEnd` so rest stays byte-identical to
- * Lucide. Opacity flips 0 → 1 in sync with the stroke draw.
+ * cleared on `transitionEnd` so the resting stroke stays solid and
+ * seam-free. Opacity flips 0 → 1 in sync with the stroke draw.
  *
  * Place this FIRST in each narrow-wide variant's compose list so
  * the lines are claimed before `arrowSortContent`'s greedier

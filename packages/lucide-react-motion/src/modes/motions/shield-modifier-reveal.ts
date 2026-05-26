@@ -24,7 +24,7 @@ import { SHIELD_BODY_KEYFRAMES } from "./shield-body";
  *
  * - `<path>` / `<line>` → `strokeDasharray` + `strokeDashoffset`
  *   draw-in over the measured `ctx.pathLength` (cleared on
- *   `transitionEnd` so rest stays byte-identical to Lucide).
+ *   `transitionEnd` so the resting stroke stays solid and seam-free).
  * - `<circle>` → `scale` from 0, pivoted at the circle's own
  *   `fill-box` centre so the reveal stamps in place rather than
  *   sliding from the signature's bottom-tip pivot.

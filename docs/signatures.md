@@ -123,8 +123,7 @@ viewBox violation; see project memory
 value.** When the active animation completes, the icon stays at the
 final keyframe — there is no engine-level snap-back. If the cycle
 doesn't return to rest, the icon visibly drifts away from its
-Lucide-original glyph after a play, violating the byte-identical-to-
-Lucide guarantee.
+Lucide-original glyph after a play, leaving it permanently off-model.
 
 Author each keyframe array as a closed loop: `scale: [1, 0.94, 1]`,
 `y: [0, -3, 3, 0]`, `opacity: [1, 0.3, 1]`. For loop-shaped motions
@@ -307,7 +306,8 @@ produces a visible seam where the start and end meet. The default
 `draw` mode and every bespoke signature motion now use `ctx.pathLength`
 to set a real `stroke-dasharray` and animate `stroke-dashoffset`
 directly, then clear both back to `0` via `transitionEnd` so the
-resting DOM is byte-identical to Lucide's static SVG.
+resting stroke is solid and seam-free, matching Lucide's static SVG
+visually.
 
 **Authoring rule:** when a NEW motion needs a stroke-on reveal, mirror
 the dasharray approach in `src/modes/draw.ts` (or any existing

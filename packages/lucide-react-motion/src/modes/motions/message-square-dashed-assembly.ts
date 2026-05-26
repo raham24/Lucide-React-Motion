@@ -28,8 +28,8 @@ import { MESSAGE_SQUARE_BODY_KEYFRAMES } from "./message-square-body";
  * the bubble to nod with the assembled outline.
  *
  * Each segment uses `strokeDasharray` + `strokeDashoffset` against
- * the measured `ctx.pathLength` (cleared on `transitionEnd` so rest
- * stays byte-identical to Lucide), with opacity flipping from 0 to
+ * the measured `ctx.pathLength` (cleared on `transitionEnd` so the
+ * resting stroke stays solid and seam-free), with opacity flipping from 0 to
  * 1 in sync with the stroke draw — same pattern as the family
  * wildcard, just with per-segment `times`.
  *

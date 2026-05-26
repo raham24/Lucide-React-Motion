@@ -11,8 +11,8 @@ import { matchPathDOneOf, type Motion } from "../compose";
  * measured `ctx.pathLength`, mirroring the badge-modifier-reveal
  * pattern: `strokeDasharray` is snapped to the path length so the
  * offset animation reads as a clean reveal, then both attrs are
- * cleared via `transitionEnd` so the resting DOM stays byte-identical
- * to Lucide's static SVG.
+ * cleared via `transitionEnd` so the resting stroke stays solid and
+ * seam-free, matching Lucide's static SVG visually.
  *
  * The plot completes at `t = 0.7` and holds drawn for the remaining
  * 30% of the cycle — the axes' opacity breath continues underneath so

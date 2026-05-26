@@ -23,8 +23,8 @@ import { BADGE_SHELL_KEYFRAMES } from "./badge-shell";
  *
  * The reveal animates `strokeDashoffset` against the measured
  * `ctx.pathLength` and clears the dash attrs on `transitionEnd` so the
- * resting DOM stays byte-identical to Lucide's static SVG (see
- * `src/modes/draw.ts` for the canonical pattern). Works for both
+ * resting stroke stays solid and seam-free, matching Lucide's static
+ * SVG visually (see `src/modes/draw.ts` for the canonical pattern). Works for both
  * `<path>` and `<line>` because both expose `getTotalLength()`.
  *
  * Strike completes at `t = 0.4` — exactly when the shell reaches its

@@ -16,7 +16,8 @@ import { CALENDAR_FRAME_KEYFRAMES } from "./calendar-frame";
  *
  * The reveal animates `strokeDashoffset` against the measured
  * `ctx.pathLength` and clears the dash attrs on `transitionEnd` so
- * the resting DOM stays byte-identical to Lucide's static SVG.
+ * the resting stroke stays solid and seam-free, matching Lucide's
+ * static SVG visually.
  *
  * The reveal completes AT the body's settle peak (t = 0.4, the
  * moment the calendar lands) — the marker stamps the calendar in

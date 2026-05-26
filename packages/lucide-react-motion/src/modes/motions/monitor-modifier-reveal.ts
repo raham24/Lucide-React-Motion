@@ -23,8 +23,8 @@ import { MONITOR_SCREEN_KEYFRAMES } from "./monitor-chassis";
  *
  * - `<path>` / `<line>` → `strokeDasharray` + `strokeDashoffset`
  *   draw-in over the measured `ctx.pathLength` (cleared on
- *   `transitionEnd` so rest stays byte-identical to Lucide's static
- *   SVG, per `src/modes/draw.ts`).
+ *   `transitionEnd` so the resting stroke stays solid and seam-free,
+ *   matching Lucide's static SVG visually, per `src/modes/draw.ts`).
  * - `<circle>` / `<rect>` → `scale` from 0, pivoted at the element's
  *   own `fill-box` centre so the reveal stamps in place rather than
  *   sliding from the signature's screen-pivot.

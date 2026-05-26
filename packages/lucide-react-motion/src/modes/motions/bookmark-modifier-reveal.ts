@@ -13,8 +13,8 @@ import { BOOKMARK_STICK_KEYFRAMES } from "./bookmark-stick";
  *
  * The reveal animates `strokeDashoffset` against the measured
  * `ctx.pathLength` and clears the dash attrs on `transitionEnd` so the
- * resting DOM stays byte-identical to Lucide's static SVG (the
- * canonical pattern in `src/modes/draw.ts`; works for `<path>` and
+ * resting stroke stays solid and seam-free, matching Lucide's static
+ * SVG visually (the canonical pattern in `src/modes/draw.ts`; works for `<path>` and
  * `<line>` alike). The strike completes at `t = 0.4` — the moment the
  * bookmark reaches its deepest push — so the marker stamps in as the
  * bookmark seats.

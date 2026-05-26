@@ -47,7 +47,7 @@ function lastFrame(value: unknown): unknown {
  * land back at its rest value, either by ending its keyframe array at the
  * rest value OR by clearing the property in `transitionEnd`. Without this
  * invariant the icon visibly drifts away from its Lucide-original glyph
- * after a play, which violates the byte-identical-to-Lucide guarantee.
+ * after a play, leaving it permanently off-model from Lucide's glyph.
  *
  * Best practice: author each motion's `active` keyframes as a closed cycle
  * that starts and ends at the rest value. Do not rely on an engine-level

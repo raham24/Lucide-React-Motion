@@ -4,7 +4,7 @@ Lucide icons as animated React components, powered by [Motion](https://motion.de
 
 ## Features
 
-- **Byte-identical to Lucide's static SVG at rest** — no leftover `pathLength` or `stroke-dasharray` attributes, no geometry drift on closed-loop icons (gear, cloud, heart).
+- **No closed-loop seam at rest** — closed-path icons (gear, cloud, heart) settle to a clean, continuous stroke. The draw animates `strokeDashoffset` rather than Motion's `pathLength` shortcut, which would otherwise bake in a `stroke-dasharray` dash pattern and leave a hairline gap where the path closes; at rest the sweep collapses to a solid stroke (`stroke-dasharray: 0`).
 - **1,700+ icons**, generated from `lucide-static`, individually importable so the bundler tree-shakes anything you don't use.
 - **Six triggers**: `hover`, `click`, `mount`, `in-view`, `parent-hover`, `manual` (with an imperative `ref` handle).
 - **Per-icon character animations** via `mode="signature"` — a heart beats, a bell rings, a clock ticks. Falls back to the default stroke-on draw for icons without a registered signature.

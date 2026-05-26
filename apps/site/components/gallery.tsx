@@ -21,12 +21,18 @@ export function Gallery() {
   const [query, setQuery] = useState("");
   const [limit, setLimit] = useState(PAGE_SIZE);
   const [mode, setMode] = useState<ModeName>("draw");
+  const [hideFallbacks, setHideFallbacks] = useState(false);
   const reduced = useReducedMotion();
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return q ? manifest.filter((m) => m.name.includes(q)) : manifest;
-  }, [query]);
+    const showSignedOnly = mode === "signature" && hideFallbacks;
+    return manifest.filter((m) => {
+      if (q && !m.name.includes(q)) return false;
+      if (showSignedOnly && !m.hasSignature) return false;
+      return true;
+    });
+  }, [query, mode, hideFallbacks]);
 
   const visible = filtered.slice(0, limit);
 
@@ -57,7 +63,10 @@ export function Gallery() {
             spacing={1}
             value={mode}
             onValueChange={(value) => {
-              if (value) setMode(value as ModeName);
+              if (value) {
+                setMode(value as ModeName);
+                setLimit(PAGE_SIZE);
+              }
             }}
             aria-label="Animation mode"
           >
@@ -76,10 +85,33 @@ export function Gallery() {
       </div>
 
       <div className="mt-12 space-y-4">
-        <div className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-          {query
-            ? `${filtered.length} matches for "${query}"`
-            : "All icons · hover any to draw it on"}
+        {/* Result-count line doubles as the signature-filter affordance.
+            Keeps the sticky bar fixed-width across mode changes; the
+            counter + toggle live where the user reads "what am I
+            looking at right now." */}
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+          <span>
+            {query
+              ? `${filtered.length.toLocaleString()} matches for "${query}"`
+              : `${filtered.length.toLocaleString()} ${mode === "signature" && hideFallbacks ? "signed " : ""}icons · hover any to see it move`}
+          </span>
+          {mode === "signature" && (
+            <span className="flex items-center gap-2">
+              <span aria-hidden>·</span>
+              <button
+                type="button"
+                onClick={() => {
+                  setHideFallbacks((v) => !v);
+                  setLimit(PAGE_SIZE);
+                }}
+                aria-pressed={hideFallbacks}
+                title="Icons without a bespoke signature fall back to the draw animation."
+                className="cursor-pointer underline-offset-2 transition-colors hover:text-foreground hover:underline focus-visible:text-foreground focus-visible:underline focus-visible:outline-none"
+              >
+                {hideFallbacks ? "Show All" : "Show Only Signed"}
+              </button>
+            </span>
+          )}
         </div>
 
         {visible.length === 0 ? (

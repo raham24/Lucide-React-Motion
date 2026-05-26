@@ -31,6 +31,7 @@ interface ManifestEntry {
   name: string;
   component: string;
   tags: readonly string[];
+  hasSignature: boolean;
 }
 
 function pascal(name: string): string {
@@ -125,7 +126,7 @@ for (const name of Object.keys(iconNodes)) {
   indexLines.push(
     `export { default as ${component}, default as ${component}Icon, type ${component}Props } from "./${name}";`
   );
-  manifest.push({ name, component, tags: iconTags[name] ?? [] });
+  manifest.push({ name, component, tags: iconTags[name] ?? [], hasSignature });
 }
 
 writeFileSync(join(outDir, "index.ts"), indexLines.join("\n") + "\n");
@@ -138,6 +139,13 @@ export interface ManifestEntry {
   name: string;
   component: string;
   tags: readonly string[];
+  /**
+   * True when the icon has a bespoke per-icon signature animation registered
+   * under \`src/modes/signatures/\`. False means \`mode="signature"\` falls
+   * back to \`mode="draw"\` at runtime. Useful for filtering UI in galleries
+   * and docs sites to show only icons with completed signatures.
+   */
+  hasSignature: boolean;
 }
 
 export const manifest: ManifestEntry[] = ${JSON.stringify(manifest, null, 2)};

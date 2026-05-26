@@ -1,11 +1,16 @@
 import { defineConfig } from "vitest/config";
 
-// Pure-function tests only — no JSX rendering, no jsdom, no React.
-// The resolver logic in src/modes/resolve.ts has zero React dependency,
-// so a Node environment is enough and keeps the test setup minimal.
+// Two kinds of tests live here:
+//   - Pure-function tests (`*.test.ts`) — resolver/variant logic with zero
+//     React dependency. Run in the default Node environment.
+//   - Render-side tests (`*.test.tsx`) — exercise the engine's React state
+//     machine. They opt into jsdom per-file with a `// @vitest-environment
+//     jsdom` docblock so the Node tests stay fast.
 export default defineConfig({
   test: {
     environment: "node",
-    include: ["src/**/*.test.ts"],
+    globals: true,
+    setupFiles: ["./vitest.setup.ts"],
+    include: ["src/**/*.test.ts", "src/**/*.test.tsx"],
   },
 });

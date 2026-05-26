@@ -43,7 +43,7 @@ The `variants` prop, if set, wins over `mode` and replaces the animation entirel
 
 ## `"draw"` (default)
 
-The classic stroke-on animation. Each path draws itself on by animating `strokeDashoffset` from its measured length down to `0`, with strokes cascading by the `stagger` prop. At rest the dash attributes clear entirely, so the resting SVG is byte-identical to Lucide's static icon (no seam on closed paths like the gear or heart).
+The classic stroke-on animation. Each path draws itself on by animating `strokeDashoffset` from its measured length down to `0`, with strokes cascading by the `stagger` prop. At rest the dash sweep collapses to a plain solid stroke, so closed paths like the gear or heart render seam-free — matching how Lucide draws them (unlike Motion's `pathLength` shortcut, which leaves a hairline gap at the closure).
 
 <Preview>
   <Heart size={48} />

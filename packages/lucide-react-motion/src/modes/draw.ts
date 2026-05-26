@@ -9,16 +9,22 @@ import type { Mode } from "./types";
  * permanently. The leftover normalized dash pattern produces a visible seam
  * on icons whose path starts and ends near the same point (gear, cloud,
  * heart, ...) because the dash boundary lands on the closure and the two
- * round linecaps render with a hairline gap between them. To render
- * byte-identical to Lucide's static SVG, the resting DOM must carry no
- * dash attributes at all.
+ * round linecaps render with a hairline gap between them. The fix is to
+ * never write a live dash *pattern* at rest, so the resting stroke is
+ * solid and seam-free (matching Lucide's visual rendering).
  *
  * So instead: at rest we set `strokeDasharray` and `strokeDashoffset` to 0
- * (solid stroke, no dashing). During the active draw-in we snap
- * `strokeDasharray` to the element's measured length and animate
- * `strokeDashoffset` from `length → 0`. `transitionEnd` clears
- * `strokeDasharray` back to 0 the moment the draw finishes so the resting
- * state remains dash-free even after a play.
+ * (a 0 dasharray means no dashing — a plain solid stroke). During the
+ * active draw-in we snap `strokeDasharray` to the element's measured length
+ * and animate `strokeDashoffset` from `length → 0`. `transitionEnd` clears
+ * `strokeDasharray` back to 0 the moment the draw finishes so no dash
+ * pattern lingers after a play.
+ *
+ * Note: the rest variant still emits `stroke-dasharray="0"` /
+ * `stroke-dashoffset="0"` attributes (Motion renders the variant's values),
+ * so the resting DOM is *visually* identical to Lucide but not literally
+ * attribute-for-attribute identical. The seam — the thing that actually
+ * mattered — is gone.
  */
 export const draw: Mode = {
   factory: (ctx) => ({

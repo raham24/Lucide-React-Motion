@@ -24,11 +24,11 @@
 
   `calendarFrame` also extended to match `calendar-off`'s split body fragments (`M21 15.5V6...`) and split divider stubs (`M3 10h7`, `M21 10h-5.5`) so they bob with the rest of the frame, leaving only the slash for the wildcard reveal.
 
-- dfc6e93: Render byte-identical to Lucide's static SVG at rest.
+- dfc6e93: Eliminate the closed-loop seam — render a clean solid stroke at rest.
 
   The default `draw` mode previously used Motion's `pathLength` shortcut, which permanently writes `pathLength="1"`, `stroke-dasharray="1 1"`, and `stroke-dashoffset="0"` to every rendered element. On icons whose path starts and ends near the same point (settings gear, cloud, heart, ...) the normalized dash boundary lands on the closure and the two round linecaps render with a visible gap between them. The resting DOM also differed structurally from Lucide's reference SVG, which carries no dash attributes at all.
 
-  The default `draw` mode now measures each element's real path length via `getTotalLength()` and animates `stroke-dashoffset` against a real `stroke-dasharray`. At rest both attributes collapse to `0` (solid stroke, no dashing), and a `transitionEnd` resets them after every play so the resting DOM stays dash-free even after the animation completes.
+  The default `draw` mode now measures each element's real path length via `getTotalLength()` and animates `stroke-dashoffset` against a real `stroke-dasharray`. At rest both collapse to `0` (a `0` dasharray is a plain solid stroke, no dash pattern), and a `transitionEnd` resets them after every play so no dash pattern lingers after the animation completes.
 
   `ModeContext` gains a required `pathLength: number` field carrying the measured length. Anyone building a custom mode by inferring the factory signature (`(ctx) => Variants`) is unaffected — TypeScript infers it. Anyone hand-typing a `ModeContext` literal (typically in tests) will need to add `pathLength` to the object.
 
@@ -50,7 +50,7 @@
 
   Added a `rest-cycle.test.ts` invariant test that iterates every motion in `src/modes/motions/` via `import.meta.glob`, calls the factory, and asserts each animated property in `active` lands at its `rest` value (literally for most, mod-360 for rotations). Catches this class of bug automatically going forward.
 
-- d294583: Internal: migrate every bespoke signature motion (modifier-reveals, EKG pulse line, volume sound waves, wifi pen-write, wifi signal waves) off Motion's `pathLength` shortcut and onto the same `strokeDasharray` / `strokeDashoffset` pattern the default `draw` mode now uses. Every signed icon at rest now renders with no `pathLength="1"` or `stroke-dasharray="1 1"` attributes on the DOM — consistent with the byte-identical-to-Lucide guarantee. No visual or timing changes to the animations themselves.
+- d294583: Internal: migrate every bespoke signature motion (modifier-reveals, EKG pulse line, volume sound waves, wifi pen-write, wifi signal waves) off Motion's `pathLength` shortcut and onto the same `strokeDasharray` / `strokeDashoffset` pattern the default `draw` mode now uses. Every signed icon at rest now renders with no `pathLength="1"` or `stroke-dasharray="1 1"` attributes on the DOM — consistent with the seam-free solid stroke the default `draw` mode produces. No visual or timing changes to the animations themselves.
 - 0496d11: Drop sourcemaps from the published tarball by default. The two `.map` files (`index.js.map` + `index.cjs.map`) were ~5 MB of the ~9 MB unpacked package size and are never read by consumers shipping minified bundles. Set `SOURCEMAP=true pnpm build` locally if you need them for debugging or release inspection.
 
 ## 0.2.0

@@ -86,10 +86,15 @@ interface MotionIconConfigValue {
   trigger?: Trigger;
   onLeave?: OnLeave;
   reducedMotion?: ReducedMotion;
+  mode?: ModeName | ModeFactory;
 }
 ```
 
 Props specific to a single icon (`nodes`, `className`, `style`, `onClick`, `variants`, `ref`) are **not** propagated — they wouldn't make sense as shared defaults.
+
+<Callout type="info" title="Function-valued mode through context">
+  A `mode` factory works as an app-wide default too — but pass the **same factory reference** (define it once at module scope, don't inline it), or every render produces a new function and breaks memoization.
+</Callout>
 
 ## Recommended patterns
 

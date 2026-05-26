@@ -90,11 +90,14 @@ type ModeName = "draw" | "signature";
 interface ModeContext {
   iconName: string;
   index: number;
+  pathTag: string;                     // "path" | "circle" | "rect" | "line" | …
+  pathAttrs: Record<string, string | number>; // the element's attrs (incl. `d`)
   duration: number;
   delay: number;
   stagger: number;
   easing: Easing | Easing[];
   repeat: number;
+  pathLength: number;                  // engine-measured, from getTotalLength()
 }
 
 type ModeFactory = (ctx: ModeContext) => Variants;
@@ -110,7 +113,8 @@ interface ModeDefaults {
 interface Mode {
   factory: ModeFactory;
   defaults?: ModeDefaults;
-  needsTransformOrigin?: boolean;
+  needsTransformOrigin?: boolean;       // engine sets transform-origin on each child
+  transformOrigin?: string;             // override the pivot (default "12px 12px")
 }
 
 interface MotionIconHandle {
@@ -176,3 +180,32 @@ import {
   type Trigger,
 } from "lucide-react-motion";
 ```
+
+---
+
+## Manifest
+
+The package publishes a metadata list of every icon under the `lucide-react-motion/manifest` subpath. It's handy for building galleries, search, or your own "icons with signatures" filters — it carries no React/Motion code, just data.
+
+```ts
+import { manifest, type ManifestEntry } from "lucide-react-motion/manifest";
+
+interface ManifestEntry {
+  name: string;                 // lucide kebab name, e.g. "message-circle-dashed"
+  component: string;            // PascalCase export name, e.g. "MessageCircleDashed"
+  tags: readonly string[];      // lucide search/category tags
+  hasSignature: boolean;        // true if mode="signature" plays a bespoke animation
+                                // (false → it falls back to mode="draw")
+}
+
+const manifest: ManifestEntry[];
+```
+
+```tsx
+// Example: list only the icons that ship a bespoke signature.
+import { manifest } from "lucide-react-motion/manifest";
+
+const signed = manifest.filter((m) => m.hasSignature);
+```
+
+`hasSignature` is the same field the docs and gallery use to count and filter signed icons. Because it lives on the manifest, your filter stays correct automatically as signatures are added in future releases.

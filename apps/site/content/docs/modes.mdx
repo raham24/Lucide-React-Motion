@@ -12,7 +12,10 @@ import {
   Sun,
 } from "lucide-react-motion";
 import { MotionIconConfig } from "lucide-react-motion";
+import { manifest } from "lucide-react-motion/manifest";
 import { CustomModeExample } from "@/components/docs/custom-mode-example";
+
+export const signedCount = manifest.filter((m) => m.hasSignature).length;
 
 The `mode` prop picks which animation the icon plays. By default every icon draws itself on. Switch to the icon's signature for a character-specific animation, or a function factory for full control.
 
@@ -40,7 +43,7 @@ The `variants` prop, if set, wins over `mode` and replaces the animation entirel
 
 ## `"draw"` (default)
 
-The classic stroke-on animation. Each path's `pathLength` animates from 0 to 1, with strokes cascading by the `stagger` prop.
+The classic stroke-on animation. Each path draws itself on by animating `strokeDashoffset` from its measured length down to `0`, with strokes cascading by the `stagger` prop. At rest the dash attributes clear entirely, so the resting SVG is byte-identical to Lucide's static icon (no seam on closed paths like the gear or heart).
 
 <Preview>
   <Heart size={48} />
@@ -98,7 +101,9 @@ The warning is dead-code-eliminated in production via `process.env.NODE_ENV`.
 
 ### Icons with signatures today
 
-A curated set ships today: `heart`, `bell`, `eye`, `star`, `sun`, `loader`, and the clock, cloud, refresh, and flame families. More will be added over time. The fallback means you can use `mode="signature"` on any icon today — you'll get the draw animation, and if a signature is later added, it'll automatically pick up.
+**{signedCount.toLocaleString()}** of Lucide's {manifest.length.toLocaleString()} icons ship a bespoke signature today, with more added every release. Browse them in the [icon gallery](/) — switch the mode toggle to **Signature** and use **Show Only Signed** to filter to icons that have one.
+
+The fallback means you can set `mode="signature"` on *any* icon right now: icons with a signature play it, the rest draw on, and any icon that gains a signature later picks it up automatically with no code change. Each manifest entry also exposes a `hasSignature` boolean if you want to branch in your own UI (see [API reference](/docs/api#manifest)).
 
 ---
 
@@ -129,7 +134,7 @@ For full control, pass a factory function. It receives a `ModeContext` (timing +
 />
 ```
 
-`ModeContext` exposes the resolved timing context — `duration`, `delay`, `stagger`, `easing`, `repeat`, plus `iconName` and `index`. See [API reference](/docs/api#types).
+`ModeContext` exposes the resolved timing context — `duration`, `delay`, `stagger`, `easing`, `repeat` — plus the identity of the element being animated: `iconName`, `index`, `pathTag`, `pathAttrs`, and the engine-measured `pathLength` (used by the draw mode to size its dash sweep). See [API reference](/docs/api#types).
 
 ---
 

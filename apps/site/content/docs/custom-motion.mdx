@@ -9,7 +9,7 @@ import { WiggleStagger } from "@/components/docs/wiggle-stagger";
 The `variants` prop is the low-level escape hatch. Supply your own Motion variants and the engine skips its built-in animation, using your variants directly.
 
 <Callout type="info" title="Try the curated route first">
-  For common cases — pulse, spin, shake, bounce, or icon-specific signatures (heart beat, bell ring) — use the [`mode` prop](/docs/modes). It composes with `duration`/`delay`/`stagger`/`easing`/`repeat` automatically, whereas `variants` ignores those timing props entirely. Reach for `variants` when you need motion that isn't expressible as a mode.
+  For the icon's character animation — a heart beat, a bell ring, a loader spin — use [`mode="signature"`](/docs/modes). Modes compose with `duration`/`delay`/`stagger`/`easing`/`repeat` automatically, whereas `variants` ignores those timing props entirely. Reach for `variants` (or a [custom `mode` factory](/docs/modes)) when you need motion that isn't expressible as a built-in mode.
 </Callout>
 
 ## When to reach for this
@@ -110,27 +110,36 @@ The `12px 12px` aligns with Lucide's `viewBox="0 0 24 24"`.
 
 ## The default draw, for reference
 
-Here's what the built-in draw variants look like, so you can see the shape the engine expects:
+Here's what the built-in draw variants look like, so you can see the shape the engine expects. The draw animates `strokeDashoffset` from the path's measured length down to `0` against a matching `strokeDasharray`, then clears both at rest so the resting DOM carries no dash attributes (this is what keeps closed-path icons like the gear or heart seam-free):
 
 ```ts
-{
+// `ctx` is the ModeContext the engine passes a mode factory. `ctx.pathLength`
+// is each element's measured length from getTotalLength() — it's only
+// available inside a `mode` factory, not when you hand-write `variants`.
+(ctx) => ({
   rest: {
-    pathLength: 1,
+    strokeDasharray: 0,
+    strokeDashoffset: 0,
     opacity: 1,
   },
   active: {
-    pathLength: [0, 1],
+    strokeDasharray: ctx.pathLength,
+    strokeDashoffset: [ctx.pathLength, 0],
     opacity: [0.25, 1],
     transition: {
-      duration: 0.55,
-      delay: index * 0.12,
-      ease: "easeInOut",
-      repeat: 0,
+      duration: ctx.duration,                       // 0.55 default
+      delay: ctx.delay + ctx.index * ctx.stagger,   // stagger 0.12 default
+      ease: ctx.easing,                             // "easeInOut" default
+      repeat: ctx.repeat,                           // 0 default
       repeatType: "loop",
+      strokeDasharray: { duration: 0 },             // snap, don't tween
     },
+    transitionEnd: { strokeDasharray: 0, strokeDashoffset: 0 },
   },
-}
+})
 ```
+
+Because `ctx.pathLength` is engine-measured, this exact draw can only be expressed as a `mode` factory. A hand-written `variants` object can't read it — which is why custom stroke-draws are usually better built as a [custom `mode`](/docs/modes) than as raw `variants`.
 
 ## Trigger system still works
 
